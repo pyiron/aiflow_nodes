@@ -21,7 +21,7 @@ grid_roll_frac = {grid_roll_frac}
 grid_position_frac = {grid_position_frac} # where dipole correction is
 
 eps0 = 1.0/180.953062045845 # in e/(V*A), the vasp-value
-ax, ay, az = {ax}, {ay}, {az}
+ax, ay, az = ({ax}, {ay}, {az})
 kB = 8.6173857e-5
 d_electrode = {d_electrode}
 C0 = eps0*ax*ay/d_electrode #0.0641078458625971 #eps0*ax*az/az  # in e*A/V
