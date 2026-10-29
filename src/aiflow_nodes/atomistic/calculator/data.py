@@ -115,9 +115,7 @@ class SimSetupBundleInp(SimSetupBundle._original_dataclass):
 
 @as_inp_dataclass_node
 class InputCalcMD:
-    temperature: float = (
-        300  # in K, we need more than one temperature field to support rescaling, but this is the default/initial temperature
-    )
+    temperature: float = 300  # in K, we need more than one temperature field to support rescaling, but this is the default/initial temperature
     n_ionic_steps: int = 10_000
     n_print: int = 100
     n_print_force: Optional[int] = (

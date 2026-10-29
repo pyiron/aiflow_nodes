@@ -458,7 +458,7 @@ def _execute_crossref_search(spec: dict, config: SearchConfigData) -> list:
         params = {
             "query.bibliographic": keywords,
             "filter": (
-                f"from-pub-date:{config.from_date}," f"until-pub-date:{config.to_date}"
+                f"from-pub-date:{config.from_date},until-pub-date:{config.to_date}"
             ),
             "rows": rows,
             "offset": offset,
@@ -573,8 +573,7 @@ def _execute_epo_search(spec: dict, config: SearchConfigData) -> list:
                 "title": pub_num,
                 "doc_class": "patent",
                 "url": (
-                    f"https://worldwide.espacenet.com/patent/search"
-                    f"?q=pn%3D{pub_num}"
+                    f"https://worldwide.espacenet.com/patent/search?q=pn%3D{pub_num}"
                 ),
             }
         )
@@ -1465,7 +1464,7 @@ def DraftExperiments(
             f"  Method: {row.get('synthesis_method') or 'not reported'}\n"
             f"  Temperature: {_fmt(row.get('synthesis_temperature_C'), '°C')}\n"
             f"  Atmosphere: {row.get('sintering_atmosphere') or 'not reported'}\n"
-            f"  Evidence: \"{row.get('synthesis_evidence', '')}\"\n\n"
+            f'  Evidence: "{row.get("synthesis_evidence", "")}"\n\n'
             f"Conductivity: {_fmt(row.get('conductivity_mS_per_cm'), 'mS/cm')} "
             f"at {_fmt(row.get('temperature_C'), '°C')}\n"
             f"Moisture: {_fmt(row.get('h2s_ppm'), 'ppm H2S')} at "
@@ -1572,14 +1571,14 @@ def GenerateReport(
         steps = "".join(f"<li>{s}</li>" for s in plan.get("synthesis_route", []))
         chars = "".join(f"<li>{s}</li>" for s in plan.get("characterization_steps", []))
         plan_html += (
-            f"<h3>{plan.get('candidate_formula','?')} (Rank {plan.get('rank','?')})</h3>"
+            f"<h3>{plan.get('candidate_formula', '?')} (Rank {plan.get('rank', '?')})</h3>"
             f"<p><strong>Source:</strong> "
-            f"<a href='https://doi.org/{plan.get('source_doi','')}'>"
-            f"{plan.get('source_doi','N/A')}</a></p>"
+            f"<a href='https://doi.org/{plan.get('source_doi', '')}'>"
+            f"{plan.get('source_doi', 'N/A')}</a></p>"
             "<p class='warning'>⚠ Safety review by EHS required before any lab work.</p>"
             f"<h4>Synthesis route</h4><ol>{steps}</ol>"
             f"<h4>Characterization</h4><ul>{chars}</ul>"
-            f"<p><strong>Notes:</strong> {plan.get('notes','')}</p>"
+            f"<p><strong>Notes:</strong> {plan.get('notes', '')}</p>"
         )
 
     rq_html = ""
@@ -1587,9 +1586,9 @@ def GenerateReport(
         errs = r.get("validation_errors", [])
         errs_str = "; ".join(errs) if isinstance(errs, list) else str(errs)
         rq_html += (
-            f"<tr><td>{r.get('formula_raw','')}</td>"
-            f"<td>{r.get('doi','')}</td>"
-            f"<td>{r.get('review_reason','')}</td>"
+            f"<tr><td>{r.get('formula_raw', '')}</td>"
+            f"<td>{r.get('doi', '')}</td>"
+            f"<td>{r.get('review_reason', '')}</td>"
             f"<td>{errs_str}</td></tr>"
         )
 
@@ -1661,7 +1660,7 @@ def GenerateReport(
 <p><em>Comparability class: A=fully comparable; B=partial; C=not directly comparable.</em></p>
 
 <h2>4. Recommended Reproduction Experiments</h2>
-{plan_html or '<p>No experiment plans generated.</p>'}
+{plan_html or "<p>No experiment plans generated.</p>"}
 
 <h2>5. Methodology</h2>
 <p>Sources: OpenAlex, Crossref, EPO OPS (if credentials set).

@@ -34,9 +34,9 @@ class Stoichiometry(Sequence):
         """Inner product of underlying stoichiometries.
 
         Must not share elements with other stoichiometry."""
-        assert self.elements.isdisjoint(
-            other.elements
-        ), "Can only or stoichiometries of different elements!"
+        assert self.elements.isdisjoint(other.elements), (
+            "Can only or stoichiometries of different elements!"
+        )
         s = ()
         for me, you in zip(self.stoichiometry, other.stoichiometry, strict=False):
             s += (me | you,)
@@ -46,9 +46,9 @@ class Stoichiometry(Sequence):
         """Outer product of underlying stoichiometries.
 
         Must not share elements with other stoichiometry."""
-        assert self.elements.isdisjoint(
-            other.elements
-        ), "Can only multiply stoichiometries of different elements!"
+        assert self.elements.isdisjoint(other.elements), (
+            "Can only multiply stoichiometries of different elements!"
+        )
         s = ()
         for me, you in product(self.stoichiometry, other.stoichiometry):
             s += (me | you,)
@@ -167,8 +167,7 @@ def CombineStructureSets(
     structures = [s for values in sets.values() if values for s in values]
     if len(structures) == 0:
         logging.warning(
-            "Either no inputs given or all inputs are empty. "
-            "Returning the empty list!"
+            "Either no inputs given or all inputs are empty. Returning the empty list!"
         )
     return structures
 

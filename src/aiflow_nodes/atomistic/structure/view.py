@@ -99,7 +99,6 @@ def Animate(
 
     all_symbols = trajectory.species
     for frame_idx in range(len(trajectory.positions)):
-
         if hasattr(trajectory, "unwrapped_positions"):
             positions = trajectory.unwrapped_positions
         else:

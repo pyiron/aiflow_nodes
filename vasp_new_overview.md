@@ -64,12 +64,12 @@ sampling is a calculation setting, not a property of the structure.
 ```python
 @dataclass
 class VaspInputResources:
-    structure: Atoms           # ASE Atoms object
-    calc: VaspInput|None       # the merged calculation settings
-    potcar_lib_path: str       # path to the potpaw_PBE/ directory
-    working_directory: str     # where input/output files live
-    potcar_symbols: list|None  # optional override for POTCAR selection per element
-    extra_incar: dict|None     # any additional INCAR tags beyond VaspInput
+    structure: Atoms  # ASE Atoms object
+    calc: VaspInput | None  # the merged calculation settings
+    potcar_lib_path: str  # path to the potpaw_PBE/ directory
+    working_directory: str  # where input/output files live
+    potcar_symbols: list | None  # optional override for POTCAR selection per element
+    extra_incar: dict | None  # any additional INCAR tags beyond VaspInput
 ```
 
 This is a plain Python `@dataclass` (not a workflow node). It acts as a data carrier
@@ -228,7 +228,7 @@ The node reshapes that dictionary into its ports:
   stay available:
   ```python
   potential = wf.parse.outputs.electrostatic_potential.value
-  potential.get_average_along_axis(ind=2)   # planar average along c → work function
+  potential.get_average_along_axis(ind=2)  # planar average along c → work function
   potential.write_cube_file("locpot.cube")  # for external visualisation
   ```
 - **`converged`** — electronic convergence, and ionic convergence too for a
@@ -249,7 +249,7 @@ vasprun.xml instead, which holds the same quantity VASP writes to the DOSCAR.
 
 ```python
 wf.parse = ParseVaspOutput(io_bundle=..., dos_source="vasprun")  # default
-wf.parse = ParseVaspOutput(io_bundle=..., dos_source="doscar")   # read_doscar()
+wf.parse = ParseVaspOutput(io_bundle=..., dos_source="doscar")  # read_doscar()
 ```
 
 `"doscar"` goes through the module-level `read_doscar(filename)`, a small parser
@@ -280,8 +280,8 @@ Two ports stay empty unless the run was set up to produce them:
 **`magnetic_moments`** needs `ISPIN = 2` *and* `LORBIT`, i.e. both dataclasses:
 
 ```python
-wf.scf = InputSCF(kpoints="8 8 8", spin_polarized=True)   # ISPIN 2
-wf.dos = InputVaspDOS(projected=True)                     # LORBIT 11
+wf.scf = InputSCF(kpoints="8 8 8", spin_polarized=True)  # ISPIN 2
+wf.dos = InputVaspDOS(projected=True)  # LORBIT 11
 ```
 
 **`dos`** is filled whenever VASP wrote a DOS at all, but `InputVaspDOS`
@@ -305,10 +305,10 @@ selected with `InputVaspOutputFiles` and passed to `MergeVaspInput`:
 
 ```python
 wf.output_files = InputVaspOutputFiles(
-    charge_density=True,             # LCHARG → CHGCAR → electron_density
-    electrostatic_potential=True,    # LVTOT  → LOCPOT → electrostatic_potential
-    hartree_potential_only=False,    # LVHAR  → LOCPOT without the XC part
-    wavefunctions=False,             # LWAVE  → WAVECAR
+    charge_density=True,  # LCHARG → CHGCAR → electron_density
+    electrostatic_potential=True,  # LVTOT  → LOCPOT → electrostatic_potential
+    hartree_potential_only=False,  # LVHAR  → LOCPOT without the XC part
+    wavefunctions=False,  # LWAVE  → WAVECAR
 )
 ```
 
@@ -350,7 +350,7 @@ wf.dos = InputVaspDOS(n_points=3001, projected=True)
 
 # 4. Which output files VASP should write
 wf.output_files = InputVaspOutputFiles(
-    charge_density=True,           # CHGCAR → electron_density
+    charge_density=True,  # CHGCAR → electron_density
     electrostatic_potential=True,  # LOCPOT → electrostatic_potential
 )
 
@@ -385,11 +385,15 @@ print("Total energy:  ", out.total_energy.value, "eV")
 print("Converged:     ", out.converged.value)
 print("Final structure:", out.last_structure.value)
 print("Trajectory:    ", len(out.trajectory.value), "ionic steps")
-print("Magnetic moments:", out.magnetic_moments.value)          # (n_atoms,)
+print("Magnetic moments:", out.magnetic_moments.value)  # (n_atoms,)
 print("Electron density:", out.electron_density.value.total_data.shape)
-print("Planar-averaged potential:",
-      out.electrostatic_potential.value.get_average_along_axis(ind=2))
-print("DOS points:      ", out.dos.value.energies.shape, "at E_F =", out.dos.value.efermi)
+print(
+    "Planar-averaged potential:",
+    out.electrostatic_potential.value.get_average_along_axis(ind=2),
+)
+print(
+    "DOS points:      ", out.dos.value.energies.shape, "at E_F =", out.dos.value.efermi
+)
 ```
 
 ---

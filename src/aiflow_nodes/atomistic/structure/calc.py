@@ -117,7 +117,6 @@ def SplineDescriptor(
     if structure is None:
         descriptor = None
     else:
-
         r_bins = np.linspace(r_min, r_max, num_points)
 
         distances = GetDistances()._func(

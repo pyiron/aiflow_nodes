@@ -478,7 +478,9 @@ def GenerateHEAStructures(
     )
     print(f"Element distribution among free sites:")
     for el, cnt, frac in zip(element_list, element_counts, share_array):
-        print(f"  {el}: {cnt} atoms ({cnt/n_free*100:.1f}%,  target: {frac*100:.1f}%)")
+        print(
+            f"  {el}: {cnt} atoms ({cnt / n_free * 100:.1f}%,  target: {frac * 100:.1f}%)"
+        )
 
     # -------------------------------------------------------------------------
     # Generate n_structures random structures
@@ -486,7 +488,6 @@ def GenerateHEAStructures(
     results = []
 
     for i in range(n_structures):
-
         # Handle seeding
         if seed is not None:
             # Each structure gets its own deterministic seed

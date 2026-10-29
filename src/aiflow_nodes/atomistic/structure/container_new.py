@@ -902,7 +902,7 @@ class StructureContainer:
             if relative_index >= n_defects:
                 raise IndexError(
                     f"Relative defect index {relative_index} out of range. "
-                    f"Container has {n_defects} defect structures (indices 0 to {n_defects-1}). "
+                    f"Container has {n_defects} defect structures (indices 0 to {n_defects - 1}). "
                     f"Use a smaller index or negative indices (-{n_defects} to -1)."
                 )
             return defect_rows[relative_index]
@@ -958,7 +958,7 @@ class StructureContainer:
             if relative_index >= n_structures:
                 raise IndexError(
                     f"Relative index {relative_index} out of range. "
-                    f"Container has {n_structures} structures (indices 0 to {n_structures-1}). "
+                    f"Container has {n_structures} structures (indices 0 to {n_structures - 1}). "
                     f"Use a smaller index or negative indices (-{n_structures} to -1)."
                 )
             return relative_index
@@ -2120,7 +2120,7 @@ def _resolve_parent(
         if not (0 <= parent_defect_index < len(container)):
             raise IndexError(
                 f"Defect index {parent_defect_index} out of range. "
-                f"Container has {len(container)} structures (indices 0 to {len(container)-1})."
+                f"Container has {len(container)} structures (indices 0 to {len(container) - 1})."
             )
         if container._structures[parent_defect_index]["is_pristine"]:
             raise ValueError(

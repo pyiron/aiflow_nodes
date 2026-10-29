@@ -254,7 +254,9 @@ class Node:
             "parent": (
                 self.parent
                 if isinstance(self.parent, str)
-                else getattr(self.parent, "label", None) if self.parent else None
+                else getattr(self.parent, "label", None)
+                if self.parent
+                else None
             ),
             "expanded": getattr(self, "expanded", None),
             "inputs": {
