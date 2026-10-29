@@ -205,7 +205,7 @@ def filter_internals(input_list):
 
 def wf_data_class(*args, doc_func=None, **kwargs):
     """
-    Extension of the python default dataclass to include methods and functionality needed for pyiron_core.pyiron_workflows
+    Extension of the python default dataclass to include methods and functionality needed for aiflow.core workflows
 
     :param args: pass to dataclass decorator
     :param doc_func: function from which to copy docstring

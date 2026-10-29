@@ -70,16 +70,16 @@ class Node:
         from datetime import datetime
 
         try:
-            import aiflow.database
+            import aiflow.database as _pdb
         except ImportError:
-            aiflow.database = None
+            _pdb = None
 
         wants_storage = _node_wants_storage(self)
 
         # ── Attempt restore (only if store=True AND outputs were stored) ──
-        if wants_storage and aiflow.database is not None and db is not None:
+        if wants_storage and _pdb is not None and db is not None:
             try:
-                restored = aiflow.database.restore_node_outputs(self, db)
+                restored = _pdb.restore_node_outputs(self, db)
                 if restored:
                     return self._collect_outputs()
             except Exception:

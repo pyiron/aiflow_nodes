@@ -227,7 +227,7 @@ class CacheExecutor:
     """executorlib's file cache without a scheduler — recoverable, but local.
 
     Wraps ``SingleNodeExecutor`` and exposes ``info["executor_kwargs"]`` the way
-    the cluster executors do, so ``core.remote_cache`` treats it as one.
+    the cluster executors do, so ``aiflow.core.remote_cache`` treats it as one.
     """
 
     def __init__(self, directory, on_submit=None):

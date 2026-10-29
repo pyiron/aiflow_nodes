@@ -20,7 +20,7 @@ def LoadGraph(path: str):
 
     Returns
     -------
-    pyiron_core.pyiron_workflow.api.graph.Graph
+    aiflow.core.graph.Graph
         The deserialized workflow graph.
     """
     from aiflow.core.graph import Graph

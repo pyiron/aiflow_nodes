@@ -23,7 +23,7 @@ from aiflow.core.node import _node_wants_storage, inject_executor_resource_kwarg
 # cells by that link.
 #
 # The database is the one of the graph *running the sweep*, published as
-# ``core.remote_cache.current_run_node()`` — not ``template._graph``, which after
+# ``aiflow.core.remote_cache.current_run_node()`` — not ``template._graph``, which after
 # ``Graph.copy()`` (the GUI always runs a copy) points at a graph without one.
 # ``storage_enabled = False`` on the workflow turns all of this off.
 #
@@ -504,7 +504,7 @@ def _submit_cells(
 
     A non-modal run (``SlurmExecutor(non_modal=True)``, ``wf.run(wait=False)``)
     does not wait: once every cell is either done or in the queue, the sweep
-    is check-pointed and :class:`~core.remote_cache.NodeSubmitted` raised.  A
+    is check-pointed and :class:`~aiflow.core.remote_cache.NodeSubmitted` raised.  A
     later run picks up what has finished.
 
     Returns ``{future: (index, value)}``; completed rows are registered in

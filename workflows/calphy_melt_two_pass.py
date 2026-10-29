@@ -63,8 +63,6 @@ potential — the adaptive node is the right tool once those are settled.
 
 Usage
 -----
-    import sys
-    sys.path[:0] = ["pyiron_core/src"]  # aiflow_nodes: pip install -e .
     exec(open("workflows/calphy_melt_two_pass.py").read())
     wf.run()
     print(wf.pass2.outputs.T_melt.value,

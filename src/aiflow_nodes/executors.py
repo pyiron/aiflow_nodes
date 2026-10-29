@@ -48,7 +48,7 @@ def _resolve_cache_directory(cache_directory):
 
     Shared with the recovery path, which has to anchor the same way when it
     reads the directory back out of the database (see
-    :func:`core.remote_cache.resolve_cache_directory`).
+    :func:`aiflow.core.remote_cache.resolve_cache_directory`).
     """
     from aiflow.core.remote_cache import resolve_cache_directory
 

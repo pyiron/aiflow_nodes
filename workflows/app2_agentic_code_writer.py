@@ -16,10 +16,6 @@ numbers for Fig. 4. Those numbers are PLACEHOLDERS pending a real benchmark run
 and are flagged as such in the figure.
 """
 
-import sys
-
-sys.path.insert(0, "pyiron_core/src")
-
 import io
 import contextlib
 import textwrap
