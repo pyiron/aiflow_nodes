@@ -5,7 +5,7 @@ from ase import Atoms
 import numpy as np
 import re
 
-from core import as_function_node
+from aiflow.core import as_function_node
 from pathlib import Path
 
 from aiflow_nodes.atomistic.engine.vasp_new import (

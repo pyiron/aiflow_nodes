@@ -24,7 +24,7 @@ Typical workflow
 
 from __future__ import annotations
 
-from core import as_function_node
+from aiflow.core import as_function_node
 import numpy as np
 import pandas as pd
 

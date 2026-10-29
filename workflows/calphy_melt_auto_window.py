@@ -90,7 +90,7 @@ Then read, in this order:
     evidence behind the starting window.
 """
 
-from core import Workflow
+from aiflow.core import Workflow
 
 from aiflow_nodes.atomistic.engine.ase import LammpsEngine
 from aiflow_nodes.atomistic.property.calphy import (

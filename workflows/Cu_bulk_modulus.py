@@ -48,8 +48,8 @@ from aiflow_nodes.atomistic.property.bulk import FitBirchMurnaghanEOS, PlotEVCur
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.transform import GenerateStrainedStructures
 from aiflow_nodes.math_utils import Linspace
-from core import Workflow
-from core import as_function_node
+from aiflow.core import Workflow
+from aiflow.core import as_function_node
 
 # ── Local node definitions ──────────────────────
 

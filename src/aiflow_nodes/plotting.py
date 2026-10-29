@@ -9,7 +9,7 @@ from typing import Optional, Literal
 import numpy as np
 import pandas as pd
 
-from core import as_function_node, as_inp_dataclass_node, PortList
+from aiflow.core import as_function_node, as_inp_dataclass_node, PortList
 
 
 @as_inp_dataclass_node

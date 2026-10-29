@@ -1,4 +1,4 @@
-from core import group_node, as_function_node
+from aiflow.core import group_node, as_function_node
 import numpy as np
 
 
@@ -102,7 +102,7 @@ def GetStackingFaultEnergy(element: str, engine):
     from aiflow_nodes.atomistic.structure.calc import DefectEnergyPerArea
     from aiflow_nodes.atomistic.structure.transform import LayerShift
     from aiflow_nodes.atomistic.structure.view import PlotCNA
-    from core import Workflow
+    from aiflow.core import Workflow
 
     wf = Workflow("GetStackingFaultEnergy")
     wf.Surface = Surface(element=element, size="1 2 10", vacuum=20, orthogonal=True)

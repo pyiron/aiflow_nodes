@@ -1,4 +1,4 @@
-from core import Node, as_function_node
+from aiflow.core import Node, as_function_node
 import getpass
 from typing import Literal
 
@@ -16,14 +16,14 @@ def CreateDB(
     database: str = USERNAME,
     table_name: Literal["test_nodes_cmmc", "nodes_cmmc"] = "test_nodes_cmmc",
 ):
-    import pyiron_database
+    import aiflow.database
 
     if database == "none":
         database = user
 
     connection_str = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
-    db = pyiron_database.PostgreSQLInstanceDatabase(
+    db = aiflow.database.PostgreSQLInstanceDatabase(
         connection_str, table_name=table_name, storage_path=table_name
     )
 
@@ -47,7 +47,7 @@ def DeleteDB(db, reinitialize: bool = False, delete_hash_files: bool = False):
     if delete_hash_files:
         import pathlib
         import shutil
-        from core.config import paths as _cfg_paths
+        from aiflow.core.config import paths as _cfg_paths
 
         # Get the storage path from config
         # storage_path = pathlib.Path(_cfg_paths.DATA_STORAGE)
@@ -257,7 +257,7 @@ def GetNode(db, node_id: int):
     import pandas as pd
     from sqlalchemy.orm import sessionmaker
 
-    import pyiron_database
+    import aiflow.database
     from pyironflow.gui_utilities import GuiGraph
 
     Session = sessionmaker(bind=db.engine)
@@ -267,7 +267,7 @@ def GetNode(db, node_id: int):
 
     session.close()
 
-    _, graph = pyiron_database.restore_node_from_database(
+    _, graph = aiflow.database.restore_node_from_database(
         db=db, node_hash=df.hash.iloc[node_id]
     )
 
@@ -281,10 +281,10 @@ def GetHash(node: Node):
     """
     Get the hash of a node
     """
-    import pyiron_database
+    import aiflow.database
 
     print("inputs: ", node.inputs)
-    hash = pyiron_database.get_hash(node)
+    hash = aiflow.database.get_hash(node)
     return hash
 
 
@@ -374,13 +374,13 @@ def GetHashesByUpstreamQualname(db, qualname: str = "", contains: str = ""):
         if has_upstream_qualname(row.hash, contains)
     ]
 
-    import pyiron_database
-    from pyiron_database.instance_database.node import restore_node_outputs
+    import aiflow.database
+    from aiflow.database.instance_database.node import restore_node_outputs
 
     dataframes = []
     for node_id, node_hash in matches:
         try:
-            node, _ = pyiron_database.restore_node_from_database(
+            node, _ = aiflow.database.restore_node_from_database(
                 db=db, node_hash=node_hash
             )
             if not restore_node_outputs(
@@ -412,8 +412,8 @@ def GetStoredOutput(db, index: int = 0):
     """
     import pandas as pd
     from sqlalchemy.orm import sessionmaker
-    import pyiron_database
-    from pyiron_database.instance_database.node import restore_node_outputs
+    import aiflow.database
+    from aiflow.database.instance_database.node import restore_node_outputs
 
     Session = sessionmaker(bind=db.engine)
     session = Session()
@@ -429,7 +429,7 @@ def GetStoredOutput(db, index: int = 0):
 
     node_hash = df.hash.iloc[index]
 
-    node, _ = pyiron_database.restore_node_from_database(db=db, node_hash=node_hash)
+    node, _ = aiflow.database.restore_node_from_database(db=db, node_hash=node_hash)
 
     success = restore_node_outputs(
         node, storage_path=db.storage_path, node_hash=node_hash
@@ -481,7 +481,7 @@ def GetUpstreamGraph(db, node_id: int, group: bool = False, workflow_name: str =
     import pandas as pd
     from sqlalchemy.orm import sessionmaker
 
-    import pyiron_database
+    import aiflow.database
 
     # Get the hash for the specified node
     Session = sessionmaker(bind=db.engine)
@@ -493,7 +493,7 @@ def GetUpstreamGraph(db, node_id: int, group: bool = False, workflow_name: str =
     node_hash = df.hash.iloc[node_id]
 
     # Restore the node - this recursively restores upstream connected nodes
-    _, graph = pyiron_database.restore_node_from_database(db=db, node_hash=node_hash)
+    _, graph = aiflow.database.restore_node_from_database(db=db, node_hash=node_hash)
 
     # Set a meaningful label for the graph
     if workflow_name is not None:
@@ -590,7 +590,7 @@ def ShowOutstandingSubmissions(db, cache_directory: str = ""):
     import pandas as pd
     from sqlalchemy.orm import sessionmaker
 
-    from core.remote_cache import queue_status_for
+    from aiflow.core.remote_cache import queue_status_for
 
     Session = sessionmaker(bind=db.engine)
     session = Session()

@@ -8,7 +8,7 @@ from ase.calculators.calculator import Calculator
 from ase.constraints import FixAtoms
 from ase.filters import FrechetCellFilter
 
-from core import (
+from aiflow.core import (
     as_function_node,
     as_inp_dataclass_node,
 )

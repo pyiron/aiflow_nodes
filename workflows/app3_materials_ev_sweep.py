@@ -23,7 +23,7 @@ sys.path.insert(0, "pyiron_core/src")
 
 import numpy as np
 
-from core import Workflow, as_function_node
+from aiflow.core import Workflow, as_function_node
 from aiflow_nodes.controls import IterToDataFrame
 
 # fcc coordination shells: (multiplicity, neighbour distance in units of a)

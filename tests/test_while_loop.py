@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from core import Workflow, as_function_node, group_node
+from aiflow.core import Workflow, as_function_node, group_node
 from aiflow_nodes.controls import while_loop
 
 

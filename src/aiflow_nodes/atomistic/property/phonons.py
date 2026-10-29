@@ -6,13 +6,13 @@ from phonopy.api_phonopy import Phonopy
 from structuretoolkit.common import atoms_to_phonopy, phonopy_to_atoms
 
 from aiflow_nodes.atomistic.engine.generic import OutputEngine
-from core import (
+from aiflow.core import (
     as_function_node,
     as_inp_dataclass_node,
     group_node,
     as_out_dataclass_node,
 )
-from core.data_fields import DataArray, EmptyArrayField
+from aiflow.core.data_fields import DataArray, EmptyArrayField
 
 
 @as_function_node("phonopy")
@@ -60,7 +60,7 @@ def phonopy(
         PhonopyObject,
     )
     from aiflow_nodes.controls import GetAttribute, SetAttribute, iterate
-    from core import Workflow
+    from aiflow.core import Workflow
 
     if phonopy_parameters is None:
         phonopy_parameters = PhonopyParameters()

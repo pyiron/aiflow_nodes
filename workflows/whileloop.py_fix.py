@@ -1,4 +1,4 @@
-from core import Workflow, as_function_node
+from aiflow.core import Workflow, as_function_node
 
 # ── Local node definitions ──────────────────────
 
@@ -70,16 +70,16 @@ class Node:
         from datetime import datetime
 
         try:
-            import pyiron_database
+            import aiflow.database
         except ImportError:
-            pyiron_database = None
+            aiflow.database = None
 
         wants_storage = _node_wants_storage(self)
 
         # ── Attempt restore (only if store=True AND outputs were stored) ──
-        if wants_storage and pyiron_database is not None and db is not None:
+        if wants_storage and aiflow.database is not None and db is not None:
             try:
-                restored = pyiron_database.restore_node_outputs(self, db)
+                restored = aiflow.database.restore_node_outputs(self, db)
                 if restored:
                     return self._collect_outputs()
             except Exception:
@@ -186,7 +186,7 @@ class Node:
         if isinstance(val, Node):
             try:
                 try:
-                    import pyiron_database as _pdb
+                    import aiflow.database as _pdb
                 except ImportError:
                     _pdb = None
                 val._hash_parent = _pdb.get_hash(val) if _pdb else None

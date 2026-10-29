@@ -13,7 +13,7 @@ from aiflow_nodes.atomistic.calculator.data import (
     InputCalcStatic,
 )
 from aiflow_nodes.dev_tools import FileObject
-from core import (
+from aiflow.core import (
     as_function_node,
     as_inp_dataclass_node,
     as_macro_node,
@@ -612,7 +612,7 @@ def Code(
     working_dir: str = "test2",
 ):
 
-    from core import Workflow
+    from aiflow.core import Workflow
 
     wf = Workflow("LammpsMacro")
 
@@ -649,7 +649,7 @@ def Code1(
     working_dir: str = "test2",
 ):
 
-    from core import Workflow
+    from aiflow.core import Workflow
 
     wf = Workflow("LammpsMacro")
 
@@ -686,7 +686,7 @@ def Lammps(
     store: bool = False,
 ):
 
-    from core import Workflow
+    from aiflow.core import Workflow
 
     wf = Workflow("LammpsMacro")
 

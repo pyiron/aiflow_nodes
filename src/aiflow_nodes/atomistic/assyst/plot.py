@@ -3,7 +3,7 @@ from collections.abc import Iterable
 import pandas as pd
 from ase import Atoms
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 
 @as_function_node

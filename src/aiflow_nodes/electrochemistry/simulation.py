@@ -1,6 +1,6 @@
 from typing import Optional
 
-from core import group_node
+from aiflow.core import group_node
 
 
 @group_node("new_structure")
@@ -23,7 +23,7 @@ def ElectrochemicalCell(
         AddWaterFilm,
     )
     from aiflow_nodes.atomistic.structure.build import Surface
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner_wf = Workflow("ElectrochemicalCell")
     inner_wf.al_slab = Surface(
@@ -63,7 +63,7 @@ def SimulationSetup(
     from aiflow_nodes.atomistic.calculator.data import SimSetupBundleInp
     from aiflow_nodes.electrochemistry.structure.build import ConfigurePBC
     from aiflow_nodes.electrochemistry.structure.equilibrate import IonPotential
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner_wf = Workflow("SimulationSetup")
     inner_wf.cell = ElectrochemicalCell(
@@ -110,7 +110,7 @@ def Lammps(
         ParseLammpsOutput,
         RunLammpsCalculation,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner_wf = Workflow("Lammps")
     inner_wf.unpacked = SimSetupBundle(input=sim_setup)

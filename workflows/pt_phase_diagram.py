@@ -13,7 +13,7 @@ from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.dataframe import GetColumnFromDataFrame
 from aiflow_nodes.math_utils import Linspace
 from aiflow_nodes.plotting import Scatter, InputPlotOptions
-from core import Workflow, group_node
+from aiflow.core import Workflow, group_node
 
 _POTENTIAL = "1999--Mishin-Y--Al--LAMMPS--ipr1"
 

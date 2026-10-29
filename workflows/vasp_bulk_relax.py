@@ -9,8 +9,8 @@ from aiflow_nodes.atomistic.engine.vasp_new import (
     RunVaspCalculation,
 )
 from aiflow_nodes.atomistic.structure.build import Bulk
-from core import Workflow
-from core import group_node
+from aiflow.core import Workflow
+from aiflow.core import group_node
 
 wf = Workflow("vasp_bulk_relax")
 

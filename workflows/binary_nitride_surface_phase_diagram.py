@@ -13,7 +13,7 @@ second degree of freedom, so the entire phase diagram is swept by varying μ_cat
 
 from __future__ import annotations
 
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.atomistic.calculator.ase import Minimize
 from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
 from aiflow_nodes.atomistic.engine.ase import GRACE

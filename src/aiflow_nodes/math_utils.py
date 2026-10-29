@@ -6,7 +6,7 @@ from typing import Optional
 
 import numpy as np
 
-from core import as_function_node
+from aiflow.core import as_function_node
 import scipy.sparse as sp
 from scipy.sparse.linalg import eigsh
 

@@ -7,8 +7,8 @@ from typing import Any, List, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from core import Node, as_function_node
-from core.node import _node_wants_storage, inject_executor_resource_kwargs
+from aiflow.core import Node, as_function_node
+from aiflow.core.node import _node_wants_storage, inject_executor_resource_kwargs
 
 # ---------------------------------------------------------------------------
 # Per-iteration content-addressed storage for higher-order nodes
@@ -48,7 +48,7 @@ def _storage_context(node):
     GUI runs a copy, so the template's back-reference points at a graph without
     the database.  ``storage_enabled = False`` on the workflow turns it off.
     """
-    from core.remote_cache import current_run_node
+    from aiflow.core.remote_cache import current_run_node
 
     run = current_run_node()
     if run is not None and run.db is not None:
@@ -68,7 +68,7 @@ def _storage_context(node):
 
 def _restore_instance(node, db, storage_path) -> bool:
     """Restore an instance's outputs from store if present. Mirrors Graph path."""
-    import pyiron_database as _pdb
+    import aiflow.database as _pdb
 
     node_hash = _pdb.get_hash(node)
     record = db.read(node_hash) if db is not None else None
@@ -88,7 +88,7 @@ def _store_instance(
     node, db, storage_path, outputs=True, node_hash=None, executor_hash=None
 ) -> None:
     """Persist an executed instance as its own database row (+ HDF5 output)."""
-    import pyiron_database as _pdb
+    import aiflow.database as _pdb
 
     _pdb.store_node_in_database(
         db,
@@ -195,7 +195,7 @@ def _warn_about_set_swept_ports(node, labels: list[str]) -> None:
     edit there silently does nothing.  The canvas hides these ports; code that
     sets them anyway gets this warning.
     """
-    from core.node import NotData, _differs_from_default
+    from aiflow.core.node import NotData, _differs_from_default
 
     for label in labels:
         port = node.inputs.ports.get(label)
@@ -418,7 +418,7 @@ def _store_on_client(
     With ``outputs=False`` only the row is written — the completion of a cell
     that was check-pointed for recovery but whose template does not store.
     """
-    from core.node import set_node_outputs
+    from aiflow.core.node import set_node_outputs
 
     try:
         _set_sweep_inputs(node, input_label, value)
@@ -446,13 +446,13 @@ def _parent_hash(node):
     Falls back to the template's own hash outside a graph run, where nothing
     names the sweep.
     """
-    from core.remote_cache import current_run_node
+    from aiflow.core.remote_cache import current_run_node
 
     run = current_run_node()
     if run is not None and run.node is not node and run.node_hash:
         return run.node_hash
     try:
-        import pyiron_database as _pdb
+        import aiflow.database as _pdb
 
         return _pdb.get_hash(node)
     except Exception:  # noqa: BLE001 — provenance link is best-effort
@@ -461,7 +461,7 @@ def _parent_hash(node):
 
 def _executor_hash():
     """Hash of the executor node wired into the running sweep, or ``None``."""
-    from core.remote_cache import current_run_node
+    from aiflow.core.remote_cache import current_run_node
 
     run = current_run_node()
     return run.executor_hash if run is not None else None
@@ -475,7 +475,7 @@ def _cells_are_recoverable(node, executor) -> bool:
     what goes to the queue, so the cache holds exactly what a node-level
     submission would and the Database panel can collect it the same way.
     """
-    from core.remote_cache import executor_cache_directory, is_recoverable_executor
+    from aiflow.core.remote_cache import executor_cache_directory, is_recoverable_executor
 
     return (
         is_recoverable_executor(executor)
@@ -512,9 +512,9 @@ def _submit_cells(
     """
     from concurrent.futures import Future
 
-    import pyiron_database as _pdb
-    from core.cancellation import _submit
-    from core.remote_cache import (
+    import aiflow.database as _pdb
+    from aiflow.core.cancellation import _submit
+    from aiflow.core.remote_cache import (
         NodeSubmitted,
         QueueJobFailed,
         _guard_dead_submission,

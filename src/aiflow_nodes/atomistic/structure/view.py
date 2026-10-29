@@ -4,7 +4,7 @@ from typing import Literal, Optional
 import numpy as np
 from ase import Atoms as _Atoms
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 # from aiflow_nodes.atomistic.engine.lammps import LammpsIOBundle
 from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _data_to_ase, to_ase

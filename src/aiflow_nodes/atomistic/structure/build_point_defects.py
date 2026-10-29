@@ -21,7 +21,7 @@ import nglview as nv
 from structuretoolkit.visualize import plot3d
 
 from typing import Optional
-from core import as_function_node
+from aiflow.core import as_function_node
 
 # %%
 import sys

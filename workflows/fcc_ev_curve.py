@@ -1,8 +1,8 @@
 from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.math_utils import Linspace
-from core import Workflow
-from core import group_node
-from core import as_function_node
+from aiflow.core import Workflow
+from aiflow.core import group_node
+from aiflow.core import as_function_node
 
 # ── Local node definitions ──────────────────────
 

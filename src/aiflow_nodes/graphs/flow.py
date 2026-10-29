@@ -1,8 +1,8 @@
 import pathlib
 from typing import Optional
 
-from core import as_function_node
-from core.graph import Graph, Node
+from aiflow.core import as_function_node
+from aiflow.core.graph import Graph, Node
 
 
 @as_function_node
@@ -23,8 +23,8 @@ def LoadGraph(path: str):
     pyiron_core.pyiron_workflow.api.graph.Graph
         The deserialized workflow graph.
     """
-    from core.graph import Graph
-    from core.config import paths
+    from aiflow.core.graph import Graph
+    from aiflow.core.config import paths
 
     # 1️⃣  Is the supplied path already absolute?
     if not pathlib.Path(path).is_absolute():
@@ -37,7 +37,7 @@ def LoadGraph(path: str):
 
 @as_function_node
 def SaveGraph(graph: Graph, path: str):
-    from core.config import paths
+    from aiflow.core.config import paths
     from os.path import isfile
 
     # 1️⃣  Is the supplied path already absolute?
@@ -164,7 +164,7 @@ def DisplayGraphAsJson(graph: Graph):
 
 @as_function_node
 def ExpandNode(graph: Graph, node_label: str):
-    from core.graph_utils import expand_node
+    from aiflow.core.graph_utils import expand_node
 
     expanded_graph = graph.copy()
     expand_node(expanded_graph.copy(), node_label)
@@ -191,7 +191,7 @@ def AnalyzeParents(graph: Graph):
 def GetCodeFromGraph(
     graph: Graph,
 ):
-    from core.graph_to_workflow import graph_to_workflow_code
+    from aiflow.core.graph_to_workflow import graph_to_workflow_code
 
     code = graph_to_workflow_code(graph, workflow_name=graph.label)
 

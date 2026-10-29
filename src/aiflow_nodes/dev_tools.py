@@ -52,7 +52,7 @@ class FileObject:
 
 
 class Replacer:
-    from core import Node
+    from aiflow.core import Node
 
     def __init__(self, node: Node):
         self.node = node

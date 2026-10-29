@@ -11,7 +11,7 @@ The defaults are representative of a low-alloy ferritic steel, but they are not
 calibrated to any particular grade — treat the numbers as illustrative.
 """
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 
 @as_function_node

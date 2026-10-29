@@ -1,4 +1,4 @@
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.atomistic.engine.ase import GRACE
 from aiflow_nodes.dataframe import GetColumnFromDataFrame
 from aiflow_nodes.atomistic.assyst2.structures import (

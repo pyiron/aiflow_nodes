@@ -3,8 +3,8 @@ from aiflow_nodes.atomistic.property.calphy import InputClass, SolidFreeEnergyWi
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.transform import Repeat
 from aiflow_nodes.plotting import InputPlotOptions, MergePlots, Plot
-from core import Workflow
-from core import group_node
+from aiflow.core import Workflow
+from aiflow.core import group_node
 
 wf = Workflow("calph_sol_conv")
 

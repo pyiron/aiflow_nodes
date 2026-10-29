@@ -11,7 +11,7 @@ carry an attached calculator, and they cannot be stored in pandas
 DataFrames that need to round-trip through the hash-based storage layer.
 :class:`OutputAtoms` is a plain Python dataclass (symbols, positions,
 cell, pbc) that IS picklable and works transparently with
-``pyiron_database``.
+``aiflow.database``.
 
 Public API
 ----------
@@ -59,7 +59,7 @@ from dataclasses import dataclass
 from typing import Union
 
 from ase.atoms import Atoms
-from core.data_fields import DataArray, EmptyArrayField
+from aiflow.core.data_fields import DataArray, EmptyArrayField
 
 # ---------------------------------------------------------------------------
 # OutputAtoms dataclass

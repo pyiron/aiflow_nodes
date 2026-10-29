@@ -1,4 +1,4 @@
-from core import Workflow, group_node
+from aiflow.core import Workflow, group_node
 from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.math_utils import Linspace
 
@@ -7,7 +7,7 @@ from aiflow_nodes.math_utils import Linspace
 
 @group_node("out")
 def group_Bulk_GRACE_Static(name, a=None, cubic=False):
-    from core import Workflow
+    from aiflow.core import Workflow
     from aiflow_nodes.atomistic.calculator.ase import StaticEnergy
     from aiflow_nodes.atomistic.engine.ase import GRACE
     from aiflow_nodes.atomistic.structure.build import Bulk

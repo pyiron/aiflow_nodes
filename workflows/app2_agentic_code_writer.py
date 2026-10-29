@@ -26,7 +26,7 @@ import textwrap
 
 import pandas as pd
 
-from core import as_function_node, Workflow, Node
+from aiflow.core import as_function_node, Workflow, Node
 
 # --------------------------------------------------------------------------- #
 #  Building-block nodes (LLM calls and code execution are ordinary nodes).      #

@@ -24,7 +24,7 @@ from math import gcd
 from functools import reduce
 from typing import Literal, Optional
 
-from core import as_function_node
+from aiflow.core import as_function_node
 from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _ase_to_data
 
 # =====================================================================

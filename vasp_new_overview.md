@@ -323,7 +323,7 @@ A spin-polarized static run that keeps both the charge density and the local
 potential, so every output port is filled:
 
 ```python
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.calculator.data import (
     InputSCF,

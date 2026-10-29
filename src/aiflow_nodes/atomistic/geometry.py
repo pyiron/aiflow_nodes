@@ -18,7 +18,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 from ase import Atoms
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 
 @as_function_node("structure")

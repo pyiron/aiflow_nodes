@@ -1,6 +1,6 @@
 from dataclasses import field
 from typing import Optional, Callable, Literal
-from core import as_function_node, as_inp_dataclass_node
+from aiflow.core import as_function_node, as_inp_dataclass_node
 
 
 @as_function_node("Executor")
@@ -31,7 +31,7 @@ def _make_non_modal(executor):
     same reason as ``_make_stoppable``: it is a property of the executor the
     user configured on the canvas.
     """
-    from core import mark_non_modal
+    from aiflow.core import mark_non_modal
 
     mark_non_modal(executor)
 
@@ -50,7 +50,7 @@ def _resolve_cache_directory(cache_directory):
     reads the directory back out of the database (see
     :func:`core.remote_cache.resolve_cache_directory`).
     """
-    from core.remote_cache import resolve_cache_directory
+    from aiflow.core.remote_cache import resolve_cache_directory
 
     return resolve_cache_directory(cache_directory)
 
@@ -74,7 +74,7 @@ def _make_stoppable(executor, cache_directory, config_directory, backend):
     interrupted, which is what happened before this existed.
     """
     try:
-        from core import attach_stopper
+        from aiflow.core import attach_stopper
         from executorlib.task_scheduler.file.spawner_pysqa import (
             terminate_tasks_in_cache,
         )
@@ -151,7 +151,7 @@ def ForkExecutor(poll_interval: float = 0.1):
     poll_interval : float, optional
         How often, in seconds, to check whether the run has been stopped.
     """
-    from core import ForkExecutor as Executor
+    from aiflow.core import ForkExecutor as Executor
 
     return Executor(poll_interval=poll_interval)
 
@@ -432,11 +432,11 @@ def SubgraphExecutorNode(
     >>> # On execution machines, start workers:
     >>> # pyiron-worker --executor-type hsqs --data-dir /shared/storage
     """
-    from core.subgraph_executor import SubgraphExecutor
+    from aiflow.core.subgraph_executor import SubgraphExecutor
 
     # Import path configuration
     try:
-        from core.config import paths
+        from aiflow.core.config import paths
 
         if working_directory is None:
             working_directory = str(paths.WORKING_DIRECTORY)
@@ -501,6 +501,6 @@ def ProcessPoolExecutorNode(max_workers: int = 4):
     - Compatible with standard executor interface
     - For distributed multi-machine execution, use SubgraphExecutorNode instead
     """
-    from core.remote_graph_executor import RemoteGraphExecutor
+    from aiflow.core.remote_graph_executor import RemoteGraphExecutor
 
     return RemoteGraphExecutor(max_workers=max_workers)

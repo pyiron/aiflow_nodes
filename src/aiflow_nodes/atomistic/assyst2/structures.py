@@ -6,7 +6,7 @@ from typing import Optional, Union
 import pandas as pd
 from ase import Atoms
 
-from core import (
+from aiflow.core import (
     as_function_node,
     PortList,
 )

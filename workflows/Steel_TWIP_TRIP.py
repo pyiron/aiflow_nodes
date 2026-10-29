@@ -62,9 +62,9 @@ from aiflow_nodes.math_utils import Linspace
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from core import Workflow
-from core import group_node
-from core import as_function_node
+from aiflow.core import Workflow
+from aiflow.core import group_node
+from aiflow.core import as_function_node
 
 # ── Local node definitions ──────────────────────
 
@@ -335,8 +335,8 @@ def DeformationMapTable(assessment: dict = None):
 
 @group_node("assessment")
 def compute(scan=None):
-    from core import Workflow
-    from core import as_function_node
+    from aiflow.core import Workflow
+    from aiflow.core import as_function_node
 
     @as_function_node("thermo")
     def GammaEpsilonParameters(scan: dict = None):

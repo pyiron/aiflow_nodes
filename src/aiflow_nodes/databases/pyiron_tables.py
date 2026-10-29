@@ -62,7 +62,7 @@ None`` input, a copy of the incoming dict (never mutate it), a local import of t
 function, and the bare property name as the key.
 """
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 # ---------------------------------------------------------------------------
 # low level HDF5 / file-system helpers

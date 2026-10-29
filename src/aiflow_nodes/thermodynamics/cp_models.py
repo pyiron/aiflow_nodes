@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from core import (
+from aiflow.core import (
     Workflow,
     as_function_node,
     group_node,

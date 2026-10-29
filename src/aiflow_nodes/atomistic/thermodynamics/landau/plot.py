@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from core import Workflow, as_function_node, group_node
+from aiflow.core import Workflow, as_function_node, group_node
 
 
 def plot_phase_diagram(

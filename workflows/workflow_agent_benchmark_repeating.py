@@ -38,7 +38,7 @@ What to do with it
 
 from aiflow_nodes.benchmark import BenchmarkReport, PlotBenchmark, _BenchmarkSuiteCore
 from aiflow_nodes.executors import SlurmExecutor
-from core import Workflow
+from aiflow.core import Workflow
 
 wf = Workflow("workflow_agent_benchmark_repeating")
 wf.storage_enabled = True

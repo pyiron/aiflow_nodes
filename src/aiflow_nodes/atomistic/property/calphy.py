@@ -1,13 +1,13 @@
 import contextlib
 import warnings
 from dataclasses import dataclass, asdict, replace
-from core import (
+from aiflow.core import (
     as_inp_dataclass_node,
     as_function_node,
     as_out_dataclass_node,
     group_node,
 )
-from core.data_fields import EmptyArrayField
+from aiflow.core.data_fields import EmptyArrayField
 import random
 import string
 from typing import Optional, Tuple
@@ -2580,7 +2580,7 @@ def MeltingTemperature(
     )
     from aiflow_nodes.atomistic.engine.ase import LammpsEngine
     from aiflow_nodes.atomistic.structure.transform import Rattle
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner = Workflow("MeltingTemperature")
 

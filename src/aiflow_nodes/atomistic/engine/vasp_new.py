@@ -16,7 +16,7 @@ from pymatgen.io.vasp.inputs import Incar, Kpoints
 from vaspparser.vasp.output import Output, parse_vasp_output
 from vaspparser.vasp.volumetric_data import VaspVolumetricData
 
-from core import as_function_node, run_external
+from aiflow.core import as_function_node, run_external
 from aiflow_nodes.atomistic.calculator.data import (
     InputMDVASP,
     InputDipoleCorrection,

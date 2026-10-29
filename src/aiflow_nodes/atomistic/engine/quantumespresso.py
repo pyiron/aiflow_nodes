@@ -2,7 +2,7 @@ import os
 import subprocess
 from ase.build import bulk
 from ase.io import write
-from core import as_function_node, Node, run_external
+from aiflow.core import as_function_node, Node, run_external
 
 
 def _write_input(input_dict, working_directory="."):

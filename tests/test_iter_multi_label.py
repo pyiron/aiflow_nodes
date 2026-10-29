@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from core import as_function_node
+from aiflow.core import as_function_node
 from aiflow_nodes.controls import IterToDataFrame, _iterate_node
 
 
@@ -128,7 +128,7 @@ def test_swept_ports_are_restored_after_the_sweep(parallel):
 
 
 def test_the_sweep_hash_does_not_depend_on_run_history():
-    pdb = pytest.importorskip("pyiron_database")
+    pdb = pytest.importorskip("aiflow.database")
     template = Affine(b=1.0)
     sweep = IterToDataFrame(
         node=template, input_label="x,a", values=[(1.0, 2.0), (3.0, 4.0)]

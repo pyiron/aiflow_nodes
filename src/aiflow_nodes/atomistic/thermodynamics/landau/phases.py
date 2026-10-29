@@ -3,7 +3,7 @@ from dataclasses import replace
 import landau
 import numpy as np
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 
 @as_function_node("phase")

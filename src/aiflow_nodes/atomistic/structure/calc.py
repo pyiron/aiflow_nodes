@@ -5,7 +5,7 @@ from typing import Optional, Literal
 import numpy as np
 from ase import Atoms
 
-from core import as_function_node, group_node
+from aiflow.core import as_function_node, group_node
 
 
 @as_function_node
@@ -252,7 +252,7 @@ def FitDiffPotential(
         Subtract,
         Sum,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     wf = Workflow("assyst_linear_fit3")
 
@@ -362,7 +362,7 @@ def FitDiffPotential2(
         Subtract,
         Sum,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     wf = Workflow("assyst_linear_fit3")
 

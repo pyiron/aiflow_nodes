@@ -2,9 +2,9 @@ from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.dataframe import GetColumnFromDataFrame
 from aiflow_nodes.math_utils import Linspace
 from aiflow_nodes.plotting import Plot
-from core import Workflow
-from core import group_node
-from core import as_function_node
+from aiflow.core import Workflow
+from aiflow.core import group_node
+from aiflow.core import as_function_node
 
 # ── Local node definitions ──────────────────────
 
@@ -58,7 +58,7 @@ def GetT(
     from aiflow_nodes.atomistic.structure.transform import FixSpecies, Repeat
     from aiflow_nodes.controls import GetAttribute, pick_element
     from aiflow_nodes.math_utils import Mean
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner_wf = Workflow("GetT")
     inner_wf.Bulk = Bulk(name=name, cubic=cubic)
