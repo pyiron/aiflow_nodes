@@ -22,4 +22,8 @@ __pycache__/
 venv/
 .cache/
 dist/
-build/*.egg-info/
+build/
+*.egg-info/
+
+# pixi environments
+.pixi/
