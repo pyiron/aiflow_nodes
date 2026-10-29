@@ -8,7 +8,154 @@ version = "0.0.1"
 description = "Node library for pyiron/aiflow workflows"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+# aiflow is not on PyPI yet; the pixi workspace below pins it to a git commit.
+dependencies = [
+    "aiflow",
+    "ase>=3.26",
+    "cloudpickle",
+    "executorlib",
+    "jinja2",
+    "matplotlib",
+    "numpy>=2",
+    "pandas",
+    "pint",
+    "pyyaml",
+    "scipy",
+    "tqdm",
+]
+
+# Subpackages that need a heavier stack import it themselves; install the extra
+# that matches the nodes you use.
+[project.optional-dependencies]
+lammps = ["lammpsparser", "pyiron_lammps"]
+vasp = ["pymatgen", "vaspparser"]
+structure = ["phonopy", "pymatgen", "spglib", "structuretoolkit"]
+thermodynamics = ["calphy", "landau", "pyscal3", "seaborn"]
+ml = ["matgl", "pyace", "scikit-learn", "tensorpotential"]
+assyst = ["assyst", "gpaw"]
+pyiron = ["pyiron", "pyiron_atomistics", "pyiron_base", "pyiron_snippets"]
+database = ["h5io_browser", "pyfileindex", "sqlalchemy"]
+viz = ["ipython", "nglview", "pygments", "seaborn"]
+all = [
+    "aiflow_nodes[lammps,vasp,structure,thermodynamics,ml,assyst,pyiron,database,viz]",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/aiflow_nodes"]
+
+# --------------------------------------------------------------------------- #
+#  pixi workspace: `pixi install`, `pixi run test`                            #
+# --------------------------------------------------------------------------- #
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64"]
+
+[tool.pixi.activation.env]
+# The conda-forge tensorflow build (pulled in by grace-tensorpotential) has an
+# executable-stack flag that glibc >= 2.41 refuses to load. Ignored by older glibc.
+GLIBC_TUNABLES = "glibc.rtld.execstack=2"
+
+# Everything that conda-forge provides comes from conda-forge; conda packages
+# take precedence over the same requirement in [project].
+[tool.pixi.dependencies]
+python = "3.12.*"
+ase = ">=3.26"
+cloudpickle = "==3.1.2"
+executorlib = "==1.9.2"
+h5py = "==3.15.1"
+jinja2 = "*"
+matplotlib = "==3.10.9"
+numpy = ">=2"  # calphy 1.7.2 uses numpy.trapezoid
+pandas = "==2.2.3"
+pint = "==0.25.2"
+pyyaml = "*"
+scipy = "==1.15.2"
+tqdm = "*"
+# lammps
+lammps = { version = "==2024.08.29", build = "*openmpi*" }
+lammpsparser = "==0.0.3"
+pyiron_lammps = ">=0.5"
+# vasp / structure
+phonopy = "==2.47.1"
+pymatgen = ">=2025"
+spglib = "*"
+structuretoolkit = "==0.0.42"
+vaspparser = "==0.0.3"
+# thermodynamics
+calphy = "==1.7.2"
+landau = "==1.7.0"
+pyscal3 = "*"
+seaborn = "==0.13.2"
+# ml
+grace-tensorpotential = "==0.5.5"
+matgl = "==2.0.6"
+python-ace = "==0.3.1"
+scikit-learn = "==1.6.1"
+# assyst
+assyst = "==0.13.0"
+# pyiron
+iprpy-data = "==2023.07.25"
+pyiron = "*"
+pyiron-data = "==0.0.30"
+pyiron_atomistics = ">=0.8"
+pyiron_base = ">=0.15"
+pyiron_snippets = "*"
+# database
+h5io_browser = "*"
+pyfileindex = "*"
+sqlalchemy = "==2.0.38"
+# viz
+ipython = "*"
+nglview = "*"
+pygments = "*"
+
+# conda-forge only has gpaw 26.7 for osx-arm64, which needs numpy >= 2.5.3 and
+# conflicts with pyiron_atomistics (numpy <= 2.3.5). gpaw is imported lazily,
+# so only the GPAW calculator nodes are unavailable on macOS.
+[tool.pixi.target.linux-64.dependencies]
+gpaw = "*"
+
+[tool.pixi.pypi-dependencies]
+# Private repository: needs GitHub access to pyiron/aiflow (gh credential
+# helper or SSH locally, the AIFLOW_READ token in CI). Bump on purpose.
+aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "f36a6a8026c5a422cfda97a6733e74acb1050dc1" }
+aiflow_nodes = { path = ".", editable = true }
+
+[tool.pixi.feature.test.dependencies]
+coverage = "*"
+pytest = ">=8"
+
+[tool.pixi.feature.test.tasks]
+test = "coverage run --rcfile=.coveragerc && coverage report --rcfile=.coveragerc"
+
+[tool.pixi.feature.lint.dependencies]
+black = "*"
+
+[tool.pixi.feature.lint.tasks]
+lint = "black --check --diff --line-length 88 ."
+
+# deptry inspects the installed packages, so it runs in the full environment.
+[tool.pixi.feature.deptry.dependencies]
+deptry = ">=0.25.1,<0.26"
+
+[tool.pixi.feature.deptry.tasks]
+deptry = "deptry src"
+
+[tool.pixi.environments]
+default = { features = ["test", "lint", "deptry"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+lint = { features = ["lint"], no-default-feature = true }
+
+[tool.deptry]
+# Notebooks under src/ are examples, not package code.
+extend_exclude = [".*\\.ipynb"]
+
+[tool.deptry.per_rule_ignores]
+# Not declared: pyiron_ai (benchmark.py) and pyironflow (graph GUI helpers) are
+# separate, unpublished projects; qe_xml_parser (Quantum ESPRESSO) is not packaged.
+DEP001 = ["pyiron_ai", "pyironflow", "qe_xml_parser"]
+# pixi installs the package itself into its environment.
+DEP002 = ["aiflow_nodes"]
+# Only used by benchmark.py, which needs pyiron_ai anyway.
+DEP003 = ["markdown"]
