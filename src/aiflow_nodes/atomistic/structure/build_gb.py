@@ -18,13 +18,14 @@ BuildGrainBoundary(options, index, symbol, ...)
 
 from __future__ import annotations
 
-import numpy as np
-from itertools import product, combinations
-from math import gcd
 from functools import reduce
-from typing import Literal, Optional
+from itertools import combinations, product
+from math import gcd
+from typing import Literal
 
+import numpy as np
 from aiflow.core import as_function_node
+
 from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _ase_to_data
 
 # =====================================================================
@@ -401,7 +402,7 @@ def GrainBoundaryOptions(
     sigma: int,
     crystalstructure: Literal["sc", "bcc", "fcc", "diamond", "hcp"] = "fcc",
     a: float = 1.0,
-    c: Optional[float] = None,
+    c: float | None = None,
     min_slab_thickness: float = 15.0,
     max_index: int = 8,
     angle_step: float = 0.05,

@@ -2,11 +2,10 @@ import logging
 import pathlib
 from concurrent.futures import as_completed
 from copy import copy
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
-
 from aiflow.core import Node, as_function_node
 from aiflow.core.node import _node_wants_storage, inject_executor_resource_kwargs
 
@@ -923,7 +922,7 @@ def _expand_df_columns(data_dict: dict):
 def IterToDataFrame(
     node: Node,
     input_label: str,
-    values: Union[list, np.ndarray],
+    values: list | np.ndarray,
     debug: bool = False,
     executor: type = None,
     store: bool = False,
@@ -974,7 +973,7 @@ def IterToDataFrame(
         field.  When the node returns a dataclass, each field of the
         dataclass is a separate column.
     """
-    from dataclasses import is_dataclass, fields
+    from dataclasses import fields, is_dataclass
 
     # ------------------------------------------------------------------
     # 1️⃣ Run the node over all values
@@ -993,7 +992,7 @@ def IterToDataFrame(
     # ------------------------------------------------------------------
     # 2️⃣ Prepare a dict that will be fed to pd.DataFrame
     # ------------------------------------------------------------------
-    data_dict: dict[str, List[Any]] = {}
+    data_dict: dict[str, list[Any]] = {}
 
     # ------------------------------------------------------------------
     # 2.1 Input column(s) – one per swept label, avoiding name clashes

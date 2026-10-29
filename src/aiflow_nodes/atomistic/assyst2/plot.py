@@ -1,8 +1,7 @@
-from typing import Iterable
-
-from ase import Atoms
+from collections.abc import Iterable
 
 from aiflow.core import as_function_node
+from ase import Atoms
 
 
 @as_function_node("plot")

@@ -42,8 +42,8 @@ from vaspparser.vasp.volumetric_data import VaspVolumetricData
 
 from aiflow_nodes.atomistic.calculator.data import (
     AdditionalInputFlags,
-    InputMDVASP,
     InputDipoleCorrection,
+    InputMDVASP,
     InputMinimizationVASP,
     InputSCF,
     InputVaspDOS,
@@ -53,6 +53,8 @@ from aiflow_nodes.atomistic.calculator.data import (
     OutputCalcStatic,
 )
 from aiflow_nodes.atomistic.engine.vasp_new import (
+    _IBRION_MINIMIZE,
+    _ISMEAR,
     CreateVaspInputResources,
     MergeVaspInput,
     ParseVaspOutput,
@@ -64,9 +66,7 @@ from aiflow_nodes.atomistic.engine.vasp_new import (
     _final_magmoms,
     _generate_hash,
     _get_potcar_paths,
-    _IBRION_MINIMIZE,
     _is_converged,
-    _ISMEAR,
     _md_from_output,
     _ordered_elements,
     _output_parser_class,
@@ -84,7 +84,7 @@ STATIC_VASP = Path(__file__).parent.parent.parent / "static" / "vasp"
 
 def make_scf(**overrides) -> InputSCF:
     """Build a pure ``InputSCF`` dataclass instance (kpoints is required)."""
-    params = dict(kpoints="4 4 4")
+    params = {"kpoints": "4 4 4"}
     params.update(overrides)
     return InputSCF._original_dataclass(**params)
 

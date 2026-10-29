@@ -57,14 +57,13 @@ coefficients and into sigma -- so the experimental SFE minimum near 12 at.% Mn
 is not reproduced.
 """
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from aiflow.core import Workflow, as_function_node, group_node
+
 from aiflow_nodes.dataframe import DisplayDataFrame
 from aiflow_nodes.math_utils import Linspace
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from aiflow.core import Workflow
-from aiflow.core import group_node
-from aiflow.core import as_function_node
 
 # ── Local node definitions ──────────────────────
 
@@ -236,7 +235,6 @@ def AlloyVerdict(assessment: dict = None):
 @as_function_node("fig")
 def PlotDeformationMap(assessment: dict = None):
     """SFE against solute content with the TRIP / TWIP / slip bands shaded."""
-    import matplotlib.pyplot as plt
     import numpy as np
 
     solute_element = assessment["solute_element"]
@@ -310,7 +308,6 @@ def PlotDeformationMap(assessment: dict = None):
 def DeformationMapTable(assessment: dict = None):
     """Collect the whole composition scan into one table."""
     import numpy as np
-    import pandas as pd
 
     x = np.asarray(assessment["compositions"], dtype=float)
     df = pd.DataFrame(
@@ -334,8 +331,7 @@ def DeformationMapTable(assessment: dict = None):
 
 @group_node("assessment")
 def compute(scan=None):
-    from aiflow.core import Workflow
-    from aiflow.core import as_function_node
+    from aiflow.core import Workflow, as_function_node
 
     @as_function_node("thermo")
     def GammaEpsilonParameters(scan: dict = None):

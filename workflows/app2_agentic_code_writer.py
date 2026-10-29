@@ -16,13 +16,12 @@ numbers for Fig. 4. Those numbers are PLACEHOLDERS pending a real benchmark run
 and are flagged as such in the figure.
 """
 
-import io
 import contextlib
+import io
 import textwrap
 
 import pandas as pd
-
-from aiflow.core import as_function_node, Workflow, Node
+from aiflow.core import Workflow, as_function_node
 
 # --------------------------------------------------------------------------- #
 #  Building-block nodes (LLM calls and code execution are ordinary nodes).      #

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import numpy as np
-
 from aiflow.core import Workflow, as_function_node
-from aiflow_nodes.atomistic.structure.build_gb import (
-    GrainBoundaryOptions,
-    BuildGrainBoundary,
-)
-from aiflow_nodes.atomistic.structure.build import Bulk
-from aiflow_nodes.atomistic.engine.ase import EMT
-from aiflow_nodes.atomistic.calculator.ase import StaticEnergy, Minimize
+
+from aiflow_nodes.atomistic.calculator.ase import Minimize, StaticEnergy
 from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
+from aiflow_nodes.atomistic.engine.ase import EMT
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.build_gb import (
+    BuildGrainBoundary,
+    GrainBoundaryOptions,
+)
 from aiflow_nodes.atomistic.structure.view import PlotCNA
 
 

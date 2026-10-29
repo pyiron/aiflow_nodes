@@ -1,8 +1,10 @@
-from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
-from aiflow.core import as_function_node
-import pandas as pd
 from typing import Literal
+
+import pandas as pd
+from aiflow.core import as_function_node
 from matplotlib.figure import Figure
+
+from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
 ANION = "F"
 
@@ -52,8 +54,8 @@ def WaterPotential(
                     "pair_style lj/cut/coul/long 10.0\n",
                     "pair_coeff * * 0.000 0.000 \n",
                     "pair_coeff 2 2 0.102 3.188 \n",
-                    "pair_coeff 2 3 {:.4} {:.4} \n".format(epsilon, sigma),
-                    "pair_coeff 2 4 {:.4} {:.4} \n".format(epsilon, sigma),
+                    f"pair_coeff 2 3 {epsilon:.4} {sigma:.4} \n",
+                    f"pair_coeff 2 4 {epsilon:.4} {sigma:.4} \n",
                     "bond_style  harmonic\n",
                     "bond_coeff  1 450 0.9572\n",
                     "angle_style harmonic\n",
@@ -349,9 +351,9 @@ def Ion_density(trajectory, initial_structure):
 @as_function_node("Charge_distribution_Ion")
 def Charge_distribution_Ion(Data: dict, initial_structure):
 
-    from matplotlib import pyplot as plt
     import numpy as np
     from ase.units import Bohr
+    from matplotlib import pyplot as plt
 
     def get_volume(deltares):
         V = (
@@ -361,8 +363,6 @@ def Charge_distribution_Ion(Data: dict, initial_structure):
             * (1 / Bohr) ** 3
         )
         return V
-
-    from matplotlib import pyplot as plt
 
     Sum = np.array(Data["Na"][1]) - np.array(Data["F"][1])
     z = np.array(Data["Na"][0])
@@ -382,9 +382,9 @@ def Charge_distribution_Ion(Data: dict, initial_structure):
 
 @as_function_node("EPD")
 def EPD(Data: dict, initial_structure):
-    from matplotlib import pyplot as plt
     import numpy as np
     from ase.units import Bohr
+    from matplotlib import pyplot as plt
 
     fig, axs = plt.subplots(
         4, 1, figsize=(3.25, 2 * 4)
@@ -443,8 +443,8 @@ def EPD(Data: dict, initial_structure):
 
 @as_function_node("Suplot_ion")
 def Subplot_ion_d(Data: dict, xlabel="x", ylabel="y"):
-    from matplotlib import pyplot as plt
     import numpy as np
+    from matplotlib import pyplot as plt
 
     species = [s for s in ["Na", "F"] if s in Data] or list(Data.keys())
     fig, axes = plt.subplots(1, len(species), figsize=(5 * len(species), 3))
@@ -465,7 +465,6 @@ def Subplot_ion_d(Data: dict, xlabel="x", ylabel="y"):
 @as_function_node("Suplot_ion")
 def PlotIonDensity(Data: dict, xlabel="x", ylabel="y"):
     from matplotlib import pyplot as plt
-    import numpy as np
 
     species = [s for s in ["Na", "F"] if s in Data] or list(Data.keys())
     fig, axes = plt.subplots(1, 1, figsize=(5, 3))
@@ -484,7 +483,6 @@ def PlotIonDensity(Data: dict, xlabel="x", ylabel="y"):
 @as_function_node("Suplot_element")
 def Subplot_element(Data: dict, element, xlabel="x", ylabel="y"):
     from matplotlib import pyplot as plt
-    import numpy as np
 
     x, y = Data[element]
     fig, ax = plt.subplots(1, 1, figsize=(3.25, 2))
@@ -526,9 +524,9 @@ def PlotTrajectory(
     # Imports – kept inside the node so that the node can be imported without
     # pulling heavy optional dependencies.
     # ------------------------------------------------------------------
-    from matplotlib import pyplot as plt
+
     import numpy as np
-    import warnings
+    from matplotlib import pyplot as plt
 
     # ------------------------------------------------------------------
     # Parse the ``species`` argument – allow a space separated list.

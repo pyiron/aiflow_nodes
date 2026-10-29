@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Literal
-
 from aiflow.core import as_function_node, as_out_dataclass_node
 from aiflow.core.data_fields import DataArray, EmptyArrayField
 
@@ -130,8 +128,8 @@ def DiffusionConstant(msd, md_input, fit_start_fraction: float = 0.2):
 @as_function_node
 def PlotHPositions(md_output, md_input, species_symbol: str = "H"):
     """Plot x, y, z positions of *species_symbol* vs time on three shared-x subplots."""
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     species = np.array(md_output.species)
     h_indices = np.where(species == species_symbol)[0]
@@ -185,8 +183,9 @@ def AugmentWithSymmetry(folded_positions, al_bulk):
     Uses spglib to obtain the full space-group operations; falls back to the 48
     point-group operations of the cubic group Oh when spglib is unavailable.
     """
-    import numpy as np
     import itertools
+
+    import numpy as np
 
     try:
         import spglib
@@ -306,8 +305,8 @@ def PlotMigrationPath(
     The x-axis is normalised to [0, 1]: 0 = T-site (initial config.),
     1 = T'-site (final config.), 0.5 = O-site (saddle point).
     """
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
     from scipy.ndimage import gaussian_filter1d
     from scipy.optimize import curve_fit
 
@@ -474,8 +473,8 @@ def PlotMigrationPath(
 @as_function_node
 def PlotFreeEnergySurface(free_energy, grid_centers, al_bulk):
     """2-D contour plots of F(x, y) at three z-slices (T-site, O-site, z = 0.75)."""
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     cx, cy, cz = grid_centers
     a = float(np.linalg.norm(al_bulk.cell[0]))  # lattice parameter in Å
@@ -526,8 +525,9 @@ def RunASEMD(structure, engine, md_input, store: bool = False):
     from ase import units
     from ase.md.langevin import Langevin
     from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
-    from aiflow_nodes.atomistic.structure._atoms import to_ase
+
     from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     atoms = to_ase(structure)
     atoms.calc = engine.calculator
@@ -607,8 +607,10 @@ class NEBTrajectory:
 def LammpsAseEngine(potential, resource_path=None, cores: int = 1):
     """Wrap a pyiron LAMMPS potential as an ASE LAMMPS calculator (OutputEngine)."""
     import os
-    from lammpsparser.compatibility.file import _get_potential
+
     from ase.calculators.lammpsrun import LAMMPS
+    from lammpsparser.compatibility.file import _get_potential
+
     from aiflow_nodes.atomistic.engine.generic import OutputEngine
 
     pot_lines, pot_replace, species = _get_potential(
@@ -672,10 +674,11 @@ def RunNEB(
         ``Animate`` node — one frame per NEB image including the two fixed
         endpoints.
     """
+    import numpy as np
     from ase.mep.neb import SingleCalculatorNEB
     from ase.optimize import LBFGS
+
     from aiflow_nodes.atomistic.structure._atoms import to_ase
-    import numpy as np
 
     initial_atoms = to_ase(initial_state.structure)
     final_atoms = to_ase(final_state.structure)
@@ -714,8 +717,8 @@ def RunNEB(
 @as_function_node
 def PlotNEBPath(path_energies, barrier):
     """Plot the NEB path energies with the reaction coordinate normalised to [0, 1]."""
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     n = len(path_energies)
     image_idx = np.arange(n) / (n - 1)

@@ -1,13 +1,14 @@
 from aiflow.core import Workflow
-from aiflow_nodes.atomistic.engine.ase import GRACE
-from aiflow_nodes.atomistic.structure.build import Bulk
-from aiflow_nodes.controls import IterToDataFrame
+
 from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,
     MapCalculatorOnStructures,
     Relax,
     Static,
 )
+from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.math_utils import Linspace
 from aiflow_nodes.plotting import InputPlotOptions, MergePlots, PlotDataFrame
 

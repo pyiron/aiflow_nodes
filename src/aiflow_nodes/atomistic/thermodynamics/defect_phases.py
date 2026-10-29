@@ -24,9 +24,9 @@ Typical workflow
 
 from __future__ import annotations
 
-from aiflow.core import as_function_node
 import numpy as np
 import pandas as pd
+from aiflow.core import as_function_node
 
 from aiflow_nodes.atomistic.structure._atoms import (
     OutputAtoms,
@@ -840,7 +840,7 @@ def PlotDefectFormationEnergy(
         ef = formation_energies[key]
         ef_arr = np.atleast_1d(np.asarray(ef, dtype=float))
 
-        line_kwargs: dict = dict(label=key, linewidth=2)
+        line_kwargs: dict = {"label": key, "linewidth": 2}
 
         # Pristine is always zero – draw as a thin dashed reference
         if key == "pristine":

@@ -60,14 +60,11 @@ Building blocks
    sandbox.
 """
 
-from typing import Literal, Optional
+from typing import Literal
 
 import pandas as pd
-
 from aiflow.core import Workflow, as_function_node, as_inp_dataclass_node, group_node
-from aiflow_nodes.controls import IterToDataFrame
-from aiflow_nodes.executors import ThreadPoolExecutorNode
-
+from pyiron_ai import workflow_bench
 from pyiron_ai.workflow_bench import (
     AGENT_BUDGET_USD,
     AGENT_TIMEOUT_S,
@@ -93,16 +90,17 @@ from pyiron_ai.workflow_bench import (
     write_freeze_manifest,
     write_node_index,
 )
-from pyiron_ai import workflow_bench
+
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.executors import ThreadPoolExecutorNode
 
 # ── Local node definitions ──────────────────────
 
 
 @as_function_node("tasks")
 def TaskSuite(
-    tier: Optional[
-        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
-    ] = "all",
+    tier: Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
+    | None = "all",
     limit: int = 0,
 ):
     """Return the curated benchmark tasks for one difficulty tier.
@@ -209,14 +207,14 @@ def BenchWorkDir(path: str = "bench_runs"):
     ]
 )
 def BenchSettings(
-    model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
+    model: Literal["sonnet", "opus", "fable"] | None = "sonnet",
     model_other: str = "",
-    arms: Optional[Literal["aiflow", "scratch", "both"]] = "both",
+    arms: Literal["aiflow", "scratch", "both"] | None = "both",
     max_repairs: int = 3,
     exec_timeout_s: int = 300,
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    effort: Optional[Literal["default", "low", "medium", "high", "max"]] = "default",
+    effort: Literal["default", "low", "medium", "high", "max"] | None = "default",
     run_variant: bool = True,
     run_optimize: bool = False,
     save_chat: bool = True,
@@ -306,8 +304,8 @@ def BenchSettings(
 @as_function_node("tasks")
 def ArmTasks(
     tasks: list = None,
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
-    arms: Optional[Literal["aiflow", "scratch", "both"]] = "both",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
+    arms: Literal["aiflow", "scratch", "both"] | None = "both",
 ):
     """Gate a task list on whether *arm* is one of the selected *arms*.
 
@@ -400,7 +398,7 @@ class BenchConfig:
     exec_timeout_s: int = 300
     max_budget_usd: float = AGENT_BUDGET_USD
     agent_timeout_s: int = AGENT_TIMEOUT_S
-    effort: Optional[Literal["default", "low", "medium", "high", "max"]] = "default"
+    effort: Literal["default", "low", "medium", "high", "max"] | None = "default"
     allow_reference_workflows: bool = False
     run_variant: bool = True
     run_optimize: bool = False
@@ -438,13 +436,12 @@ BENCHMARK_GRID_LABELS = "tier,task_index,model_other,arm,rep"
 
 @as_function_node("cells")
 def BenchmarkGrid(
-    tier: Optional[
-        Literal["generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
-    ] = "generic",
+    tier: Literal["generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
+    | None = "generic",
     task_indices: str = "",
     models: str = "sonnet",
     repeats: int = 1,
-    arms: Optional[Literal["aiflow", "scratch", "both"]] = "aiflow",
+    arms: Literal["aiflow", "scratch", "both"] | None = "aiflow",
 ):
     """Every (task, model, arm, repetition) cell of a sweep, for ``IterToDataFrame``.
 
@@ -580,7 +577,7 @@ def GenerateWorkflow(
     exec_timeout_s: int = 300,
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
     lib_dir: str = "",
     effort: str = "",
     chat_log_path: str = "",
@@ -726,7 +723,7 @@ def GenerateWorkflow(
 def ValidateWorkflow(
     path: str = "",
     timeout_s: int = 300,
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
     task: str = "",
     expect_json: str = "",
 ):
@@ -812,7 +809,7 @@ def RepairWorkflow(
     model: str = "sonnet",
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
     lib_dir: str = "",
     effort: str = "",
     chat_log_path: str = "",
@@ -889,7 +886,7 @@ def VaryWorkflow(
     model: str = "sonnet",
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
     effort: str = "",
     chat_log_path: str = "",
     verbose: bool = False,
@@ -970,7 +967,7 @@ def OptimizeWorkflow(
     model: str = "sonnet",
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
     lib_dir: str = "",
     effort: str = "",
     chat_log_path: str = "",
@@ -1058,13 +1055,13 @@ def OptimizeWorkflow(
 @as_function_node("result")
 def WorkflowAgent(
     task: str = "",
-    model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
+    model: Literal["sonnet", "opus", "fable"] | None = "sonnet",
     max_repairs: int = 3,
     workdir: str = "bench_runs",
     exec_timeout_s: int = 300,
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
     lib_dir: str = "",
     run_variant: bool = True,
     run_optimize: bool = False,
@@ -1194,9 +1191,7 @@ def WorkflowAgent(
         scored=bool(expect_of(task)),
         task_dir=str(scratch),
         run_tag=tag,
-        started_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(
-            timespec="seconds"
-        ),
+        started_utc=datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds"),
         exec_timeout_s=timeout_s,
     )
 
@@ -2016,7 +2011,6 @@ def _repair_curve_panel(ax, df, arms, max_repairs, overall):
     number the harness already has.
     """
     import numpy as np
-
     from pyiron_ai.bench_stats import repair_curve
 
     ks = list(range(max_repairs + 1))
@@ -2326,7 +2320,6 @@ def _plot_reliability(df, arms):
     that fails half of them.
     """
     import numpy as np
-
     from pyiron_ai.bench_stats import wilson_ci
 
     fig = _new_figure(figsize=(11, 5.5))
@@ -2631,7 +2624,7 @@ def SummarizeBenchmark(
     reliability=None,
     reuse=None,
     run_dir: str = "",
-    model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
+    model: Literal["sonnet", "opus", "fable"] | None = "sonnet",
     effort: str = "",
     max_words: int = 700,
     max_budget_usd: float = 1.0,
@@ -2878,13 +2871,12 @@ def _write_summary_files(run_dir, body, markdown_body, figures, say) -> str:
 
 @as_function_node(["df", "stats", "summary", "run_dir", "repair_budget"])
 def _BenchmarkSuiteCore(
-    tier: Optional[
-        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
-    ] = "generic",
+    tier: Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
+    | None = "generic",
     limit: int = 0,
     tasks: list = None,
-    arms: Optional[Literal["aiflow", "scratch", "both"]] = "both",
-    model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
+    arms: Literal["aiflow", "scratch", "both"] | None = "both",
+    model: Literal["sonnet", "opus", "fable"] | None = "sonnet",
     model_other: str = "",
     max_repairs: int = 3,
     repeats: int = 1,
@@ -2892,7 +2884,7 @@ def _BenchmarkSuiteCore(
     exec_timeout_s: int = 300,
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    effort: Optional[Literal["default", "low", "medium", "high", "max"]] = "default",
+    effort: Literal["default", "low", "medium", "high", "max"] | None = "default",
     allow_reference_workflows: bool = False,
     lib_dir: str = "",
     run_variant: bool = True,
@@ -3104,7 +3096,7 @@ def _BenchmarkSuiteCore(
         ids = [
             m
             for f in rep_frames
-            for m in (f["model_id_actual"] if "model_id_actual" in f else [])
+            for m in (f.get("model_id_actual", []))
             if str(m).strip() and str(m) != "nan"
         ]
         if ids:
@@ -3143,13 +3135,12 @@ def _BenchmarkSuiteCore(
 @as_function_node("result")
 def RunSingleBenchmark(
     task: str = "",
-    tier: Optional[
-        Literal["generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
-    ] = "generic",
+    tier: Literal["generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
+    | None = "generic",
     task_index: int = 0,
-    model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
+    model: Literal["sonnet", "opus", "fable"] | None = "sonnet",
     model_other: str = "",
-    arm: Optional[Literal["aiflow", "scratch"]] = "aiflow",
+    arm: Literal["aiflow", "scratch"] | None = "aiflow",
     rep: int = 1,
     workdir: str = "bench_runs",
     lib_dir: str = "",
@@ -3288,13 +3279,12 @@ def RunSingleBenchmark(
 
 @group_node("df", "stats", "summary", "run_dir", "repair_budget")
 def RunBenchmarkSuite(
-    tier: Optional[
-        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
-    ] = "generic",
+    tier: Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
+    | None = "generic",
     limit: int = 0,
     tasks: list = None,
-    arms: Optional[Literal["aiflow", "scratch", "both"]] = "both",
-    model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
+    arms: Literal["aiflow", "scratch", "both"] | None = "both",
+    model: Literal["sonnet", "opus", "fable"] | None = "sonnet",
     model_other: str = "",
     max_repairs: int = 3,
     repeats: int = 1,
@@ -3302,7 +3292,7 @@ def RunBenchmarkSuite(
     exec_timeout_s: int = 300,
     max_budget_usd: float = AGENT_BUDGET_USD,
     agent_timeout_s: int = AGENT_TIMEOUT_S,
-    effort: Optional[Literal["default", "low", "medium", "high", "max"]] = "default",
+    effort: Literal["default", "low", "medium", "high", "max"] | None = "default",
     allow_reference_workflows: bool = False,
     lib_dir: str = "",
     run_variant: bool = True,
@@ -3421,7 +3411,6 @@ def AggregateRepeats(run_dir: str = "bench_runs"):
     from pathlib import Path
 
     import pandas as pd
-
     from pyiron_ai.bench_stats import aggregate_repeats
 
     root = Path(run_dir).resolve()
@@ -3436,21 +3425,20 @@ def AggregateRepeats(run_dir: str = "bench_runs"):
 
 @group_node("df", "repair_budget")
 def BenchmarkSuite(
-    tier: Optional[
-        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
-    ] = "generic",
+    tier: Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
+    | None = "generic",
     limit: int = 0,
     allow_reference_workflows: bool = False,
     path: str = "bench_runs",
     max_workers: int = 3,
-    model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
+    model: Literal["sonnet", "opus", "fable"] | None = "sonnet",
     model_other: str = "",
-    arms: Optional[Literal["aiflow", "scratch", "both"]] = "both",
+    arms: Literal["aiflow", "scratch", "both"] | None = "both",
     max_repairs: int = 3,
     exec_timeout_s: int = 300,
     max_budget_usd: float = 4.0,
     agent_timeout_s: int = 1800,
-    effort: Optional[Literal["default", "low", "medium", "high", "max"]] = "default",
+    effort: Literal["default", "low", "medium", "high", "max"] | None = "default",
     run_variant: bool = True,
     run_optimize: bool = False,
     save_chat: bool = True,

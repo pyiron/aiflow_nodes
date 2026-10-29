@@ -9,6 +9,7 @@ def GetChemicalPotential(
     engine=None,
 ):
     from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.calculator.ase import Minimize
     from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
     from aiflow_nodes.atomistic.structure.build import Bulk

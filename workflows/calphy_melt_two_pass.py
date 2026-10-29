@@ -152,11 +152,12 @@ def SystemWithPotential(
     line, so prefer "eam" (which covers eam/alloy and eam/fs) or "meam" over a
     plain funcfl entry if the structure ever grows a second element.
     """
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.engine.lammps import GetPotential
     from aiflow_nodes.atomistic.property.calphy import BuildCalphySystem
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.transform import Rattle, Repeat
-    from aiflow.core import Workflow
 
     inner = Workflow("SystemWithPotential")
     inner.crystal = Bulk(name=name, cubic=cubic)
@@ -194,12 +195,13 @@ def SuperheatingWindow(system, t_start=100.0, t_stop=3000.0):
     the reason the bundle exists: a window measured with a different potential
     from the one the legs run is silently meaningless.
     """
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.engine.ase import LammpsEngine
     from aiflow_nodes.atomistic.property.calphy import (
         CalphySystem,
         EstimateCalphyTemperatureRange,
     )
-    from aiflow.core import Workflow
 
     inner = Workflow("SuperheatingWindow")
     inner.parts = CalphySystem(input=system)
@@ -250,6 +252,8 @@ def MeltingPass(system, inp, temperature_min, temperature_max, fit_order=1):
     ``solid_diagnostics`` / ``liquid_diagnostics`` are the per-leg bundles, for
     ``LegQuality``.
     """
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.property.calphy import (
         ApplyTemperatureWindow,
         CalphySystem,
@@ -258,7 +262,6 @@ def MeltingPass(system, inp, temperature_min, temperature_max, fit_order=1):
         SolidFreeEnergyWithTemp,
         SuggestTemperatureWindow,
     )
-    from aiflow.core import Workflow
 
     inner = Workflow("MeltingPass")
     inner.run_input = ApplyTemperatureWindow(
@@ -332,13 +335,14 @@ def LegQuality(solid_diagnostics, liquid_diagnostics):
     G(T) should lie on top of each other, and ``rs_max_dissipation`` should be
     below calphy's own 1e-4 eV/atom threshold.
     """
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.property.calphy import (
         CalphyDiagnostics,
         CalphyDiagnosticsTable,
         CalphyMeltingFromTrajectory,
         PlotCalphyHysteresis,
     )
-    from aiflow.core import Workflow
 
     inner = Workflow("LegQuality")
     inner.solid_parts = CalphyDiagnostics(input=solid_diagnostics)

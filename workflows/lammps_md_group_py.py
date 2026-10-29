@@ -1,4 +1,5 @@
 from aiflow.core import Workflow, group_node
+
 from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
 from aiflow_nodes.atomistic.structure.transform import FixSpecies
 from aiflow_nodes.atomistic.structure.view import Animate
@@ -9,6 +10,7 @@ from aiflow_nodes.atomistic.structure.view import Animate
 @group_node("structure")
 def Structure(name, cubic=False, repeat_scalar=1):
     from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.transform import Repeat
 
@@ -21,6 +23,7 @@ def Structure(name, cubic=False, repeat_scalar=1):
 @group_node("element")
 def GetPotential(structure, index):
     from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.engine.lammps import ListPotentials
     from aiflow_nodes.controls import pick_element
 
@@ -33,6 +36,7 @@ def GetPotential(structure, index):
 @group_node("out")
 def Lammps(calc_dataclass, structure, potential, working_directory="."):
     from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.engine.lammps import (
         CreateLammpsMDInput,
         CreateLammpsStructure,

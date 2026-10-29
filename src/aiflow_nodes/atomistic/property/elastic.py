@@ -8,10 +8,8 @@ whose calculator provides stresses (EMT, GRACE, M3GNet, LAMMPS, ...).
 """
 
 from dataclasses import field
-from typing import Optional
 
 import numpy as np
-
 from aiflow.core import (
     Node,
     as_function_node,
@@ -230,7 +228,7 @@ def StressStrainElasticConstants(
 def ComputeElasticConstants(
     structure,
     engine=None,
-    input_elastic_tensor: Optional[InputElasticTensor] = None,
+    input_elastic_tensor: InputElasticTensor | None = None,
     relax_reference: bool = False,
 ):
     """Elastic constants of *structure* from the stress-strain slopes.

@@ -1,10 +1,12 @@
 import os
 import shutil
-from dataclasses import asdict
-from typing import Any, Optional, Literal
+from dataclasses import asdict, dataclass
+from typing import Any, Literal
 
+import pandas as pd
+from aiflow.core import as_function_node, run_external
+from ase import Atoms
 from ase.atoms import Atoms
-
 from lammpsparser.compatibility.calculate import calc_md, calc_minimize, calc_static
 from lammpsparser.compatibility.constraints import set_selective_dynamics
 from lammpsparser.output import parse_lammps_output
@@ -13,23 +15,14 @@ from lammpsparser.structure import LammpsStructure
 from aiflow_nodes.atomistic.calculator.data import (
     InputCalcMD,
     InputCalcMinimize,
-    InputCalcStatic,
 )
-
-from aiflow.core import as_function_node, run_external
-
-import pandas as pd
-
-from ase import Atoms
-from aiflow.core import as_function_node
-from dataclasses import dataclass
 
 
 @dataclass
 class LammpsIOBundle:
     structure: Atoms
     potential: str | pd.DataFrame
-    mode: Optional[str] = None
+    mode: str | None = None
     working_directory: str = "."
     lammps_input_string: str = ""
     lammps_input_filename: str = "lmp.in"
@@ -37,15 +30,15 @@ class LammpsIOBundle:
     lammps_structure_filename: str = "lammps.data"
     lammps_potential_string: str = ""
     lammps_potential_filename: str = "potential.inp"
-    read_restart_filename: Optional[str] = None
-    write_restart_filename: Optional[str] = None
+    read_restart_filename: str | None = None
+    write_restart_filename: str | None = None
     units: str = "metal"
     atom_style: str = "atomic"
     lammps_pending_fix_ids: str = ""
     # The calculation dataclass (InputCalcMD / InputCalcMinimize instance) that
     # the modular section nodes in lammps_input.py inherit unset values from.
-    calc_input: Optional[Any] = None
-    resource_path: Optional[str] = None
+    calc_input: Any | None = None
+    resource_path: str | None = None
     has_bonds: bool = True
     has_electrode_force: bool = False
 
@@ -94,7 +87,7 @@ def _basenames_collide(filenames) -> bool:
     )
 
 
-def _potential_rejection_reason(filenames) -> Optional[str]:
+def _potential_rejection_reason(filenames) -> str | None:
     """Why this potential cannot yield valid LAMMPS input, or None if it can."""
     if not _has_potential_files(filenames):
         return (
@@ -110,9 +103,7 @@ def _potential_rejection_reason(filenames) -> Optional[str]:
     return None
 
 
-def get_usable_potential_by_name(
-    potential_name: str, resource_path: Optional[str] = None
-):
+def get_usable_potential_by_name(potential_name: str, resource_path: str | None = None):
     """Look up a potential by name, rejecting ones that cannot produce valid input.
 
     Same return value as ``pyiron_lammps.potential.get_potential_by_name`` (a row
@@ -120,7 +111,7 @@ def get_usable_potential_by_name(
     corrupted ``Config``.  See :func:`_has_potential_files` and
     :func:`_basenames_collide` for the two ways that happens.
     """
-    from pyiron_lammps.potential import get_potential_by_name, get_potential_dataframe
+    from pyiron_lammps.potential import get_potential_by_name
 
     try:
         potential = get_potential_by_name(
@@ -158,7 +149,7 @@ def get_usable_potential_by_name(
 
 
 @as_function_node
-def ListPotentials(structure: Atoms, resource_path: Optional[str] = None):
+def ListPotentials(structure: Atoms, resource_path: str | None = None):
     """List the potentials available for *structure* that can actually be run."""
 
     from lammpsparser.potential import get_resource_path_from_conda, view_potentials
@@ -187,7 +178,7 @@ def _pair_style_of(config_lines) -> str:
 @as_function_node
 def GetPotential(
     structure: Atoms,
-    resource_path: Optional[str] = None,
+    resource_path: str | None = None,
     type_filter: Literal[
         "all", "eam", "meam", "adp", "tersoff", "bop", "comb", "agni", "pinn"
     ] = "all",
@@ -299,9 +290,9 @@ def CreateLammpsStructure(
         "template",
         "hybrid",
     ] = "atomic",
-    bond_dict: Optional[dict] = None,
-    resource_path: Optional[str] = None,
-    calc_input: Optional[InputCalcMD | InputCalcMinimize] = None,
+    bond_dict: dict | None = None,
+    resource_path: str | None = None,
+    calc_input: InputCalcMD | InputCalcMinimize | None = None,
 ) -> LammpsIOBundle:
     from lammpsparser.compatibility.file import _get_potential
 
@@ -444,9 +435,9 @@ def _piston_barostat_lines(
 def CreateLammpsMDInput(
     io_bundle: LammpsIOBundle,
     calc_dataclass: InputCalcMD,
-    read_restart_filename: Optional[str] = None,
-    write_restart_filename: Optional[str] = None,
-    piston_species: Optional[str] = None,
+    read_restart_filename: str | None = None,
+    write_restart_filename: str | None = None,
+    piston_species: str | None = None,
     piston_pressure: float = 1.0,
     piston_damping: float = 0.0,
 ):
@@ -465,12 +456,12 @@ def CreateLammpsMDInput(
         ``fix viscous`` damping coefficient on the piston group.  ``0`` omits the
         fix and leaves the damping to the thermostat.
     """
-    from lammpsparser.compatibility.file import (
-        lammps_file_initialization,
-        _get_potential,
-    )
-
     import copy
+
+    from lammpsparser.compatibility.file import (
+        _get_potential,
+        lammps_file_initialization,
+    )
 
     # Work on a copy: writing into the incoming bundle would also change the
     # cached output of the upstream node (e.g. CreateLammpsStructure).
@@ -536,7 +527,7 @@ def CreateLammpsMDInput(
     _n_print_force = calc_kwargs.pop("n_print_force", None) or calc_kwargs.get(
         "n_print", 1
     )
-    lmp_str_lst += ["variable forcetime equal {} ".format(_n_print_force)]
+    lmp_str_lst += [f"variable forcetime equal {_n_print_force} "]
     lmp_str_lst += [
         "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz",
         'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"',
@@ -624,7 +615,7 @@ def CreateLammpsMDInput(
     if read_restart_file:
         lmp_str_lst += ["reset_timestep 0"]
 
-    lmp_str_lst += ["run {} ".format(n_ionic_steps)]
+    lmp_str_lst += [f"run {n_ionic_steps} "]
 
     if read_restart_file:
         shutil.copyfile(
@@ -651,8 +642,8 @@ def CreateLammpsStaticInput(
     import copy
 
     from lammpsparser.compatibility.file import (
-        lammps_file_initialization,
         _get_potential,
+        lammps_file_initialization,
     )
 
     # Work on a copy: writing into the incoming bundle would also change the
@@ -713,8 +704,8 @@ def CreateLammpsMinimizeInput(
     import copy
 
     from lammpsparser.compatibility.file import (
-        lammps_file_initialization,
         _get_potential,
+        lammps_file_initialization,
     )
 
     # Work on a copy: writing into the incoming bundle would also change the
@@ -748,7 +739,7 @@ def CreateLammpsMinimizeInput(
     else:
         lmp_str_lst += potential_lst
 
-    lmp_str_lst += ["variable dumptime equal {}".format(calc_dataclass.n_print)]
+    lmp_str_lst += [f"variable dumptime equal {calc_dataclass.n_print}"]
     lmp_str_lst += [
         "dump 1 all custom ${dumptime} dump.out id type xsu ysu zsu fx fy fz vx vy vz",
         'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"',
@@ -782,7 +773,7 @@ def CreateLammpsMinimizeInput(
 @as_function_node
 def RunLammpsBase(
     io_bundle: LammpsIOBundle,
-    lmp_command: Optional[str] = None,
+    lmp_command: str | None = None,
     threads_per_core: int = 1,
     debug: bool = False,
 ):
@@ -839,7 +830,7 @@ def RunLammpsBase(
 @as_function_node
 def RunLammpsCalculation(
     io_bundle: LammpsIOBundle,
-    lmp_command: Optional[str] = None,
+    lmp_command: str | None = None,
     threads_per_core: int = 1,
     debug: bool = False,
     executor=None,
@@ -1025,6 +1016,7 @@ def ParseElectrodeForce(io_bundle: LammpsIOBundle):
     """
     import glob
     import os
+
     import numpy as np
     from lammpsparser.units import LAMMPS_UNIT_CONVERSIONS
 
@@ -1064,10 +1056,11 @@ def write_lammps_data_full(
     str
         Complete LAMMPS data file content as a string.
     """
+    from collections import defaultdict
+
+    from ase.data import atomic_masses, atomic_numbers
     from ase.neighborlist import neighbor_list
     from lammpsparser.structure import UnfoldingPrism, is_skewed
-    from ase.data import atomic_masses, atomic_numbers
-    from collections import defaultdict
 
     prism = UnfoldingPrism(structure.cell, digits=15)
     coords = [prism.pos_to_lammps(pos) for pos in structure.positions]

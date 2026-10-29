@@ -1,4 +1,5 @@
 from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.container_new import (
     AddPristine,

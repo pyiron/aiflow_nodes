@@ -102,8 +102,6 @@ attempt, the raw ``chat_*.jsonl`` per agent turn (``save_chat=True``), and the
 """
 
 from aiflow.core import Workflow
-from aiflow_nodes.controls import IterToDataFrame
-from aiflow_nodes.executors import ThreadPoolExecutorNode
 
 # The nodes themselves live in ``aiflow_nodes.benchmark``; this module is one
 # wiring of them.  The names not used by the graph below are re-exported for
@@ -130,6 +128,8 @@ from aiflow_nodes.benchmark import (
     WorkflowAgent,
     warn_if_the_harness_never_ran,
 )
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.executors import ThreadPoolExecutorNode
 
 __all__ = [
     "wf",

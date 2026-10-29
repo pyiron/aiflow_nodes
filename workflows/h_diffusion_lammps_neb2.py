@@ -1,4 +1,9 @@
 from aiflow.core import Workflow
+
+from aiflow_nodes.atomistic.calculator.ase import (
+    GenericOptimizerSettings,
+    Relax,
+)
 from aiflow_nodes.atomistic.diffusion import (
     AddInterstitialH,
     LammpsAseEngine,
@@ -7,12 +12,8 @@ from aiflow_nodes.atomistic.diffusion import (
 )
 from aiflow_nodes.atomistic.engine.lammps import ListPotentials
 from aiflow_nodes.atomistic.structure.build import Bulk
-from aiflow_nodes.controls import pick_element
-from aiflow_nodes.atomistic.calculator.ase import (
-    GenericOptimizerSettings,
-    Relax,
-)
 from aiflow_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.controls import pick_element
 
 wf = Workflow("h_diffusion_lammps_neb2")
 

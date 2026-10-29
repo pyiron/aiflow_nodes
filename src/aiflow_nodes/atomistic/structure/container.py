@@ -1,10 +1,10 @@
-from dataclasses import dataclass, field
-from typing import Optional, Literal
-
 import copy
-import pandas as pd
+from dataclasses import dataclass, field
+from typing import Literal
 
+import pandas as pd
 from aiflow.core import as_function_node
+
 from aiflow_nodes.atomistic.structure._atoms import (
     OutputAtoms,
     _ase_to_data,
@@ -340,7 +340,7 @@ class StructureContainer:
             )
         return int(pristine_rows.index[-1])
 
-    def row_index_of(self, structure) -> Optional[int]:
+    def row_index_of(self, structure) -> int | None:
         """
         Return the absolute row index of *structure*, or ``None`` if
         absent.
@@ -471,7 +471,7 @@ def _resolve_structure(obj) -> OutputAtoms:
 
 
 def _ensure_container(
-    container: Optional[StructureContainer],
+    container: StructureContainer | None,
 ) -> StructureContainer:
     """Return *container* or a fresh :class:`StructureContainer`."""
     if container is None:
@@ -485,8 +485,8 @@ def _ensure_container(
 
 def _prepare(
     input_structure,
-    structure_container: Optional[StructureContainer],
-    parent_defect_index: Optional[int],
+    structure_container: StructureContainer | None,
+    parent_defect_index: int | None,
 ):
     """
     Resolve inputs and return everything a defect-creation node needs.
@@ -561,7 +561,7 @@ def _prepare(
 @as_function_node
 def AddPristine(
     pristine_structure,
-    structure_container: Optional[StructureContainer] = None,
+    structure_container: StructureContainer | None = None,
 ) -> StructureContainer:
     """
     Register a pristine reference structure in the container.
@@ -590,8 +590,8 @@ def AddPristine(
 def CreateVacancy(
     index: int = 0,
     input_structure=None,
-    structure_container: Optional[StructureContainer] = None,
-    parent_defect_index: Optional[int] = None,
+    structure_container: StructureContainer | None = None,
+    parent_defect_index: int | None = None,
 ) -> StructureContainer:
     """
     Create a vacancy defect by removing one atom.
@@ -647,8 +647,8 @@ def CreateSubstitutional(
     element: str,
     index: int = 0,
     input_structure=None,
-    structure_container: Optional[StructureContainer] = None,
-    parent_defect_index: Optional[int] = None,
+    structure_container: StructureContainer | None = None,
+    parent_defect_index: int | None = None,
 ) -> StructureContainer:
     """
     Create a substitutional defect by replacing one atom with *element*.
@@ -814,8 +814,8 @@ def CreateInterstitial(
     site_type: str = "octahedral",
     index: int = 0,
     input_structure=None,
-    structure_container: Optional[StructureContainer] = None,
-    parent_defect_index: Optional[int] = None,
+    structure_container: StructureContainer | None = None,
+    parent_defect_index: int | None = None,
 ) -> StructureContainer:
     """
     Create an interstitial defect by inserting a new atom at an interstitial site.

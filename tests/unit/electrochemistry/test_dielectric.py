@@ -10,6 +10,10 @@ import numpy as np
 from ase import Atoms
 
 from aiflow_nodes.electrochemistry.analysis.dielectric import (
+    ANG_TO_M,
+    E_CHARGE,
+    EPSILON_0,
+    K_BOLTZMANN,
     DielectricFromPolarizationFluctuations,
     DifferentialCapacitance,
     LocalDielectricProfile,
@@ -17,10 +21,6 @@ from aiflow_nodes.electrochemistry.analysis.dielectric import (
     _free_bound_maps,
     _poisson_potential,
     _resolve_initial_step,
-    EPSILON_0,
-    E_CHARGE,
-    K_BOLTZMANN,
-    ANG_TO_M,
 )
 from aiflow_nodes.electrochemistry.analysis.plots import BuildDensityContext
 
@@ -297,7 +297,7 @@ class TestDielectricFromPolarizationFluctuations(unittest.TestCase):
         trajectory = _slab_trajectory(n_frames=30, drop_amplitude=1.0)
         z = np.linspace(0.0, 30.0, 50)
         zeros = np.zeros_like(z)
-        data = {k: (z, zeros) for k in ("Al", "Ne", "O", "H", "Na", "F")}
+        data = dict.fromkeys(("Al", "Ne", "O", "H", "Na", "F"), (z, zeros))
 
         from_context = DielectricFromPolarizationFluctuations._original_func(
             trajectory=trajectory, context=_context(data, initial_step=10), n_bins=50
@@ -316,7 +316,7 @@ class TestDifferentialCapacitance(unittest.TestCase):
     def _context(self):
         z = np.linspace(0.0, 30.0, 50)
         zeros = np.zeros_like(z)
-        data = {k: (z, zeros) for k in ("Al", "Ne", "O", "H", "Na", "F")}
+        data = dict.fromkeys(("Al", "Ne", "O", "H", "Na", "F"), (z, zeros))
         return _context(data, initial_step=0)
 
     def test_it_returns_the_fluctuation_formula(self):

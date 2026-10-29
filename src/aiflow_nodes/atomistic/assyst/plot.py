@@ -1,9 +1,8 @@
 from collections.abc import Iterable
 
 import pandas as pd
-from ase import Atoms
-
 from aiflow.core import as_function_node
+from ase import Atoms
 
 
 @as_function_node

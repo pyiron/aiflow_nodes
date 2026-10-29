@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Literal
 
 from aiflow.core import as_function_node
@@ -69,8 +70,8 @@ def PlotWaterDensity(
     xlabel: str = "z (Å)",
     ylabel: str = "Water density (g cm⁻³)",
 ) -> Figure:
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     Data = context["density_data"]
     initial_structure = context["initial_structure"]
@@ -117,8 +118,8 @@ def PlotChargeDensity(
     xlabel: str = "z (Å)",
     ylabel: str = "Charge density (e/Å)",
 ) -> Figure:
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     Data = context["density_data"]
     charges = context["charges"]
@@ -182,8 +183,8 @@ def PlotIonTrajectory(
     ion_species: str = "Na F",
     xlabel: str = "MD step",
 ) -> Figure:
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     comp_idx = {"x": 0, "y": 1, "z": 2}[component]
     species_array = np.asarray(trajectory.species)
@@ -228,8 +229,8 @@ def PlotEnergyConvergence(
     xlabel: str = "MD step",
     ylabel: str = "Energy (eV)",
 ) -> Figure:
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
     from scipy.ndimage import uniform_filter1d
 
     steps = np.asarray(trajectory.steps)[first_step:]
@@ -276,9 +277,10 @@ def PlotElectrostaticPotential(
     xlabel: str = "z (Å)",
     ylabel: str = "Electrostatic potential (V)",
 ) -> Figure:
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
     from ase.units import Bohr
+
     from aiflow_nodes.electrochemistry.analysis.dielectric import _charge_map
 
     Data = context["density_data"]
@@ -386,8 +388,9 @@ def PlotBulkElectricField(
     ``initial_step=None`` takes the value the density context was built with, so
     this average covers the same frames as the density profile.
     """
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
+
     from aiflow_nodes.electrochemistry.analysis.dielectric import (
         _charge_map,
         _frame_charge_density,
@@ -459,6 +462,7 @@ def PlotBulkElectricField(
 def DoublLayerCapacitance(context: dict):
     import numpy as np
     from ase.units import Bohr
+
     from aiflow_nodes.electrochemistry.analysis.dielectric import _charge_map
 
     Data = context["density_data"]
@@ -517,12 +521,13 @@ def EnrichDensityContext(trajectory, sim_setup, initial_step=0):
     derived from them; earlier frames are dropped as equilibration.  It is also
     stored in the context so trajectory-based analysis nodes inherit it.
     """
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.calculator.data import SimSetupBundle
     from aiflow_nodes.electrochemistry.analysis.plots import (
         BuildDensityContext,
         ElementDensityFromTrajectory,
     )
-    from aiflow.core import Workflow
 
     inner_wf = Workflow("EnrichDensityContext")
     inner_wf.density = ElementDensityFromTrajectory(

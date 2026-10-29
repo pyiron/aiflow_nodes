@@ -1,3 +1,5 @@
+from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.engine.lammps import GetPotential
 from aiflow_nodes.atomistic.property.calphy import (
     CalphyDiagnosticsTable,
@@ -9,8 +11,6 @@ from aiflow_nodes.atomistic.property.calphy import (
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.transform import Rattle, Repeat
 from aiflow_nodes.plotting import InputPlotOptions, MergePlots, Plot
-from aiflow.core import Workflow
-from aiflow.core import group_node
 
 wf = Workflow("calph_melt2")
 

@@ -1,7 +1,6 @@
 from dataclasses import field
 
 import numpy as np
-
 from aiflow.core import Node, as_function_node, as_out_dataclass_node
 
 

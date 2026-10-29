@@ -1,5 +1,7 @@
+from collections.abc import Callable
 from dataclasses import field
-from typing import Optional, Callable, Literal
+from typing import Literal
+
 from aiflow.core import as_function_node, as_inp_dataclass_node
 
 
@@ -195,18 +197,18 @@ class SlurmAdvancedSettings:
     # threads_per_core and pysqa_config_directory are now on SlurmExecutor so
     # typical jobs don't need this node at all.
     gpus_per_core: int = 0
-    cwd: Optional[str] = None
+    cwd: str | None = None
     openmpi_oversubscribe: bool = False
     slurm_cmd_args: list = field(default_factory=list)
     submission_template: str = DEFAULT_SLURM_TEMPLATE
     # Executor settings
-    hostname_localhost: Optional[bool] = None
+    hostname_localhost: bool | None = None
     block_allocation: bool = False
-    init_function: Optional[Callable] = None
+    init_function: Callable | None = None
     disable_dependencies: bool = False
     refresh_rate: float = 0.01
     plot_dependency_graph: bool = False
-    plot_dependency_graph_filename: Optional[str] = None
+    plot_dependency_graph_filename: str | None = None
 
 
 def _pysqa_queue(config_directory: str, partition: str) -> str:
@@ -237,7 +239,7 @@ def SlurmExecutor(
     run_time_max: int = 180,  # in seconds
     memory_max: int = None,  # in GB
     threads_per_core: int = 1,
-    pysqa_config_directory: Optional[str] = None,
+    pysqa_config_directory: str | None = None,
     cache_directory: str = "./cache",
     job_name: str = "",
     non_modal: bool = False,

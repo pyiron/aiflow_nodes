@@ -1,8 +1,7 @@
+from aiflow.core import Workflow, as_function_node
+
 from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.math_utils import Arange
-from aiflow.core import Workflow
-from aiflow.core import group_node
-from aiflow.core import as_function_node
 
 # ── Local node definitions ──────────────────────
 
@@ -39,10 +38,10 @@ def poly_cv(degree: int = 1, alpha: float = 1.0, folds: int = 5):
         Mean cross-validated root-mean-square error (lower is better).
     """
     import numpy as np
-    from sklearn.pipeline import make_pipeline
-    from sklearn.preprocessing import PolynomialFeatures, StandardScaler
     from sklearn.linear_model import Ridge
     from sklearn.model_selection import cross_val_score
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 
     # Fixed, seeded dataset so the node is fully self-contained and reproducible.
     rng = np.random.default_rng(0)

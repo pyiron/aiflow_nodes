@@ -1,19 +1,19 @@
-from aiflow_nodes.atomistic.structure.build import Bulk
-from aiflow_nodes.atomistic.structure.transform import Repeat
-from aiflow_nodes.atomistic.property.calphy import (
-    InputClass,
-    SolidFreeEnergyWithTemp,
-    LiquidFreeEnergyWithTemp,
-    FindMeltingTemperature,
-    PlotSolidLiquidFreeEnergy,
-)
+from aiflow.core import Workflow, group_node
+
 from aiflow_nodes.atomistic.engine.lammps import ListPotentials
-from aiflow_nodes.atomistic.structure.transform import Rattle
+from aiflow_nodes.atomistic.property.calphy import (
+    FindMeltingTemperature,
+    InputClass,
+    LiquidFreeEnergyWithTemp,
+    PlotSolidLiquidFreeEnergy,
+    SolidFreeEnergyWithTemp,
+)
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import Rattle, Repeat
 from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.dataframe import GetColumnFromDataFrame
 from aiflow_nodes.math_utils import Linspace
-from aiflow_nodes.plotting import Scatter, InputPlotOptions
-from aiflow.core import Workflow, group_node
+from aiflow_nodes.plotting import InputPlotOptions, Scatter
 
 _POTENTIAL = "1999--Mishin-Y--Al--LAMMPS--ipr1"
 

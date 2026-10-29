@@ -7,8 +7,8 @@ then a tuple with one entry per label.
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-
 from aiflow.core import as_function_node
+
 from aiflow_nodes.controls import IterToDataFrame, _iterate_node
 
 

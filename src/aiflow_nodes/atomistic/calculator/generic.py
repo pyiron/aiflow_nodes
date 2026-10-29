@@ -1,8 +1,7 @@
-from typing import Optional
 import numpy as np
+from aiflow.core import as_function_node
 
 from aiflow_nodes.atomistic.calculator.data import OutputSEFS
-from aiflow.core import as_function_node
 
 
 @as_function_node
@@ -35,9 +34,9 @@ def ApplyEngine(
 @as_function_node
 def CreateSEFSContainer(
     structures: list | np.ndarray,
-    energies: Optional[list] = None,
-    forces: Optional[list] = None,
-    stresses: Optional[list] = None,
+    energies: list | None = None,
+    forces: list | None = None,
+    stresses: list | None = None,
 ) -> OutputSEFS:
     sefs_container = OutputSEFS.pure_dataclass()
     sefs_container.structures = structures

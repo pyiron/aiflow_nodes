@@ -1,4 +1,5 @@
 from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.calculator.data import InputMDVASP, InputSCF
 from aiflow_nodes.atomistic.engine.vasp_new import (
     CreateVaspInputResources,

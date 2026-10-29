@@ -18,8 +18,8 @@ figure script.
 
 import numpy as np
 import pandas as pd
+from aiflow.core import Node, Workflow, as_function_node
 
-from aiflow.core import Workflow, as_function_node, Node
 from aiflow_nodes.controls import IterToDataFrame
 
 # --------------------------------------------------------------------------- #
@@ -46,9 +46,9 @@ X, Y = make_dataset()
 
 @as_function_node("model")
 def PolynomialRidge(degree: int = 3, alpha: float = 1.0):
+    from sklearn.linear_model import Ridge
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import PolynomialFeatures, StandardScaler
-    from sklearn.linear_model import Ridge
 
     model = make_pipeline(
         PolynomialFeatures(degree), StandardScaler(), Ridge(alpha=alpha)
@@ -115,10 +115,10 @@ def model_comparison():
 
 @as_function_node(["degree", "cv_rmse"])
 def poly_cv(degree: int = 1, alpha: float = 1.0, folds: int = 5):
-    from sklearn.pipeline import make_pipeline
-    from sklearn.preprocessing import PolynomialFeatures, StandardScaler
     from sklearn.linear_model import Ridge
     from sklearn.model_selection import cross_val_score
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 
     model = make_pipeline(
         PolynomialFeatures(int(degree)), StandardScaler(), Ridge(alpha=alpha)

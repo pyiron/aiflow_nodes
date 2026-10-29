@@ -2,9 +2,15 @@
 
 from dataclasses import field
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import Literal
 
 import numpy as np
+from aiflow.core import (
+    Node,
+    as_function_node,
+    as_inp_dataclass_node,
+    as_out_dataclass_node,
+)
 from ase import Atoms
 from ase.constraints import FixAtoms
 from ase.filters import FrechetCellFilter
@@ -15,12 +21,6 @@ from aiflow_nodes.atomistic.structure._atoms import (
     _ase_to_data,
     _data_to_ase,
     _resolve_atoms,
-)
-from aiflow.core import (
-    Node,
-    as_function_node,
-    as_inp_dataclass_node,
-    as_out_dataclass_node,
 )
 
 
@@ -47,10 +47,10 @@ class OutputCalcOpt:
     Holds the (relaxed) structure and associated physical quantities.
     """
 
-    structure: Optional[List] = field(default=None)
+    structure: list | None = field(default=None)
     energy: float = 0
-    forces: Optional[np.ndarray] = field(default=None)
-    stress: Optional[np.ndarray] = field(default=None)
+    forces: np.ndarray | None = field(default=None)
+    stress: np.ndarray | None = field(default=None)
 
 
 class RelaxMode(Enum):
@@ -127,7 +127,7 @@ def Static(
 def Relax(
     structure: Atoms,
     engine,
-    opt_parameters: Optional[GenericOptimizerSettings] = None,
+    opt_parameters: GenericOptimizerSettings | None = None,
     opt_mode: Literal["volume", "full"] = "volume",
     store: bool = False,
 ) -> Atoms:
@@ -323,6 +323,7 @@ def Minimize(
     """
     from ase.io.trajectory import Trajectory
     from ase.optimize import BFGS
+
     from aiflow_nodes.atomistic.calculator.data import OutputCalcStaticList
 
     atoms = _resolve_atoms(structure)

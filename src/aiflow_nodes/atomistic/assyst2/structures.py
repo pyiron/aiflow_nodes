@@ -1,15 +1,14 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import product
-from typing import Optional, Union
 
 import pandas as pd
+from aiflow.core import (
+    PortList,
+    as_function_node,
+)
 from ase import Atoms
 
-from aiflow.core import (
-    as_function_node,
-    PortList,
-)
 from aiflow_nodes.atomistic.structure._atoms import _ase_to_data
 
 
@@ -83,8 +82,8 @@ def StoichiometryTable(stoichiometry: Stoichiometry) -> pd.DataFrame:
 @as_function_node("filtered")
 def FilterSize(
     elements: Stoichiometry,
-    min: Optional[int] = 0,
-    max: Optional[int] = None,
+    min: int | None = 0,
+    max: int | None = None,
 ):
     """Filter a Stoichiometry by the number of atoms per structure.
 
@@ -105,7 +104,7 @@ def FilterSize(
 @as_function_node
 def SpaceGroupSampling(
     elements: Stoichiometry,
-    spacegroups: Optional[Union[list[int], tuple[int, ...]]] = None,
+    spacegroups: list[int] | tuple[int, ...] | None = None,
     max_atoms: int = 4,
     max_structures: int = 10,
     store: bool = False,

@@ -1,20 +1,20 @@
 import contextlib
+import os
+import random
+import string
 import warnings
-from dataclasses import dataclass, asdict, replace
+from dataclasses import asdict, dataclass, replace
+
+import numpy as np
+import pandas as pd
 from aiflow.core import (
-    as_inp_dataclass_node,
     as_function_node,
+    as_inp_dataclass_node,
     as_out_dataclass_node,
     group_node,
 )
 from aiflow.core.data_fields import EmptyArrayField
-import random
-import string
-from typing import Optional, Tuple
 from ase.atoms import Atoms
-import numpy as np
-import os
-import pandas as pd
 
 
 @as_inp_dataclass_node
@@ -166,10 +166,10 @@ class InputClass:
     ~1e-4 eV/atom, raise these towards the calphy defaults.
     """
 
-    md: Optional[MD] = None
-    tolerance: Optional[Tolerance] = None
-    nose_hoover: Optional[NoseHoover] = None
-    berendsen: Optional[Berendsen] = None
+    md: MD | None = None
+    tolerance: Tolerance | None = None
+    nose_hoover: NoseHoover | None = None
+    berendsen: Berendsen | None = None
     pressure: int = 0
     temperature: int = 300
     temperature_stop: int = 600
@@ -181,7 +181,7 @@ class InputClass:
     equilibration_control: str = "nose-hoover"
     melting_cycle: bool = True
     temperature_high: float = 0.0
-    cores: Optional[int] = 1
+    cores: int | None = 1
 
 
 @as_function_node("inp")
@@ -256,8 +256,8 @@ class CalphySystem:
         LAMMPS potential name, as :func:`GetPotential` returns it.
     """
 
-    structure: Optional[Atoms] = None
-    liquid_structure: Optional[Atoms] = None
+    structure: Atoms | None = None
+    liquid_structure: Atoms | None = None
     potential: str = ""
 
 
@@ -360,7 +360,6 @@ def _single_pair_coeff(potential_name, species, coeff_lines, elements_in_structu
 
 
 def _prepare_potential_and_structure(potential, structure, working_directory="."):
-    import shutil
     from ase.data import atomic_masses, atomic_numbers
     from pyiron_lammps.structure import (
         LammpsStructure,
@@ -481,8 +480,8 @@ def _create_simfolder(calc):
 
 
 def _run_cleanup(simfolder, lattice, delete_folder=False):
-    import shutil
     import os
+    import shutil
 
     os.remove(lattice)
     if delete_folder:
@@ -713,7 +712,7 @@ def _collect_diagnostics(
     that took hours.
     """
     warnings_ = []
-    kwargs = dict(phase=phase, simfolder=str(simfolder))
+    kwargs = {"phase": phase, "simfolder": str(simfolder)}
     try:
         warnings_ = _read_calphy_warnings(simfolder)
         n_iterations = int(getattr(calc, "n_iterations", 1) or 1)
@@ -807,8 +806,8 @@ def SolidFreeEnergy(
         warnings calphy logged.  The sweep fields stay empty -- this node runs
         a single thermodynamic integration, not a temperature sweep.
     """
-    from calphy.solid import Solid
     from calphy.routines import routine_fe
+    from calphy.solid import Solid
 
     calc = _prepare_input(
         inp,
@@ -1091,8 +1090,9 @@ def CalcPhaseTransformationTemp(
     float
         Phase transformation temperature
     """
-    import matplotlib.pyplot as plt
     import warnings
+
+    import matplotlib.pyplot as plt
 
     # do some fitting to determine temps
     t1min = np.min(temp_A)
@@ -1104,10 +1104,10 @@ def CalcPhaseTransformationTemp(
     tmax = np.max([t1max, t2max])
 
     # warn about extrapolation
-    if not t1min == t2min:
-        warnings.warn(f"free energy is being extrapolated!")
-    if not t1max == t2max:
-        warnings.warn(f"free energy is being extrapolated!")
+    if t1min != t2min:
+        warnings.warn("free energy is being extrapolated!")
+    if t1max != t2max:
+        warnings.warn("free energy is being extrapolated!")
 
     # now fit
     f1fit = np.polyfit(temp_A, fe_A, fit_order)
@@ -1123,9 +1123,10 @@ def CalcPhaseTransformationTemp(
     phase_transition_temperature = fit_t[arg]
 
     # warn if the temperature is shady
-    if np.abs(phase_transition_temperature - tmin) < 1e-3:
-        warnings.warn("It is likely there is no intersection of free energies")
-    elif np.abs(phase_transition_temperature - tmax) < 1e-3:
+    if (
+        np.abs(phase_transition_temperature - tmin) < 1e-3
+        or np.abs(phase_transition_temperature - tmax) < 1e-3
+    ):
         warnings.warn("It is likely there is no intersection of free energies")
 
     # plot
@@ -1135,8 +1136,8 @@ def CalcPhaseTransformationTemp(
     c2hi = "#0d47a1"
 
     fig, ax = plt.subplots()
-    ax.plot(fit_t, fit_f1, color=c1lo, label=f"phase A fit")
-    ax.plot(fit_t, fit_f2, color=c2lo, label=f"phase B fit")
+    ax.plot(fit_t, fit_f1, color=c1lo, label="phase A fit")
+    ax.plot(fit_t, fit_f2, color=c2lo, label="phase B fit")
     ax.plot(temp_A, fe_A, color=c1hi, label="phase A", ls="dashed")
     ax.plot(temp_B, fe_B, color=c2hi, label="phase B", ls="dashed")
     ax.axvline(phase_transition_temperature, ls="dashed", c="#37474f")
@@ -1474,7 +1475,7 @@ def CalphyMeltingTemperatureSearch(
     inp,
     structure: Atoms,
     potential: str,
-    liquid_structure: Optional[Atoms] = None,
+    liquid_structure: Atoms | None = None,
     bound_backoff: float = 0.0,
     max_attempts: int = 6,
     fit_order: int = 1,
@@ -1880,7 +1881,7 @@ def PlotSolidLiquidFreeEnergy(
     fe_solid: list,
     temp_liquid: list,
     fe_liquid: list,
-    T_melt: Optional[float] = None,
+    T_melt: float | None = None,
     fit_order: int = 4,
 ):
     """
@@ -1939,7 +1940,7 @@ def PlotSolidLiquidFreeEnergy(
 
 def _highest_stable_temperature(
     is_stable, t_lo: float, t_hi: float, n_refinements: int
-) -> Optional[float]:
+) -> float | None:
     """Bisect for the highest temperature that still satisfies ``is_stable``.
 
     Returns the largest midpoint found stable — always a temperature that was
@@ -2242,7 +2243,7 @@ def EstimateCalphyTemperatureRange(
     kelvin_per_check = heating_rate_k_per_ps * timestep_fs * check_every / 1000.0
     t_superheat = None
     T = t_start
-    while T < t_stop:
+    while t_stop > T:
         T = min(T + kelvin_per_check, t_stop)
         dyn.set_temperature(temperature_K=float(T))
         ref = atoms.get_positions().copy()
@@ -2569,6 +2570,9 @@ def MeltingTemperature(
         sweep was too fast.  Wire either into ``CalphyDiagnosticsTable`` or
         ``PlotCalphyHysteresis`` to inspect.
     """
+    from aiflow.core import Workflow
+
+    from aiflow_nodes.atomistic.engine.ase import LammpsEngine
     from aiflow_nodes.atomistic.property.calphy import (
         ApplyTemperatureWindow,
         EstimateCalphyTemperatureRange,
@@ -2578,9 +2582,7 @@ def MeltingTemperature(
         SolidFreeEnergyWithTemp,
         SuggestTemperatureWindow,
     )
-    from aiflow_nodes.atomistic.engine.ase import LammpsEngine
     from aiflow_nodes.atomistic.structure.transform import Rattle
-    from aiflow.core import Workflow
 
     inner = Workflow("MeltingTemperature")
 

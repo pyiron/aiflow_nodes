@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from typing import Optional, Union, List, Set
+import copy
 
-from ase import Atoms
-
+import numpy as np
 from aiflow.core import as_function_node
+from ase import Atoms
+from ase.neighborlist import NeighborList
+
 from aiflow_nodes.atomistic.structure._atoms import (
-    OutputAtoms,
     _ase_to_data,
     _data_to_ase,
 )
-
-import numpy as np
-from ase.neighborlist import NeighborList
-import copy
 
 
 @as_function_node("structure")
@@ -77,7 +74,7 @@ def RepeatXYZ(
 
 
 @as_function_node("structure")
-def ApplyStrain(structure: Optional[Atoms] = None, strain: Union[float] = 0) -> Atoms:
+def ApplyStrain(structure: Atoms | None = None, strain: float = 0) -> Atoms:
     """
     Apply a homogeneous strain to a structure.
 
@@ -107,7 +104,7 @@ def ApplyStrain(structure: Optional[Atoms] = None, strain: Union[float] = 0) -> 
 
 
 @as_function_node
-def CreateVacancy(structure, index: Optional[int] = None) -> Atoms:
+def CreateVacancy(structure, index: int | None = None) -> Atoms:
     """
     Remove a single atom from a structure, creating a vacancy.
 
@@ -185,10 +182,10 @@ def RotateAxisAngle(
 def FixAtoms(
     structure: Atoms,
     xyz_constraint: str = "1 1 1",
-    fix_species: Optional[str] = None,
-    fix_at_z: Optional[float] = None,
-    fix_at_z_tol: Optional[float] = 0.5,
-    fix_atom_indices: Optional[str] = None,
+    fix_species: str | None = None,
+    fix_at_z: float | None = None,
+    fix_at_z_tol: float | None = 0.5,
+    fix_atom_indices: str | None = None,
 ) -> Atoms:
     """
     Return a copy of *structure* with constraints applied to the requested
@@ -230,6 +227,7 @@ def FixAtoms(
         A copy of *structure* with the appropriate constraints attached.
     """
     import ast
+
     from ase.constraints import FixAtoms, FixCartesian
 
     # ------------------------------------------------------------------
@@ -264,7 +262,7 @@ def FixAtoms(
     # ------------------------------------------------------------------
     #   Normalise ``fix_species`` → set of element symbols
     # ------------------------------------------------------------------
-    species_set: Set[str] = set()
+    species_set: set[str] = set()
 
     if fix_species is not None:
         try:
@@ -273,7 +271,7 @@ def FixAtoms(
             parsed_species = fix_species
 
         if isinstance(parsed_species, str):
-            species_set = set(item.strip() for item in parsed_species.split(","))
+            species_set = {item.strip() for item in parsed_species.split(",")}
         elif isinstance(parsed_species, (list, tuple, set)):
             if not all(isinstance(item, str) for item in parsed_species):
                 raise ValueError("All entries in the element list must be strings.")
@@ -287,7 +285,7 @@ def FixAtoms(
     # ------------------------------------------------------------------
     #   Parse ``fix_atom_indices`` → set of integer indices
     # ------------------------------------------------------------------
-    index_set: Set[int] = set()
+    index_set: set[int] = set()
 
     if fix_atom_indices is not None:
         try:
@@ -305,7 +303,7 @@ def FixAtoms(
     # ------------------------------------------------------------------
     #     Build the boolean mask combining all three selection methods.
     # ------------------------------------------------------------------
-    mask: List[bool] = []
+    mask: list[bool] = []
 
     for i, atom in enumerate(structure):
         fix_by_species = atom.symbol in species_set
@@ -343,9 +341,9 @@ def GenerateHEAStructures(
     elements: str,
     shares: str,
     n_structures: int = 1,
-    fixed_index: Optional[int] = None,
-    r_cutoff: Optional[float] = None,
-    seed: Optional[int] = 1234,
+    fixed_index: int | None = None,
+    r_cutoff: float | None = None,
+    seed: int | None = 1234,
 ) -> list[Atoms]:
     """
     Generate random High Entropy Alloy (HEA) structures from an input ASE structure.
@@ -386,8 +384,6 @@ def GenerateHEAStructures(
 
     """
 
-    from ase.io.trajectory import Trajectory
-
     # -------------------------------------------------------------------------
     # Parse and validate inputs
     # -------------------------------------------------------------------------
@@ -412,12 +408,11 @@ def GenerateHEAStructures(
 
     n_atoms = len(structure)
 
-    if fixed_index is not None:
-        if not (0 <= fixed_index < n_atoms):
-            raise ValueError(
-                f"fixed_index {fixed_index} is out of range for structure "
-                f"with {n_atoms} atoms."
-            )
+    if fixed_index is not None and not (0 <= fixed_index < n_atoms):
+        raise ValueError(
+            f"fixed_index {fixed_index} is out of range for structure "
+            f"with {n_atoms} atoms."
+        )
 
     # -------------------------------------------------------------------------
     # Determine which atom indices are "free" (can be reassigned)
@@ -476,7 +471,7 @@ def GenerateHEAStructures(
     print(
         f"Structure has {n_atoms} total atoms, {len(fixed_indices)} fixed, {n_free} free."
     )
-    print(f"Element distribution among free sites:")
+    print("Element distribution among free sites:")
     for el, cnt, frac in zip(element_list, element_counts, share_array):
         print(
             f"  {el}: {cnt} atoms ({cnt / n_free * 100:.1f}%,  target: {frac * 100:.1f}%)"
@@ -523,7 +518,7 @@ def GenerateHEAStructures(
 @as_function_node
 def FixSpecies(
     structure: Atoms,
-    fixed_species: Optional[str] = None,
+    fixed_species: str | None = None,
 ) -> Atoms:
     """
     Return a copy of *structure* with a ``FixAtoms`` constraint applied to the
@@ -546,12 +541,13 @@ def FixSpecies(
         attached (or the unchanged copy if *fixed_species* is ``None``).
     """
     import ast
+
     from ase.constraints import FixAtoms
 
     # ------------------------------------------------------------------
     # 1️⃣ Normalise ``fixed_species`` to a *set* of element symbols.
     # ------------------------------------------------------------------
-    species_set: Set[str] = set()  # default → nothing to fix
+    species_set: set[str] = set()  # default → nothing to fix
 
     if fixed_species is not None:
         # ``fixed_species`` is a string.  It may be a plain symbol
@@ -580,7 +576,7 @@ def FixSpecies(
     # 2️⃣ Build the boolean mask required by ``FixAtoms``.
     #    If ``species_set`` is empty the mask will be all ``False``.
     # ------------------------------------------------------------------
-    mask: List[bool] = [atom.symbol in species_set for atom in structure]
+    mask: list[bool] = [atom.symbol in species_set for atom in structure]
 
     # ------------------------------------------------------------------
     # 3️⃣ Create a copy of the original structure and (optionally) attach the
@@ -710,7 +706,6 @@ def AddSurfaceAdatom(
     -------
     ``ase.atoms.Atoms`` — copy of the slab with adatom(s) appended.
     """
-    import numpy as np
     from ase import Atom
 
     s = slab.copy()
@@ -778,7 +773,7 @@ def Stack(
     bottom: Atoms,
     top: Atoms,
     axis: int = 2,
-    distance: Optional[float] = None,
+    distance: float | None = None,
     reorder: bool = False,
 ) -> Atoms:
     """
@@ -947,7 +942,7 @@ def GenerateStrainedStructures(structure, strain_lst) -> list[Atoms]:
 def DeleteElements(
     structure: Atoms,
     elements: str,
-    bond_dict: Optional[dict] = None,
+    bond_dict: dict | None = None,
 ):
     """
     Delete all atoms of the specified element(s) from a structure.

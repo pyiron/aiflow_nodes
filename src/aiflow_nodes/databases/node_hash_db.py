@@ -1,10 +1,9 @@
-from aiflow.core import Node, as_function_node
 import getpass
 from typing import Literal
 
-USERNAME = getpass.getuser()
+from aiflow.core import Node, as_function_node
 
-from typing import Union
+USERNAME = getpass.getuser()
 
 
 @as_function_node
@@ -45,9 +44,7 @@ def DeleteDB(db, reinitialize: bool = False, delete_hash_files: bool = False):
 
     # Delete hash files if requested
     if delete_hash_files:
-        import pathlib
-        import shutil
-        from aiflow.core.config import paths as _cfg_paths
+        pass
 
         # Get the storage path from config
         # storage_path = pathlib.Path(_cfg_paths.DATA_STORAGE)
@@ -203,7 +200,7 @@ def GetDownstreamNodes(db, node_id: int, qualname: str = ""):
         ``id`` column (0-based row index in the full table).
     """
     import pandas as pd
-    from sqlalchemy import cast, Text
+    from sqlalchemy import Text, cast
     from sqlalchemy.orm import sessionmaker
 
     Session = sessionmaker(bind=db.engine)
@@ -254,11 +251,10 @@ def GetNode(db, node_id: int):
     """
     Get the graph of a node with id *node_id from the database.
     """
-    import pandas as pd
-    from sqlalchemy.orm import sessionmaker
-
     import aiflow.database
+    import pandas as pd
     from pyironflow.gui_utilities import GuiGraph
+    from sqlalchemy.orm import sessionmaker
 
     Session = sessionmaker(bind=db.engine)
     session = Session()
@@ -410,10 +406,10 @@ def GetStoredOutput(db, index: int = 0):
     On failure (no HDF5 file found or index out of range) returns an error
     string that is displayed in the GUI output window.
     """
-    import pandas as pd
-    from sqlalchemy.orm import sessionmaker
     import aiflow.database
+    import pandas as pd
     from aiflow.database.instance_database.node import restore_node_outputs
+    from sqlalchemy.orm import sessionmaker
 
     Session = sessionmaker(bind=db.engine)
     session = Session()
@@ -478,10 +474,9 @@ def GetUpstreamGraph(db, node_id: int, group: bool = False, workflow_name: str =
         Graph: The complete upstream workflow ready for display in a new tab.
                When group=True the graph contains a single collapsed GroupNode.
     """
+    import aiflow.database
     import pandas as pd
     from sqlalchemy.orm import sessionmaker
-
-    import aiflow.database
 
     # Get the hash for the specified node
     Session = sessionmaker(bind=db.engine)
@@ -588,9 +583,8 @@ def ShowOutstandingSubmissions(db, cache_directory: str = ""):
         nothing is outstanding — which is the normal, healthy answer.
     """
     import pandas as pd
-    from sqlalchemy.orm import sessionmaker
-
     from aiflow.core.remote_cache import queue_status_for
+    from sqlalchemy.orm import sessionmaker
 
     Session = sessionmaker(bind=db.engine)
     session = Session()

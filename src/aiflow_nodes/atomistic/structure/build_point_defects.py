@@ -1,31 +1,18 @@
-import numpy as np
-import pandas as pd
-from ase import Atoms
-from ase.geometry import find_mic
-
-# %%
-from ase.io import read
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-from collections import defaultdict
-from ase.build import bulk
-import nglview as nv
-
 # %%
 # from atomistics.calculators.lammps.libcalculator import (
 #     optimize_positions_and_volume_with_lammpslib,
 #     optimize_positions_with_lammpslib,
 #     calc_static_with_lammpslib,
 # )
-from structuretoolkit.visualize import plot3d
 
-from typing import Optional
+import numpy as np
+import pandas as pd
 from aiflow.core import as_function_node
+from ase import Atoms
+from ase.geometry import find_mic
 
 # %%
-import sys
-
+# %%
 # sys.path.append("/cmmc/ptmp/pchilaka/Packages/pymatgen-analysis-defects")
 # from pymatgen.analysis.defects.generators import VoronoiInterstitialGenerator
 from structuretoolkit.common import ase_to_pymatgen
@@ -122,9 +109,8 @@ def _protected_uids_from_events(events):
                 forbid.add(int(ev["atom_uid"]))
             elif "site_uid" in ev:
                 forbid.add(int(ev["site_uid"]))
-        elif t == "interstitial":
-            if "atom_uid" in ev:
-                forbid.add(int(ev["atom_uid"]))
+        elif t == "interstitial" and "atom_uid" in ev:
+            forbid.add(int(ev["atom_uid"]))
     return forbid
 
 
@@ -154,7 +140,7 @@ def defect_counts_from_events(events):
       interstitial -> i
       antisite     -> a (optional)
     """
-    c = dict(s=0, v=0, i=0, a=0)
+    c = {"s": 0, "v": 0, "i": 0, "a": 0}
     for ev in events or []:
         t = ev.get("type")
         if t == "substitution":
@@ -305,7 +291,7 @@ def op_substitute(
     from_element: str,
     to_element: str,
     n: int = 1,
-    seed: Optional[int] = None,
+    seed: int | None = None,
     forbid_uids=None,
     protect_history: bool = False,
 ):

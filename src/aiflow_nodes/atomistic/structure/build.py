@@ -1,21 +1,21 @@
 from __future__ import annotations
 
-from typing import Literal, Optional
-from ase.atoms import Atoms
+from typing import Literal
+
 from aiflow.core import as_function_node
 from aiflow.core.groups import group_node
+from ase.atoms import Atoms
 
 
 @as_function_node("structure")
 def Bulk(
     name: str,
-    crystalstructure: Optional[
-        Literal["fcc", "bcc", "hcp", "diamond", "rocksalt", "wurtzite"]
-    ] = None,
-    a: Optional[float] = None,
-    c: Optional[float] = None,
-    c_over_a: Optional[float] = None,
-    u: Optional[float] = None,
+    crystalstructure: Literal["fcc", "bcc", "hcp", "diamond", "rocksalt", "wurtzite"]
+    | None = None,
+    a: float | None = None,
+    c: float | None = None,
+    c_over_a: float | None = None,
+    u: float | None = None,
     orthorhombic: bool = False,
     cubic: bool = False,
 ) -> Atoms:
@@ -63,10 +63,10 @@ def HighIndexSurface(
     element: str,
     crystal_structure: str,
     lattice_constant: float,
-    terrace_orientation: Optional[list] = None,
-    step_orientation: Optional[list] = None,
-    kink_orientation: Optional[list] = None,
-    step_down_vector: Optional[list] = None,
+    terrace_orientation: list | None = None,
+    step_orientation: list | None = None,
+    kink_orientation: list | None = None,
+    step_down_vector: list | None = None,
     length_step: int = 0,
     length_terrace: int = 0,
     length_kink: int = 0,
@@ -138,7 +138,7 @@ def HighIndexSurface(
 
 @group_node("structure")
 def CubicBulkCell(
-    element: str, cell_size: int = 1, vacancy_index: Optional[int] = None
+    element: str, cell_size: int = 1, vacancy_index: int | None = None
 ) -> Atoms:
     """
     Build a cubic bulk supercell and optionally introduce a single vacancy.
@@ -162,11 +162,12 @@ def CubicBulkCell(
     -------
     The workflow node that contains the final structure (with or without the vacancy).
     """
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.structure.transform import (
         CreateVacancy,
         Repeat,
     )
-    from aiflow.core import Workflow
 
     if (
         vacancy_index is not None
@@ -256,7 +257,6 @@ def BinaryWurtziteSlab(
     -------
     ``ase.atoms.Atoms`` — the slab with optional ``FixAtoms`` constraint.
     """
-    import numpy as np
     from ase.build import bulk as ase_bulk
     from ase.build import surface as ase_surface
     from ase.constraints import FixAtoms as AseFixAtoms

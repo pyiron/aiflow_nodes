@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Optional, Literal
+from typing import Literal
 
-from aiflow_nodes.executors import ThreadPoolExecutorNode
+from aiflow.core import Workflow, as_function_node
+
 from aiflow_nodes.controls import IterToDataFrame
-from aiflow.core import Workflow
-from aiflow.core import as_function_node
+from aiflow_nodes.executors import ThreadPoolExecutorNode
 
 # ── LLM config dataclass (plain data, not a node) ───────────────────────────
 
@@ -54,6 +54,7 @@ def call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
 
     if c.backend == "claude":
         import os
+
         from anthropic import AnthropicFoundry
 
         client = AnthropicFoundry(
@@ -75,8 +76,8 @@ def call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
 
 @as_function_node("models")
 def ListModels(
-    backend: Optional[Literal["openai_academic", "claude", "ollama"]] = "ollama",
-    index: Optional[int] = 0,
+    backend: Literal["openai_academic", "claude", "ollama"] | None = "ollama",
+    index: int | None = 0,
 ):
     """Query available models for *backend* and return one as an ``LLMConfig``.
 
@@ -164,8 +165,9 @@ def GenerateCode(task: str = "", model: LLMConfig = None, max_tokens: int = 2000
     model_name : str
         The model that was actually used.
     """
-    import time
     import textwrap
+    import time
+
     from pyiron_ai.node_store import extract_code
 
     cfg = model if model is not None else _DEFAULT_CONFIG
@@ -202,8 +204,8 @@ def TryCode(code: str = ""):
     error : str or None
         ``"ExceptionType: message"`` if it raised, else ``None``.
     """
-    import io
     import contextlib
+    import io
 
     buf = io.StringIO()
     error = None
@@ -235,6 +237,7 @@ def FixCode(
         The repaired Python source, to be re-tested by ``TryCode``.
     """
     import textwrap
+
     from pyiron_ai.node_store import extract_code
 
     prompt = textwrap.dedent(f"""

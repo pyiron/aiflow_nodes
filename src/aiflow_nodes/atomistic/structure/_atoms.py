@@ -58,8 +58,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Union
 
-from ase.atoms import Atoms
 from aiflow.core.data_fields import DataArray, EmptyArrayField
+from ase.atoms import Atoms
 
 # ---------------------------------------------------------------------------
 # OutputAtoms dataclass

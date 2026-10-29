@@ -13,6 +13,7 @@ Run it with the path of a project that contains Murnaghan jobs:
 import sys
 
 from aiflow.core import Workflow
+
 from aiflow_nodes.databases.pyiron_tables import (
     AddBulkModulus,
     AddLatticeParameter,
