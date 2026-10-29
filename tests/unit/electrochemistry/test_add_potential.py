@@ -1,5 +1,5 @@
 """Unit tests for the electrochemistry VASP nodes in
-``pyiron_nodes.electrochemistry.add_potential.vasp``.
+``aiflow_nodes.electrochemistry.add_potential.vasp``.
 
 Following the same pattern as ``test_vasp.py``, nothing here launches VASP.
 The nodes are exercised through their ``._original_func`` so no ``Workflow``
@@ -29,14 +29,14 @@ import numpy as np
 from ase import Atoms
 from pymatgen.io.vasp.inputs import Incar
 
-from pyiron_nodes.atomistic.calculator.data import InputMDVASP, InputSCF
-from pyiron_nodes.atomistic.engine.vasp_new import (
+from aiflow_nodes.atomistic.calculator.data import InputMDVASP, InputSCF
+from aiflow_nodes.atomistic.engine.vasp_new import (
     CreateVaspInputResources,
     VaspInput,
     VaspInputResources,
     VaspPlugin,
 )
-from pyiron_nodes.electrochemistry.add_potential.vasp import (
+from aiflow_nodes.electrochemistry.add_potential.vasp import (
     CCESetup,
     CDCESetup,
     CEParameters,

@@ -7,8 +7,8 @@ import pandas as pd
 from core import as_function_node
 from lammpsparser.units import LAMMPS_UNIT_CONVERSIONS
 
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
-from pyiron_nodes.atomistic.engine.lammps import LammpsIOBundle
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
+from aiflow_nodes.atomistic.engine.lammps import LammpsIOBundle
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 

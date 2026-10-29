@@ -1,18 +1,18 @@
 from core import Workflow
-from pyiron_nodes.atomistic.diffusion import (
+from aiflow_nodes.atomistic.diffusion import (
     AddInterstitialH,
     FindLowEnergyInterstitialSite,
     PlotNEBPath,
     RunNEB,
 )
-from pyiron_nodes.atomistic.engine.ase import GRACE
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.view import Animate
-from pyiron_nodes.atomistic.calculator.ase import (
+from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.view import Animate
+from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,
     Relax,
 )
-from pyiron_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.atomistic.structure.transform import Repeat
 
 wf = Workflow("h_diffusion_GRACE")
 

@@ -1,7 +1,7 @@
 from typing import Optional
 import numpy as np
 
-from pyiron_nodes.atomistic.calculator.data import OutputSEFS
+from aiflow_nodes.atomistic.calculator.data import OutputSEFS
 from core import as_function_node
 
 

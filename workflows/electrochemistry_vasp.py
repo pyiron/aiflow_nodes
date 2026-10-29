@@ -1,14 +1,14 @@
 from core import Workflow
-from pyiron_nodes.atomistic.calculator.data import InputMDVASP, InputSCF
-from pyiron_nodes.atomistic.engine.vasp_new import (
+from aiflow_nodes.atomistic.calculator.data import InputMDVASP, InputSCF
+from aiflow_nodes.atomistic.engine.vasp_new import (
     CreateVaspInputResources,
     MergeVaspInput,
     RunVaspCalculation,
 )
-from pyiron_nodes.atomistic.structure.build import Surface
-from pyiron_nodes.atomistic.structure.view import Plot3d
-from pyiron_nodes.electrochemistry.add_potential.vasp import CCESetup, ParsePotential
-from pyiron_nodes.electrochemistry.structure.build import AddNeonLayer, AddWaterFilm
+from aiflow_nodes.atomistic.structure.build import Surface
+from aiflow_nodes.atomistic.structure.view import Plot3d
+from aiflow_nodes.electrochemistry.add_potential.vasp import CCESetup, ParsePotential
+from aiflow_nodes.electrochemistry.structure.build import AddNeonLayer, AddWaterFilm
 
 wf = Workflow("electrochemistry_vasp")
 

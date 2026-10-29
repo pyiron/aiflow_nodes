@@ -19,13 +19,13 @@ figure script.
 import sys
 
 # sys.path.insert(0, "pyiron_core/src")
-# sys.path.insert(0, "/Users/jorgneugebauer/git_libs/pyiron_nodes")
+# sys.path.insert(0, "/Users/jorgneugebauer/git_libs/aiflow_nodes")
 
 import numpy as np
 import pandas as pd
 
 from core import Workflow, as_function_node, Node
-from pyiron_nodes.controls import IterToDataFrame
+from aiflow_nodes.controls import IterToDataFrame
 
 # --------------------------------------------------------------------------- #
 #  Data: a noisy nonlinear target sampled once, shared by every experiment.    #

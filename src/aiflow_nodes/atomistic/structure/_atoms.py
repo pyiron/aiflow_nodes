@@ -1,5 +1,5 @@
 """
-pyiron_nodes/atomistic/structure/_atoms.py
+aiflow_nodes/atomistic/structure/_atoms.py
 ──────────────────────────────────────────
 Lightweight conversion helpers between ASE :class:`~ase.atoms.Atoms`
 objects and the picklable :class:`OutputAtoms` dataclass.
@@ -29,7 +29,7 @@ to_data_atoms(obj)
     Accepts :class:`~ase.atoms.Atoms`, :class:`OutputAtoms`, or any
     object that exposes an ``.atoms`` attribute.
 
-Private helpers (used internally by pyiron_nodes)
+Private helpers (used internally by aiflow_nodes)
 -------------------------------------------------
 _data_to_ase(atoms)   — :class:`OutputAtoms` → :class:`~ase.atoms.Atoms`
 _ase_to_data(atoms)   — :class:`~ase.atoms.Atoms` → :class:`OutputAtoms`
@@ -40,7 +40,7 @@ Usage
 -----
 ::
 
-    from pyiron_nodes.atomistic.structure._atoms import (
+    from aiflow_nodes.atomistic.structure._atoms import (
         OutputAtoms,
         to_ase,
         to_data_atoms,
@@ -276,7 +276,7 @@ def to_ase(obj: AtomsLike) -> Atoms:
     -------
     ::
 
-        from pyiron_nodes.atomistic.structure._atoms import to_ase
+        from aiflow_nodes.atomistic.structure._atoms import to_ase
 
         @as_function_node
         def StaticEnergy(structure, engine: OutputEngine):
@@ -316,7 +316,7 @@ def to_data_atoms(obj: AtomsLike) -> OutputAtoms:
     -------
     ::
 
-        from pyiron_nodes.atomistic.structure._atoms import (
+        from aiflow_nodes.atomistic.structure._atoms import (
             to_ase,
             to_data_atoms,
         )

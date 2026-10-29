@@ -1,4 +1,4 @@
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
 from core import as_function_node
 import pandas as pd
 from typing import Literal

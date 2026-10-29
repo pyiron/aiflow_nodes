@@ -1,14 +1,14 @@
 """
-pyiron_nodes/atomistic/structure/defect_phases.py
+aiflow_nodes/atomistic/structure/defect_phases.py
 ──────────────────────────────────────────────────
 Nodes for computing defect formation energies from a structure/energy
 DataFrame.
 
 The ``structure`` column of the input DataFrame may contain either plain
 ASE :class:`~ase.atoms.Atoms` objects **or** picklable
-:class:`~pyiron_nodes.atomistic.structure._atoms.OutputAtoms` dataclass
+:class:`~aiflow_nodes.atomistic.structure._atoms.OutputAtoms` dataclass
 instances.  All public functions accept both transparently via the
-:func:`~pyiron_nodes.atomistic.structure._atoms.to_ase` helper.
+:func:`~aiflow_nodes.atomistic.structure._atoms.to_ase` helper.
 
 Typical workflow
 ----------------
@@ -28,7 +28,7 @@ from core import as_function_node
 import numpy as np
 import pandas as pd
 
-from pyiron_nodes.atomistic.structure._atoms import (
+from aiflow_nodes.atomistic.structure._atoms import (
     OutputAtoms,
     to_ase,
 )

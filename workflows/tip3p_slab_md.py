@@ -1,16 +1,16 @@
 from core import Workflow
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
-from pyiron_nodes.atomistic.engine.lammps import (
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
+from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsMDInput,
     CreateLammpsStructure,
     ParseLammpsOutput,
     RunLammpsCalculation,
 )
-from pyiron_nodes.atomistic.structure.build import Surface
-from pyiron_nodes.atomistic.structure.view import Animate
-from pyiron_nodes.electrochemistry.structure.build import AddNeonLayer, AddWaterFilm
-from pyiron_nodes.electrochemistry.structure.equilibrate import WaterPotential
-from pyiron_nodes.plotting import Plot
+from aiflow_nodes.atomistic.structure.build import Surface
+from aiflow_nodes.atomistic.structure.view import Animate
+from aiflow_nodes.electrochemistry.structure.build import AddNeonLayer, AddWaterFilm
+from aiflow_nodes.electrochemistry.structure.equilibrate import WaterPotential
+from aiflow_nodes.plotting import Plot
 
 wf = Workflow("tip3p_slab_md")
 

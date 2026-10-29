@@ -5,14 +5,14 @@ import pandas as pd
 from typing import Literal, Optional
 from core import Workflow, as_function_node, group_node
 
-from pyiron_nodes.atomistic.thermodynamics.defect_phases import (
+from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
     SelectStableStructures,
     AddElementCountColumns,
     AddDefectConcentrationColumns,
     ComputeDefectFormationEnergy,
 )
-from pyiron_nodes.atomistic.calculator.ase import GenericOptimizerSettings, Relax
-from pyiron_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.calculator.ase import GenericOptimizerSettings, Relax
+from aiflow_nodes.atomistic.engine.ase import GRACE
 
 
 @as_function_node("structure")
@@ -69,13 +69,13 @@ def BuildSurfaceDefects(
     """Build pristine + defect configurations: V_Ga, V_N, Ga adatom, N adatom."""
     import numpy as np
     import pandas as pd
-    from pyiron_nodes.atomistic.structure.build_point_defects import (
+    from aiflow_nodes.atomistic.structure.build_point_defects import (
         make_pristine_reference,
         make_config_row,
         op_vacancy,
         op_interstitial,
     )
-    from pyiron_nodes.atomistic.structure._atoms import to_ase, _ase_to_data
+    from aiflow_nodes.atomistic.structure._atoms import to_ase, _ase_to_data
 
     ase_slab = to_ase(surface_structure)
     atoms0, pristine_pos = make_pristine_reference._original_func(ase_slab)
@@ -170,8 +170,8 @@ def RelaxStructuresDataFrame(
     opt_mode: str = "full",
     store: bool = True,
 ) -> pd.DataFrame:
-    from pyiron_nodes.atomistic.structure._atoms import to_ase
-    from pyiron_nodes.atomistic.calculator.ase import Relax, GenericOptimizerSettings
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
+    from aiflow_nodes.atomistic.calculator.ase import Relax, GenericOptimizerSettings
 
     if opt_parameters is None:
         opt_parameters = GenericOptimizerSettings()
@@ -347,7 +347,7 @@ def PlotStableDecoratedStructures(
     import numpy as np
     import matplotlib.pyplot as plt
     from ase.visualize.plot import plot_atoms
-    from pyiron_nodes.atomistic.structure._atoms import to_ase
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     _GA_COLOR = "#ff8c00"  # orange for bulk Ga
     _N_COLOR = "#4fc3f7"  # sky blue for N
@@ -573,7 +573,7 @@ def Plot3D(
     Colours atoms by element (Ga=orange, N=blue, others jmol).  Supports spacefill and
     ball+stick rendering, adjustable particle size, camera/orientation and background.
     """
-    from pyiron_nodes.atomistic.structure._atoms import to_ase
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     atoms = to_ase(structure)
     colors = [_element_color_hex(s) for s in atoms.get_chemical_symbols()]
@@ -605,7 +605,7 @@ def View3DStructure(
     distance_from_camera: float = 1.0,
 ):
     import numpy as np
-    from pyiron_nodes.atomistic.structure._atoms import to_ase
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     _CNA_COLOR = {0: "#c0c0c0", 1: "#39a600", 2: "#ff2800", 3: "#0053d6", 4: "#ffdc00"}
 
@@ -665,11 +665,11 @@ def View3DStructure(
 @group_node("mu")
 def compute_reference_chemical_potential(structure, engine, optimizer_settings):
     from core import Workflow, as_function_node
-    from pyiron_nodes.atomistic.calculator.ase import Relax
+    from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
     def _energy_per_atom(calc_result):
-        from pyiron_nodes.atomistic.structure._atoms import to_ase
+        from aiflow_nodes.atomistic.structure._atoms import to_ase
 
         s = to_ase(calc_result.structure)
         return calc_result.energy / len(s)
@@ -692,11 +692,11 @@ def compute_reference_chemical_potential(structure, engine, optimizer_settings):
 def compute_gan_bulk_energy_per_fu(structure, engine, optimizer_settings):
     """Relax GaN bulk and return total energy per formula unit (GaN pair)."""
     from core import Workflow, as_function_node
-    from pyiron_nodes.atomistic.calculator.ase import Relax
+    from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu_gan_fu")
     def _energy_per_fu(calc_result):
-        from pyiron_nodes.atomistic.structure._atoms import to_ase
+        from aiflow_nodes.atomistic.structure._atoms import to_ase
 
         s = to_ase(calc_result.structure)
         # Wurtzite GaN: equal Ga and N atoms, so n_fu = n_atoms / 2
@@ -720,7 +720,7 @@ def compute_gan_bulk_energy_per_fu(structure, engine, optimizer_settings):
 def compute_surface_formation_energies(relaxed_df, mu_ga_sweep, mu_gan_fu):
     """Formation energies with GaN stoichiometric constraint: μ_N = μ_GaN_fu - μ_Ga."""
     from core import Workflow, as_function_node
-    from pyiron_nodes.atomistic.thermodynamics.defect_phases import (
+    from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
         AddElementCountColumns,
         AddDefectConcentrationColumns,
         ComputeDefectFormationEnergy,

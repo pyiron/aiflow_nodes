@@ -1,5 +1,5 @@
 """
-pyiron_nodes/atomistic/property/surface.py
+aiflow_nodes/atomistic/property/surface.py
 ──────────────────────────────────────────
 High-level nodes for binary-compound surface-phase-diagram workflows.
 
@@ -174,7 +174,7 @@ def RelaxSlabsDataFrame(
     Each structure is relaxed independently with the provided engine's
     calculator.  BFGS output is suppressed.  The returned DataFrame has
     columns ``structure``, ``energy``, and ``name``, suitable for direct
-    input to :func:`~pyiron_nodes.atomistic.thermodynamics.defect_phases.AddElementCountColumns`.
+    input to :func:`~aiflow_nodes.atomistic.thermodynamics.defect_phases.AddElementCountColumns`.
 
     This node intentionally bypasses per-structure aiflow caching because
     slab configurations have heterogeneous numbers of atoms and cannot be

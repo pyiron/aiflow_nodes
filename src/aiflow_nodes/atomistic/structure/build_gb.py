@@ -1,5 +1,5 @@
 """
-pyiron_nodes/atomistic/structure/build_gb.py
+aiflow_nodes/atomistic/structure/build_gb.py
 ────────────────────────────────────────────
 Grain-boundary (GB) builder nodes based on a pure-Python CSL engine.
 
@@ -25,7 +25,7 @@ from functools import reduce
 from typing import Literal, Optional
 
 from core import as_function_node
-from pyiron_nodes.atomistic.structure._atoms import OutputAtoms, _ase_to_data
+from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _ase_to_data
 
 # =====================================================================
 # Internal CSL / geometry engine (private helpers)

@@ -1,7 +1,7 @@
 from core import Workflow
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.transform import Repeat
-from pyiron_nodes.atomistic.property.calphy import (
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.atomistic.property.calphy import (
     CalphyDiagnosticsTable,
     FindMeltingTemperature,
     InputClass,
@@ -10,8 +10,8 @@ from pyiron_nodes.atomistic.property.calphy import (
     PlotSolidLiquidFreeEnergy,
     SolidFreeEnergyWithTemp,
 )
-from pyiron_nodes.atomistic.engine.lammps import ListPotentials
-from pyiron_nodes.atomistic.structure.transform import Rattle
+from aiflow_nodes.atomistic.engine.lammps import ListPotentials
+from aiflow_nodes.atomistic.structure.transform import Rattle
 
 wf = Workflow("calph_melt")
 

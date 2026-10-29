@@ -1,4 +1,4 @@
-from pyiron_nodes.atomistic.property import (
+from aiflow_nodes.atomistic.property import (
     calphy,
     defects,
     elastic,

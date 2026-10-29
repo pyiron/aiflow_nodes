@@ -1,12 +1,12 @@
 from core import Workflow, group_node
-from pyiron_nodes.atomistic.diffusion import (
+from aiflow_nodes.atomistic.diffusion import (
     AddInterstitialH,
     FindLowEnergyInterstitialSite,
     PlotNEBPath,
     RunNEB,
 )
-from pyiron_nodes.atomistic.structure.view import Animate
-from pyiron_nodes.atomistic.calculator.ase import (
+from aiflow_nodes.atomistic.structure.view import Animate
+from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,
     Relax,
 )
@@ -17,8 +17,8 @@ from pyiron_nodes.atomistic.calculator.ase import (
 @group_node("structure")
 def Bulk(name, cubic=False, repeat_scalar=1):
     from core import Workflow
-    from pyiron_nodes.atomistic.structure.build import Bulk
-    from pyiron_nodes.atomistic.structure.transform import Repeat
+    from aiflow_nodes.atomistic.structure.build import Bulk
+    from aiflow_nodes.atomistic.structure.transform import Repeat
 
     inner_wf = Workflow("Bulk")
     inner_wf.al_unit = Bulk(name=name, cubic=cubic)
@@ -31,9 +31,9 @@ def Bulk(name, cubic=False, repeat_scalar=1):
 @group_node("engine")
 def LammpsEngine(structure, index):
     from core import Workflow
-    from pyiron_nodes.atomistic.diffusion import LammpsAseEngine
-    from pyiron_nodes.atomistic.engine.lammps import ListPotentials
-    from pyiron_nodes.controls import pick_element
+    from aiflow_nodes.atomistic.diffusion import LammpsAseEngine
+    from aiflow_nodes.atomistic.engine.lammps import ListPotentials
+    from aiflow_nodes.controls import pick_element
 
     inner_wf = Workflow("LammpsEngine")
     inner_wf.list_potentials = ListPotentials(structure=structure)

@@ -20,12 +20,12 @@ point).
 import sys
 
 sys.path.insert(0, "pyiron_core/src")
-sys.path.insert(0, "/Users/jorgneugebauer/git_libs/pyiron_nodes")
+sys.path.insert(0, "/Users/jorgneugebauer/git_libs/aiflow_nodes")
 
 import numpy as np
 
 from core import Workflow, as_function_node
-from pyiron_nodes.controls import IterToDataFrame
+from aiflow_nodes.controls import IterToDataFrame
 
 # fcc coordination shells: (multiplicity, neighbour distance in units of a)
 _FCC_SHELLS = [

@@ -60,7 +60,7 @@ when the plumbing itself is the thing you are editing.
 
 from core import Workflow
 
-from pyiron_nodes.benchmark import (
+from aiflow_nodes.benchmark import (
     BenchmarkReport,
     BenchmarkSuite,
     PlotBenchmark,

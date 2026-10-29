@@ -5,7 +5,7 @@ from typing import Optional, Union, List, Set
 from ase import Atoms
 
 from core import as_function_node
-from pyiron_nodes.atomistic.structure._atoms import (
+from aiflow_nodes.atomistic.structure._atoms import (
     OutputAtoms,
     _ase_to_data,
     _data_to_ase,

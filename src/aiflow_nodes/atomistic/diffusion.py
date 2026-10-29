@@ -526,8 +526,8 @@ def RunASEMD(structure, engine, md_input, store: bool = False):
     from ase import units
     from ase.md.langevin import Langevin
     from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
-    from pyiron_nodes.atomistic.structure._atoms import to_ase
-    from pyiron_nodes.atomistic.calculator.data import OutputCalcMD
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
+    from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
     atoms = to_ase(structure)
     atoms.calc = engine.calculator
@@ -609,7 +609,7 @@ def LammpsAseEngine(potential, resource_path=None, cores: int = 1):
     import os
     from lammpsparser.compatibility.file import _get_potential
     from ase.calculators.lammpsrun import LAMMPS
-    from pyiron_nodes.atomistic.engine.generic import OutputEngine
+    from aiflow_nodes.atomistic.engine.generic import OutputEngine
 
     pot_lines, pot_replace, species = _get_potential(
         potential=potential, resource_path=resource_path
@@ -674,7 +674,7 @@ def RunNEB(
     """
     from ase.mep.neb import SingleCalculatorNEB
     from ase.optimize import LBFGS
-    from pyiron_nodes.atomistic.structure._atoms import to_ase
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
     import numpy as np
 
     initial_atoms = to_ase(initial_state.structure)

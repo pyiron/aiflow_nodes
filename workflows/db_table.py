@@ -1,5 +1,5 @@
 from core import Workflow
-from pyiron_nodes.databases.node_hash_db import (
+from aiflow_nodes.databases.node_hash_db import (
     CreateDB,
     DeleteDB,
     DeleteNode,

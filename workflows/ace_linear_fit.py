@@ -1,5 +1,5 @@
 from core import Workflow
-from pyiron_nodes.atomistic.ml_potentials.fitting.linearfit import (
+from aiflow_nodes.atomistic.ml_potentials.fitting.linearfit import (
     ParameterizePotentialConfig,
     PlotEnergyFittingCurve,
     PredictEnergiesAndForces,

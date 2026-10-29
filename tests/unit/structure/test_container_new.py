@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from ase.build import bulk
 
-from pyiron_nodes.atomistic.structure.container_new import (
+from aiflow_nodes.atomistic.structure.container_new import (
     AddPristine,
     CreateDefectBatchFromIds,
     CreateDefectBatchFromSeed,
@@ -1243,7 +1243,7 @@ class TestOptionalDependencyFlagsFallback(unittest.TestCase):
             "        raise ImportError('blocked for test')\n"
             "    return real_import(name, *a, **k)\n"
             "builtins.__import__ = fake_import\n"
-            "from pyiron_nodes.atomistic.structure import container_new\n"
+            "from aiflow_nodes.atomistic.structure import container_new\n"
             f"assert getattr(container_new, {flag_name!r}) is False, "
             f"getattr(container_new, {flag_name!r})\n"
             "print('OK')\n"

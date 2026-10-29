@@ -264,7 +264,7 @@ VASP produced a bad DOS. `read_doscar` exists partly to make that comparison
 cheap:
 
 ```python
-from pyiron_nodes.atomistic.engine.vasp_new import read_doscar
+from aiflow_nodes.atomistic.engine.vasp_new import read_doscar
 
 file_dos = read_doscar(f"{WORKDIR}/DOSCAR")
 xml_dos = wf.parse.outputs.dos.value
@@ -324,13 +324,13 @@ potential, so every output port is filled:
 
 ```python
 from core import Workflow
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.calculator.data import (
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.calculator.data import (
     InputSCF,
     InputVaspDOS,
     InputVaspOutputFiles,
 )
-from pyiron_nodes.atomistic.engine.vasp_new import (
+from aiflow_nodes.atomistic.engine.vasp_new import (
     MergeVaspInput,
     CreateVaspInputResources,
     RunVaspCalculation,

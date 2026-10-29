@@ -1,13 +1,13 @@
 from core import Workflow
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.container_new import (
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.container_new import (
     AddPristine,
     CreateDefectFromIds,
     GetDefectTable,
     GetStructureTable,
     GetVoronoiInterstitialSites,
 )
-from pyiron_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.atomistic.structure.transform import Repeat
 
 wf = Workflow("point_defects_metals")
 

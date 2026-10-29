@@ -163,7 +163,7 @@ def PlotHPositions(md_output, md_input, species_symbol: str = "H"):
     return figure
 ```
 
-`MultiPlot` from `pyiron_nodes.plotting` overlays multiple series on one axes
+`MultiPlot` from `aiflow_nodes.plotting` overlays multiple series on one axes
 but does not support per-series colours or labels — not suitable for x/y/z
 traces.
 

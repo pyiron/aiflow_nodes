@@ -1,18 +1,18 @@
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.transform import Repeat
-from pyiron_nodes.atomistic.property.calphy import (
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.atomistic.property.calphy import (
     InputClass,
     SolidFreeEnergyWithTemp,
     LiquidFreeEnergyWithTemp,
     FindMeltingTemperature,
     PlotSolidLiquidFreeEnergy,
 )
-from pyiron_nodes.atomistic.engine.lammps import ListPotentials
-from pyiron_nodes.atomistic.structure.transform import Rattle
-from pyiron_nodes.controls import IterToDataFrame
-from pyiron_nodes.dataframe import GetColumnFromDataFrame
-from pyiron_nodes.math_utils import Linspace
-from pyiron_nodes.plotting import Scatter, InputPlotOptions
+from aiflow_nodes.atomistic.engine.lammps import ListPotentials
+from aiflow_nodes.atomistic.structure.transform import Rattle
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.dataframe import GetColumnFromDataFrame
+from aiflow_nodes.math_utils import Linspace
+from aiflow_nodes.plotting import Scatter, InputPlotOptions
 from core import Workflow, group_node
 
 _POTENTIAL = "1999--Mishin-Y--Al--LAMMPS--ipr1"

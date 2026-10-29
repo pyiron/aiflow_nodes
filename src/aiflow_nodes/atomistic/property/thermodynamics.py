@@ -9,10 +9,10 @@ def GetChemicalPotential(
     engine=None,
 ):
     from core import Workflow
-    from pyiron_nodes.atomistic.calculator.ase import Minimize
-    from pyiron_nodes.atomistic.calculator.output import GetEnergyLast
-    from pyiron_nodes.atomistic.structure.build import Bulk
-    from pyiron_nodes.atomistic.structure.calc import NumberOfAtoms
+    from aiflow_nodes.atomistic.calculator.ase import Minimize
+    from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
+    from aiflow_nodes.atomistic.structure.build import Bulk
+    from aiflow_nodes.atomistic.structure.calc import NumberOfAtoms
 
     wf = Workflow("GetChemicalPotential")
     wf.bulk = Bulk(name=element)

@@ -6,9 +6,9 @@ from ase import Atoms as _Atoms
 
 from core import as_function_node
 
-# from pyiron_nodes.atomistic.engine.lammps import LammpsIOBundle
-from pyiron_nodes.atomistic.structure._atoms import OutputAtoms, _data_to_ase, to_ase
-from pyiron_nodes.atomistic.calculator.data import OutputCalcMD
+# from aiflow_nodes.atomistic.engine.lammps import LammpsIOBundle
+from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _data_to_ase, to_ase
+from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
 
 @as_function_node("plot")
@@ -171,7 +171,7 @@ def PlotCNA(
     """
     import numpy as np
     import structuretoolkit as stk
-    from pyiron_nodes.atomistic.structure._atoms import OutputAtoms, _data_to_ase
+    from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _data_to_ase
 
     if view_plane is None:
         view_plane = [0, 0, 1]

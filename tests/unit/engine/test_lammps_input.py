@@ -8,9 +8,9 @@ import pandas as pd
 from ase.build import bulk
 from lammpsparser.units import LAMMPS_UNIT_CONVERSIONS
 
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
-from pyiron_nodes.atomistic.engine.lammps import LammpsIOBundle
-from pyiron_nodes.atomistic.engine.lammps_input import (
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
+from aiflow_nodes.atomistic.engine.lammps import LammpsIOBundle
+from aiflow_nodes.atomistic.engine.lammps_input import (
     AssembleLammpsInput,
     LammpsDump,
     LammpsEnsemble,

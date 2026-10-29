@@ -1,4 +1,4 @@
-from pyiron_nodes.atomistic.calculator import (
+from aiflow_nodes.atomistic.calculator import (
     ase,
     generic,
     output,

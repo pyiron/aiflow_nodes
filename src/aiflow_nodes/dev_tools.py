@@ -85,7 +85,7 @@ def set_replacer(node, node_dict):
 
 
 def register_libraries(
-    libraries, library_path="pyiron_core.pyiron_workflow.pyiron_nodes"
+    libraries, library_path="pyiron_core.pyiron_workflow.aiflow_nodes"
 ):
     raise NotImplementedError(
         "pyiron_core.pyiron_workflow.workflow.Workflow did not exist at time of refactoring"

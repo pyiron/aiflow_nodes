@@ -1,1 +1,1 @@
-from pyiron_nodes.atomistic.thermodynamics.landau import phases, plot
+from aiflow_nodes.atomistic.thermodynamics.landau import phases, plot

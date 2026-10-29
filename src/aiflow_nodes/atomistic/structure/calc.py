@@ -112,7 +112,7 @@ def SplineDescriptor(
     :param r_max: Stop value for interpolation.
     :return: Interpolated values of the descriptor.
     """
-    from pyiron_nodes.math_utils import BSpline
+    from aiflow_nodes.math_utils import BSpline
 
     if structure is None:
         descriptor = None
@@ -148,7 +148,7 @@ def LinearInterpolationDescriptor(
     :param r_max: Stop value for interpolation.
     :return: Interpolated values of the descriptor.
     """
-    from pyiron_nodes.math_utils import LinearBin
+    from aiflow_nodes.math_utils import LinearBin
 
     if structure is None:
         counts = None
@@ -232,19 +232,19 @@ def FitDiffPotential(
     store: bool = True,
 ):
 
-    from pyiron_nodes.atomistic.ml_potentials.fitting.linearfit import (
+    from aiflow_nodes.atomistic.ml_potentials.fitting.linearfit import (
         ReadPickledDatasetAsDataframe,
     )
-    from pyiron_nodes.atomistic.structure.calc import (
+    from aiflow_nodes.atomistic.structure.calc import (
         LinearInterpolationDescriptor,
     )
-    from pyiron_nodes.dataframe import (
+    from aiflow_nodes.dataframe import (
         ApplyFunctionToSeriesNew,
         GetColumnFromDataFrame,
         GetRowsFromDataFrame,
         MergeDataFrames,
     )
-    from pyiron_nodes.math_utils import (
+    from aiflow_nodes.math_utils import (
         Divide,
         DotProduct,
         Linspace,
@@ -345,17 +345,17 @@ def FitDiffPotential2(
     store: bool = True,
 ):
 
-    from pyiron_nodes.atomistic.ml_potentials.fitting.linearfit import (
+    from aiflow_nodes.atomistic.ml_potentials.fitting.linearfit import (
         ReadPickledDatasetAsDataframe,
     )
-    from pyiron_nodes.atomistic.structure.calc import SplineDescriptor
-    from pyiron_nodes.dataframe import (
+    from aiflow_nodes.atomistic.structure.calc import SplineDescriptor
+    from aiflow_nodes.dataframe import (
         ApplyFunctionToSeriesNew,
         GetColumnFromDataFrame,
         GetRowsFromDataFrame,
         MergeDataFrames,
     )
-    from pyiron_nodes.math_utils import (
+    from aiflow_nodes.math_utils import (
         Divide,
         DotProduct,
         PseudoInverse,

@@ -1,14 +1,14 @@
-from pyiron_nodes.atomistic.calculator.data import (
+from aiflow_nodes.atomistic.calculator.data import (
     InputMinimizationVASP,
     InputSCF,
 )
-from pyiron_nodes.atomistic.engine.vasp_new import (
+from aiflow_nodes.atomistic.engine.vasp_new import (
     CreateVaspInputResources,
     MergeVaspInput,
     ParseVaspOutput,
     RunVaspCalculation,
 )
-from pyiron_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.build import Bulk
 from core import Workflow
 from core import group_node
 

@@ -854,7 +854,7 @@ class StructureContainer:
         return pristine_rows[-1]
 
     # ------------------------------------------------------------------
-    # Relative Index Resolution Methods (pyiron_nodes compatibility)
+    # Relative Index Resolution Methods (aiflow_nodes compatibility)
     # ------------------------------------------------------------------
 
     def resolve_defect_row(self, relative_index: int) -> int:
@@ -2084,7 +2084,7 @@ def _resolve_parent(
     Resolve which structure to use as parent.
     Returns absolute index of the parent structure.
 
-    Resolution modes (pyiron_nodes pattern):
+    Resolution modes (aiflow_nodes pattern):
     1. PRIORITY: Explicit defect index (parent_defect_index)
        - Takes precedence over input_structure
     2. Input structure object (input_structure)
@@ -2100,7 +2100,7 @@ def _resolve_parent(
     import warnings
     import numpy as np
 
-    # Warning: Both parameters provided (pyiron_nodes behavior)
+    # Warning: Both parameters provided (aiflow_nodes behavior)
     if parent_defect_index is not None and input_structure is not None:
         warnings.warn(
             f"Both parent_defect_index ({parent_defect_index}) and input_structure provided. "
@@ -2110,7 +2110,7 @@ def _resolve_parent(
             stacklevel=3,
         )
 
-    # Case 1 (PRIORITY): Explicit defect index - pyiron_nodes behavior
+    # Case 1 (PRIORITY): Explicit defect index - aiflow_nodes behavior
     if parent_defect_index is not None:
         # Handle negative indices: resolve relative defect index to absolute
         if parent_defect_index < 0:

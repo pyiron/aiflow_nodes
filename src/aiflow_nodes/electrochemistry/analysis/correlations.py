@@ -3,7 +3,7 @@ import numpy as np
 
 from ase.atoms import Atoms
 from core import as_function_node
-from pyiron_nodes.atomistic.calculator.data import OutputCalcMD
+from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
 """
 rotate_water.py

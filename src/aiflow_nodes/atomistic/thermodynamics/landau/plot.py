@@ -297,7 +297,7 @@ def ComputPhaseDiagram(
     T_max: int = 1100,
     T_steps=20,
 ):
-    import pyiron_nodes as pn
+    import aiflow_nodes as pn
 
     wf = Workflow("PhaseDiagram")
     wf.read_data = pn.dataframe.ReadDataFrame(filename=filename, compression="gzip")

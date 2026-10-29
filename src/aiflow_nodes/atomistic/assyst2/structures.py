@@ -10,7 +10,7 @@ from core import (
     as_function_node,
     PortList,
 )
-from pyiron_nodes.atomistic.structure._atoms import _ase_to_data
+from aiflow_nodes.atomistic.structure._atoms import _ase_to_data
 
 
 @dataclass(frozen=True)

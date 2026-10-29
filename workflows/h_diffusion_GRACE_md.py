@@ -1,6 +1,6 @@
 from core import Workflow
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
-from pyiron_nodes.atomistic.diffusion import (
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
+from aiflow_nodes.atomistic.diffusion import (
     AddInterstitialH,
     AugmentWithSymmetry,
     ComputeFreeEnergySurface,
@@ -13,10 +13,10 @@ from pyiron_nodes.atomistic.diffusion import (
     PlotMigrationPath,
     RunASEMD,
 )
-from pyiron_nodes.atomistic.engine.ase import GRACE
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.transform import Repeat
-from pyiron_nodes.plotting import Plot
+from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.plotting import Plot
 
 wf = Workflow("h_diffusion_GRACE_md")
 

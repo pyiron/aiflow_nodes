@@ -270,13 +270,13 @@ def build_table(
 
 
 # ---------------------------------------------------------------------------
-# pyiron_nodes wrappers
+# aiflow_nodes wrappers
 # ---------------------------------------------------------------------------
 
 
 @as_function_node("job_table")
 def IndexProject(project_path: str, recursive: bool = True):
-    from pyiron_nodes.databases.pyiron_tables import index_project
+    from aiflow_nodes.databases.pyiron_tables import index_project
 
     return index_project(project_path=project_path, recursive=recursive)
 
@@ -289,7 +289,7 @@ def BuildTable(
     db_filter_function=None,
     recursive: bool = True,
 ):
-    from pyiron_nodes.databases.pyiron_tables import build_table
+    from aiflow_nodes.databases.pyiron_tables import build_table
 
     return build_table(
         project_path=project_path,
@@ -350,7 +350,7 @@ def AddBulkModulus(functions: dict = None) -> dict:
     The dict key ("bulk_modulus") becomes the resulting table's column
     name - it is the property name, not the function name (get_bulk_modulus).
     """
-    from pyiron_nodes.databases.pyiron_tables import get_bulk_modulus
+    from aiflow_nodes.databases.pyiron_tables import get_bulk_modulus
 
     functions = dict(functions) if functions is not None else {}
     functions["bulk_modulus"] = get_bulk_modulus
@@ -364,7 +364,7 @@ def AddPotential(functions: dict = None) -> dict:
     pluggable directly into BuildTable(functions=...). Daisy-chains the same
     way AddBulkModulus does.
     """
-    from pyiron_nodes.databases.pyiron_tables import get_potential
+    from aiflow_nodes.databases.pyiron_tables import get_potential
 
     functions = dict(functions) if functions is not None else {}
     functions["potential"] = get_potential
@@ -378,7 +378,7 @@ def AddLatticeParameter(functions: dict = None) -> dict:
     return it, pluggable directly into BuildTable(functions=...).
     Daisy-chains the same way AddBulkModulus does.
     """
-    from pyiron_nodes.databases.pyiron_tables import get_lattice_parameter
+    from aiflow_nodes.databases.pyiron_tables import get_lattice_parameter
 
     functions = dict(functions) if functions is not None else {}
     functions["lattice_parameter"] = get_lattice_parameter

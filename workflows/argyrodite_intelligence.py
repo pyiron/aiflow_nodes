@@ -11,7 +11,7 @@ a strict DAG suitable for the PyironFlow GUI.
 
 Usage::
 
-    from pyiron_nodes.Workflows.argyrodite_intelligence import wf
+    from aiflow_nodes.Workflows.argyrodite_intelligence import wf
     result = wf.run()
     print(wf.report.outputs.report_path.value)
 """

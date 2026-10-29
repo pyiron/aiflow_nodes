@@ -1,12 +1,12 @@
 from core import Workflow
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.transform import Repeat
-from pyiron_nodes.atomistic.property.calphy import (
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.atomistic.property.calphy import (
     InputClass,
     SolidFreeEnergyWithTemp,
 )
-from pyiron_nodes.atomistic.engine.lammps import ListPotentials
-from pyiron_nodes.plotting import InputPlotOptions, Plot
+from aiflow_nodes.atomistic.engine.lammps import ListPotentials
+from aiflow_nodes.plotting import InputPlotOptions, Plot
 
 wf = Workflow("calphy_solid")
 

@@ -1,6 +1,6 @@
 from core import Workflow
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
-from pyiron_nodes.atomistic.diffusion import (
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
+from aiflow_nodes.atomistic.diffusion import (
     AddInterstitialH,
     AugmentWithSymmetry,
     ComputeFreeEnergySurface,
@@ -12,17 +12,17 @@ from pyiron_nodes.atomistic.diffusion import (
     PlotHPositions,
     PlotMigrationPath,
 )
-from pyiron_nodes.atomistic.engine.lammps import (
+from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsMDInput,
     CreateLammpsStructure,
     ListPotentials,
     ParseLammpsOutput,
     RunLammpsCalculation,
 )
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.transform import FixSpecies, Repeat
-from pyiron_nodes.controls import pick_element
-from pyiron_nodes.plotting import Plot
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import FixSpecies, Repeat
+from aiflow_nodes.controls import pick_element
+from aiflow_nodes.plotting import Plot
 
 wf = Workflow("h_diffusion_lammps_md")
 

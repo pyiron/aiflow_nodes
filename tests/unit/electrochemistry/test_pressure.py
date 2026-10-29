@@ -14,12 +14,12 @@ from lammpsparser.compatibility.constraints import (
 )
 from lammpsparser.units import LAMMPS_UNIT_CONVERSIONS
 
-from pyiron_nodes.atomistic.engine.lammps import LammpsIOBundle, ParseElectrodeForce
-from pyiron_nodes.electrochemistry.analysis.pressure import (
+from aiflow_nodes.atomistic.engine.lammps import LammpsIOBundle, ParseElectrodeForce
+from aiflow_nodes.electrochemistry.analysis.pressure import (
     ElectrodePressure,
     PistonPressureConvergence,
 )
-from pyiron_nodes.electrochemistry.structure.build import FixElectrodes
+from aiflow_nodes.electrochemistry.structure.build import FixElectrodes
 
 # kcal/mol/Å per eV/Å, the factor `units real` puts on every force.  Taken from
 # lammpsparser rather than written out, so the test tracks the conversion the

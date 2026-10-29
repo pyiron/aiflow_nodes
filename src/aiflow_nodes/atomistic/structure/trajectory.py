@@ -1,6 +1,6 @@
 from typing import Literal, List
 from core import as_function_node
-from pyiron_nodes.atomistic.calculator.data import OutputCalcMD
+from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 from ase.atoms import Atoms
 
 

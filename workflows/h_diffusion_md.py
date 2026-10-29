@@ -1,6 +1,6 @@
 from core import Workflow, group_node
-from pyiron_nodes.atomistic.calculator.data import OutputCalcMD
-from pyiron_nodes.atomistic.diffusion import (
+from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
+from aiflow_nodes.atomistic.diffusion import (
     ComputeMSD,
     DiffusionConstant,
     ExtractMigrationBarrier,
@@ -8,7 +8,7 @@ from pyiron_nodes.atomistic.diffusion import (
     PlotHPositions,
     PlotMigrationPath,
 )
-from pyiron_nodes.plotting import Plot
+from aiflow_nodes.plotting import Plot
 
 # ── Group node factories ─────────────────────────────
 
@@ -16,9 +16,9 @@ from pyiron_nodes.plotting import Plot
 @group_node("new_structure", "structure")
 def Supercell(name, cubic=False, repeat_scalar=1, al_h_structure__repeat_scalar=1):
     from core import Workflow
-    from pyiron_nodes.atomistic.diffusion import AddInterstitialH
-    from pyiron_nodes.atomistic.structure.build import Bulk
-    from pyiron_nodes.atomistic.structure.transform import FixSpecies, Repeat
+    from aiflow_nodes.atomistic.diffusion import AddInterstitialH
+    from aiflow_nodes.atomistic.structure.build import Bulk
+    from aiflow_nodes.atomistic.structure.transform import FixSpecies, Repeat
 
     inner_wf = Workflow("Supercell")
     inner_wf.al_bulk = Bulk(name=name, cubic=cubic)
@@ -54,15 +54,15 @@ def Lammps(
     store=False,
 ):
     from core import Workflow
-    from pyiron_nodes.atomistic.calculator.data import InputCalcMD
-    from pyiron_nodes.atomistic.engine.lammps import (
+    from aiflow_nodes.atomistic.calculator.data import InputCalcMD
+    from aiflow_nodes.atomistic.engine.lammps import (
         CreateLammpsMDInput,
         CreateLammpsStructure,
         ListPotentials,
         ParseLammpsOutput,
         RunLammpsCalculation,
     )
-    from pyiron_nodes.controls import pick_element
+    from aiflow_nodes.controls import pick_element
 
     inner_wf = Workflow("Lammps")
     inner_wf.list_potentials = ListPotentials(structure=list_potentials__structure)
@@ -102,7 +102,7 @@ def Lammps(
 @group_node("free_energy", "grid_centers", "augmented_positions")
 def FreeEnergySurface(al_bulk, augmented_h_pos__al_bulk, md_output, md_input):
     from core import Workflow
-    from pyiron_nodes.atomistic.diffusion import (
+    from aiflow_nodes.atomistic.diffusion import (
         AugmentWithSymmetry,
         ComputeFreeEnergySurface,
         FoldPositionsToUnitCell,

@@ -97,11 +97,11 @@ def ExtractStackingFault(
 
 @group_node("defect_energythe ")
 def GetStackingFaultEnergy(element: str, engine):
-    from pyiron_nodes.atomistic.structure.build import Surface
-    from pyiron_nodes.atomistic.calculator.ase import StaticEnergy
-    from pyiron_nodes.atomistic.structure.calc import DefectEnergyPerArea
-    from pyiron_nodes.atomistic.structure.transform import LayerShift
-    from pyiron_nodes.atomistic.structure.view import PlotCNA
+    from aiflow_nodes.atomistic.structure.build import Surface
+    from aiflow_nodes.atomistic.calculator.ase import StaticEnergy
+    from aiflow_nodes.atomistic.structure.calc import DefectEnergyPerArea
+    from aiflow_nodes.atomistic.structure.transform import LayerShift
+    from aiflow_nodes.atomistic.structure.view import PlotCNA
     from core import Workflow
 
     wf = Workflow("GetStackingFaultEnergy")

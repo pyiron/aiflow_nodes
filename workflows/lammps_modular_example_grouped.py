@@ -1,12 +1,12 @@
-from pyiron_nodes.atomistic.engine.lammps import (
+from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsStructure,
     ListPotentials,
     RunLammpsCalculation,
 )
-from pyiron_nodes.atomistic.engine.lammps_input import LammpsInit, WriteFile
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.controls import pick_element
-from pyiron_nodes.executors import SlurmExecutor
+from aiflow_nodes.atomistic.engine.lammps_input import LammpsInit, WriteFile
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.controls import pick_element
+from aiflow_nodes.executors import SlurmExecutor
 from core import Workflow
 from core import group_node
 
@@ -23,7 +23,7 @@ def LammpsMiniimze(
     run=None,
     write_restart=None,
 ):
-    from pyiron_nodes.atomistic.engine.lammps_input import (
+    from aiflow_nodes.atomistic.engine.lammps_input import (
         AssembleLammpsInput,
         LammpsDump,
         LammpsMinimize,
@@ -54,7 +54,7 @@ def LammpsMiniimze(
 
 @group_node("io_bundle")
 def LammpsMD(io_bundle, run=None, write_restart=None):
-    from pyiron_nodes.atomistic.engine.lammps_input import (
+    from aiflow_nodes.atomistic.engine.lammps_input import (
         AssembleLammpsInput,
         LammpsEnsemble,
         LammpsVelocity,

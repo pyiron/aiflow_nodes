@@ -57,7 +57,7 @@ window tried and why each was abandoned.
 Usage
 -----
     import sys
-    sys.path[:0] = ["pyiron_core/src", "/path/to/pyiron_nodes"]
+    sys.path[:0] = ["pyiron_core/src", "/path/to/aiflow_nodes"]
     exec(open("Workflows/calphy_melt_auto_window.py").read())
     wf.run()
     print(wf.melting_temperature.outputs.T_melt.value,
@@ -92,8 +92,8 @@ Then read, in this order:
 
 from core import Workflow
 
-from pyiron_nodes.atomistic.engine.ase import LammpsEngine
-from pyiron_nodes.atomistic.property.calphy import (
+from aiflow_nodes.atomistic.engine.ase import LammpsEngine
+from aiflow_nodes.atomistic.property.calphy import (
     CalphyDiagnostics,
     CalphyDiagnosticsTable,
     CalphyMeltingFromTrajectory,
@@ -103,10 +103,10 @@ from pyiron_nodes.atomistic.property.calphy import (
     PlotCalphyHysteresis,
     PlotSolidLiquidFreeEnergy,
 )
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.transform import Rattle, Repeat
-from pyiron_nodes.dataframe import GetColumnFromDataFrame
-from pyiron_nodes.plotting import Scatter
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import Rattle, Repeat
+from aiflow_nodes.dataframe import GetColumnFromDataFrame
+from aiflow_nodes.plotting import Scatter
 
 # Name the potential; do not let `GetPotential` choose.  It returns the first
 # catalogue match, which for Al is the Ni-Al-H alloy potential

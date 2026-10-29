@@ -8,7 +8,7 @@ import re
 from core import as_function_node
 from pathlib import Path
 
-from pyiron_nodes.atomistic.engine.vasp_new import (
+from aiflow_nodes.atomistic.engine.vasp_new import (
     VaspInputResources,
     VaspPlugin,
     VaspInput,
@@ -103,7 +103,7 @@ def CCESetup(
     electrode: Atoms,
     calc: VaspInput,
     potcar_lib_path: str = _default_potcar_lib_path,
-    path_to_plugin: str = "pyiron_nodes/electrochemistry/add_potential/vasp_plugin-CCE.plugin",
+    path_to_plugin: str = "aiflow_nodes/electrochemistry/add_potential/vasp_plugin-CCE.plugin",
     potential: float = 0.0,
     Q0: float = 0.0,
     grid_position_frac: float = 0.85,
@@ -302,7 +302,7 @@ def CDCESetup(
     electrode: Atoms,
     calc: VaspInput,
     potcar_lib_path: str = _default_potcar_lib_path,
-    path_to_plugin: str = "pyiron_nodes/electrochemistry/add_potential/vasp_plugin-CDCE_MD.plugin",
+    path_to_plugin: str = "aiflow_nodes/electrochemistry/add_potential/vasp_plugin-CDCE_MD.plugin",
     potential: float = 0.0,
     Q0: float = 0.0,
     grid_position_frac: float = 0.85,

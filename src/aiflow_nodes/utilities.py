@@ -1,8 +1,8 @@
 """Small list helpers.
 
-For number sequences use ``pyiron_nodes.math_utils`` (``Linspace``, ``Arange``,
-``Range``); for slicing use ``pyiron_nodes.controls.Slice``; for reading a
-pickled dataframe use ``pyiron_nodes.dataframe.ReadDataFrame``.
+For number sequences use ``aiflow_nodes.math_utils`` (``Linspace``, ``Arange``,
+``Range``); for slicing use ``aiflow_nodes.controls.Slice``; for reading a
+pickled dataframe use ``aiflow_nodes.dataframe.ReadDataFrame``.
 """
 
 from core import as_function_node, PortList

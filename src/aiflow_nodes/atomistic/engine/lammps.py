@@ -10,7 +10,7 @@ from lammpsparser.compatibility.constraints import set_selective_dynamics
 from lammpsparser.output import parse_lammps_output
 from lammpsparser.structure import LammpsStructure
 
-from pyiron_nodes.atomistic.calculator.data import (
+from aiflow_nodes.atomistic.calculator.data import (
     InputCalcMD,
     InputCalcMinimize,
     InputCalcStatic,
@@ -380,7 +380,7 @@ def _piston_barostat_lines(
     """LAMMPS fixes that hold one electrode at a constant normal pressure.
 
     The piston species is pinned in xy and free in z (see
-    ``pyiron_nodes.electrochemistry.structure.build.FixElectrodes``), so the
+    ``aiflow_nodes.electrochemistry.structure.build.FixElectrodes``), so the
     ensemble fix integrates it.  Two commands turn that into a flat wall under
     load:
 
@@ -950,7 +950,7 @@ def ParseLammpsOutput(
     )
 
     if io_bundle.mode == "md":
-        from pyiron_nodes.atomistic.calculator.data import OutputCalcMD
+        from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
         out = OutputCalcMD.pure_dataclass()
         out.cells = generic.get("cells")
@@ -968,7 +968,7 @@ def ParseLammpsOutput(
         out.volumes = generic.get("volume")
         out.species = io_bundle.structure.get_chemical_symbols()
     elif io_bundle.mode == "static":
-        from pyiron_nodes.atomistic.calculator.data import OutputCalcStatic
+        from aiflow_nodes.atomistic.calculator.data import OutputCalcStatic
 
         out = OutputCalcStatic.pure_dataclass()
         energies_pot = generic.get("energy_pot")
@@ -979,7 +979,7 @@ def ParseLammpsOutput(
         out.stress = stresses[-1] if stresses is not None else None
         out.structure = io_bundle.structure
     elif io_bundle.mode == "minimize":
-        from pyiron_nodes.atomistic.calculator.data import OutputCalcMinimize
+        from aiflow_nodes.atomistic.calculator.data import OutputCalcMinimize
 
         energies_pot = generic.get("energy_pot")
         forces = generic.get("forces")

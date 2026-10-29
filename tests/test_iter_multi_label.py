@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from core import as_function_node
-from pyiron_nodes.controls import IterToDataFrame, _iterate_node
+from aiflow_nodes.controls import IterToDataFrame, _iterate_node
 
 
 @as_function_node

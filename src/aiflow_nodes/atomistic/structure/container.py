@@ -5,7 +5,7 @@ import copy
 import pandas as pd
 
 from core import as_function_node
-from pyiron_nodes.atomistic.structure._atoms import (
+from aiflow_nodes.atomistic.structure._atoms import (
     OutputAtoms,
     _ase_to_data,
     _data_to_ase,
@@ -93,7 +93,7 @@ class StructureContainer:
     :class:`~ase.atoms.Atoms` objects are never stored directly.
 
     Use :func:`_data_to_ase` / :func:`_ase_to_data` (from
-    ``pyiron_nodes.atomistic.structure._atoms``) to convert between
+    ``aiflow_nodes.atomistic.structure._atoms``) to convert between
     :class:`OutputAtoms` and :class:`~ase.atoms.Atoms` at the call site.
 
     Attributes

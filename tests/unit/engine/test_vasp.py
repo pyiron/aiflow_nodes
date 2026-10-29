@@ -1,4 +1,4 @@
-"""Unit tests for the VASP workflow nodes in ``pyiron_nodes.atomistic.engine.vasp_new``.
+"""Unit tests for the VASP workflow nodes in ``aiflow_nodes.atomistic.engine.vasp_new``.
 
 Following the pattern in ``test_lammps.py`` and in pyiron_atomistics' own VASP
 tests, nothing here launches VASP. We test the two things that matter:
@@ -40,7 +40,7 @@ from pymatgen.io.vasp.inputs import Incar
 from vaspparser.vasp.structure import read_atoms
 from vaspparser.vasp.volumetric_data import VaspVolumetricData
 
-from pyiron_nodes.atomistic.calculator.data import (
+from aiflow_nodes.atomistic.calculator.data import (
     AdditionalInputFlags,
     InputMDVASP,
     InputDipoleCorrection,
@@ -52,7 +52,7 @@ from pyiron_nodes.atomistic.calculator.data import (
     OutputCalcMinimize,
     OutputCalcStatic,
 )
-from pyiron_nodes.atomistic.engine.vasp_new import (
+from aiflow_nodes.atomistic.engine.vasp_new import (
     CreateVaspInputResources,
     MergeVaspInput,
     ParseVaspOutput,

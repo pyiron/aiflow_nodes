@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 
 from core import Workflow, as_function_node, group_node
-from pyiron_nodes.controls import while_loop
+from aiflow_nodes.controls import while_loop
 
 
 @dataclass

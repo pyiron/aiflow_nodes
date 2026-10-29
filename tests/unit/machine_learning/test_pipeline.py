@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 
-from pyiron_nodes.machine_learning.pipeline import (
+from aiflow_nodes.machine_learning.pipeline import (
     ChooseBestModel,
     EvaluateRegressionModel,
     MLDataSplitter,
@@ -239,9 +239,9 @@ class TestChooseBestModel(unittest.TestCase):
         model_2 = {"model": LinearRegression().fit(X, y)}
 
         with patch(
-            "pyiron_nodes.machine_learning.pipeline.r2_score", side_effect=[0.9, 0.9]
+            "aiflow_nodes.machine_learning.pipeline.r2_score", side_effect=[0.9, 0.9]
         ), patch(
-            "pyiron_nodes.machine_learning.pipeline.mean_squared_error",
+            "aiflow_nodes.machine_learning.pipeline.mean_squared_error",
             side_effect=[1.0, 4.0],
         ):
             best, _ = ChooseBestModel._original_func(model_1, model_2, X, y)

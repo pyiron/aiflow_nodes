@@ -65,8 +65,8 @@ from typing import Literal, Optional
 import pandas as pd
 
 from core import Workflow, as_function_node, as_inp_dataclass_node, group_node
-from pyiron_nodes.controls import IterToDataFrame
-from pyiron_nodes.executors import ThreadPoolExecutorNode
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.executors import ThreadPoolExecutorNode
 
 from pyiron_ai.workflow_bench import (
     AGENT_BUDGET_USD,
@@ -101,7 +101,7 @@ from pyiron_ai import workflow_bench
 @as_function_node("tasks")
 def TaskSuite(
     tier: Optional[
-        Literal["all", "generic", "pyiron_nodes", "atomistic", "atomistic_hard"]
+        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
     ] = "all",
     limit: int = 0,
 ):
@@ -112,7 +112,7 @@ def TaskSuite(
 
     ``generic``
         plain node composition — arrays, maths, plotting.
-    ``pyiron_nodes``
+    ``aiflow_nodes``
         higher-order composition — sweeps with ``IterToDataFrame``, group
         nodes, parallel executors.
     ``atomistic``
@@ -143,7 +143,7 @@ def TaskSuite(
 def NodeLibraryMirror(allow_reference_workflows: bool = False, dest: str = ""):
     """Build the node library the agent is allowed to read.
 
-    ``pyiron_nodes/Workflows/`` holds finished reference workflows for several
+    ``aiflow_nodes/Workflows/`` holds finished reference workflows for several
     benchmark tasks — a GaN surface phase diagram, an Al melting point, an H NEB
     barrier.  Exposing them would turn the aiflow arm into a retrieval test, so
     by default the agent gets a mirror of the library with that directory
@@ -382,7 +382,7 @@ class BenchConfig:
         Reasoning effort forwarded to ``claude --effort``; ``"default"`` omits
         the flag.
     allow_reference_workflows : bool
-        Expose ``pyiron_nodes/Workflows/`` to the agent.  Useful as a second
+        Expose ``aiflow_nodes/Workflows/`` to the agent.  Useful as a second
         experimental condition but breaks the aiflow-vs-scratch comparison.
     run_variant : bool
         Run the declared follow-up edit after a task passes.
@@ -439,7 +439,7 @@ BENCHMARK_GRID_LABELS = "tier,task_index,model_other,arm,rep"
 @as_function_node("cells")
 def BenchmarkGrid(
     tier: Optional[
-        Literal["generic", "pyiron_nodes", "atomistic", "atomistic_hard"]
+        Literal["generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
     ] = "generic",
     task_indices: str = "",
     models: str = "sonnet",
@@ -598,7 +598,7 @@ def GenerateWorkflow(
 
     In the ``scratch`` arm the framework is taken away: it may read the installed
     third-party packages (ASE, LAMMPS, phonopy, …) but not ``core`` or
-    ``pyiron_nodes``, and must write a ``solution.py`` exposing
+    ``aiflow_nodes``, and must write a ``solution.py`` exposing
     ``main() -> dict``.  Both arms get the same model, tools and budget, which
     is what makes the two columns comparable.
 
@@ -613,7 +613,7 @@ def GenerateWorkflow(
         ``"aiflow"`` or ``"scratch"`` (dropdown in the GUI).
     lib_dir : str
         Node library to expose in the aiflow arm — wire ``NodeLibraryMirror``
-        here.  Empty falls back to the real ``pyiron_nodes`` repository, which
+        here.  Empty falls back to the real ``aiflow_nodes`` repository, which
         includes the reference workflows.  Ignored by the scratch arm.
     agent_timeout_s : int
         Wall-clock ceiling for the generation turn.  A turn that hits it is
@@ -1598,7 +1598,7 @@ def BenchmarkReport(df: pd.DataFrame = None, max_repairs: int = 3):
     Reports, overall and per tier: the pass rate at each tier of the validation
     ladder (first attempt and after repair), the success-vs-repair-budget curve
     ``P(executes | <= k repairs)``, the repair-cycle distribution, the share of
-    graph nodes reused from ``pyiron_nodes`` rather than newly written, the
+    graph nodes reused from ``aiflow_nodes`` rather than newly written, the
     token budget (split by fresh input, cache writes, cache reads and output),
     and the total wall-clock and cost — including cost per *completed* task,
     which is the only cost number that compares two arms fairly.
@@ -1895,7 +1895,7 @@ def PlotBenchmark(df: pd.DataFrame = None, max_repairs: int = 3):
         Needs ``repeats > 1`` to say anything; it says so when it cannot.
     ``reuse``
         The arm × tier pass-rate grid, and how much of each solution was
-        assembled from ``pyiron_nodes`` rather than written fresh — the claim
+        assembled from ``aiflow_nodes`` rather than written fresh — the claim
         aiflow exists to make.
 
     Every port always returns a Figure.  When the data cannot support a panel
@@ -2526,7 +2526,7 @@ def _plot_reuse(df, stats, arms):
                 color=LADDER_RAMP[4],
                 edgecolor=SURFACE,
                 linewidth=2,
-                label="reused from pyiron_nodes" if i == 0 else None,
+                label="reused from aiflow_nodes" if i == 0 else None,
             )
             ax_r.barh(
                 i,
@@ -2879,7 +2879,7 @@ def _write_summary_files(run_dir, body, markdown_body, figures, say) -> str:
 @as_function_node(["df", "stats", "summary", "run_dir", "repair_budget"])
 def _BenchmarkSuiteCore(
     tier: Optional[
-        Literal["all", "generic", "pyiron_nodes", "atomistic", "atomistic_hard"]
+        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
     ] = "generic",
     limit: int = 0,
     tasks: list = None,
@@ -2941,7 +2941,7 @@ def _BenchmarkSuiteCore(
 
     import pandas as pd
 
-    from pyiron_nodes.controls import IterToDataFrame
+    from aiflow_nodes.controls import IterToDataFrame
 
     task_list = [
         t
@@ -3144,7 +3144,7 @@ def _BenchmarkSuiteCore(
 def RunSingleBenchmark(
     task: str = "",
     tier: Optional[
-        Literal["generic", "pyiron_nodes", "atomistic", "atomistic_hard"]
+        Literal["generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
     ] = "generic",
     task_index: int = 0,
     model: Optional[Literal["sonnet", "opus", "fable"]] = "sonnet",
@@ -3289,7 +3289,7 @@ def RunSingleBenchmark(
 @group_node("df", "stats", "summary", "run_dir", "repair_budget")
 def RunBenchmarkSuite(
     tier: Optional[
-        Literal["all", "generic", "pyiron_nodes", "atomistic", "atomistic_hard"]
+        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
     ] = "generic",
     limit: int = 0,
     tasks: list = None,
@@ -3437,7 +3437,7 @@ def AggregateRepeats(run_dir: str = "bench_runs"):
 @group_node("df", "repair_budget")
 def BenchmarkSuite(
     tier: Optional[
-        Literal["all", "generic", "pyiron_nodes", "atomistic", "atomistic_hard"]
+        Literal["all", "generic", "aiflow_nodes", "atomistic", "atomistic_hard"]
     ] = "generic",
     limit: int = 0,
     allow_reference_workflows: bool = False,

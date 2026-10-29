@@ -28,7 +28,7 @@ def SpaceGroupSampling(input: SpaceGroupInput, store: bool = True):
 
     from assyst.crystals import pyxtal
 
-    from pyiron_nodes.atomistic.calculator.data import OutputSEFS
+    from aiflow_nodes.atomistic.calculator.data import OutputSEFS
 
     structures = []
     elements = []

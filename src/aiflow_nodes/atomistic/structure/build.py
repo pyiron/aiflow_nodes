@@ -162,7 +162,7 @@ def CubicBulkCell(
     -------
     The workflow node that contains the final structure (with or without the vacancy).
     """
-    from pyiron_nodes.atomistic.structure.transform import (
+    from aiflow_nodes.atomistic.structure.transform import (
         CreateVacancy,
         Repeat,
     )
@@ -249,7 +249,7 @@ def BinaryWurtziteSlab(
                               Set to 0 to disable bottom fixing.
 
     **Typical use-cases**
-    * Starting geometry for :func:`~pyiron_nodes.atomistic.property.surface.BinarySlabConfigurations`.
+    * Starting geometry for :func:`~aiflow_nodes.atomistic.property.surface.BinarySlabConfigurations`.
     * Building a clean (0001) surface for adsorption or surface-energy calculations.
 
     Returns

@@ -64,7 +64,7 @@ potential — the adaptive node is the right tool once those are settled.
 Usage
 -----
     import sys
-    sys.path[:0] = ["pyiron_core/src", "/path/to/pyiron_nodes"]
+    sys.path[:0] = ["pyiron_core/src", "/path/to/aiflow_nodes"]
     exec(open("Workflows/calphy_melt_two_pass.py").read())
     wf.run()
     print(wf.pass2.outputs.T_melt.value,
@@ -105,7 +105,7 @@ are all inside, and ``wf.pass2.subgraph`` reaches them from Python.
 
 from core import Workflow, group_node
 
-from pyiron_nodes.atomistic.property.calphy import InputClass
+from aiflow_nodes.atomistic.property.calphy import InputClass
 
 # ── Group node factories ───────────────────────────────────────────────────
 
@@ -154,10 +154,10 @@ def SystemWithPotential(
     line, so prefer "eam" (which covers eam/alloy and eam/fs) or "meam" over a
     plain funcfl entry if the structure ever grows a second element.
     """
-    from pyiron_nodes.atomistic.engine.lammps import GetPotential
-    from pyiron_nodes.atomistic.property.calphy import BuildCalphySystem
-    from pyiron_nodes.atomistic.structure.build import Bulk
-    from pyiron_nodes.atomistic.structure.transform import Rattle, Repeat
+    from aiflow_nodes.atomistic.engine.lammps import GetPotential
+    from aiflow_nodes.atomistic.property.calphy import BuildCalphySystem
+    from aiflow_nodes.atomistic.structure.build import Bulk
+    from aiflow_nodes.atomistic.structure.transform import Rattle, Repeat
     from core import Workflow
 
     inner = Workflow("SystemWithPotential")
@@ -196,8 +196,8 @@ def SuperheatingWindow(system, t_start=100.0, t_stop=3000.0):
     the reason the bundle exists: a window measured with a different potential
     from the one the legs run is silently meaningless.
     """
-    from pyiron_nodes.atomistic.engine.ase import LammpsEngine
-    from pyiron_nodes.atomistic.property.calphy import (
+    from aiflow_nodes.atomistic.engine.ase import LammpsEngine
+    from aiflow_nodes.atomistic.property.calphy import (
         CalphySystem,
         EstimateCalphyTemperatureRange,
     )
@@ -252,7 +252,7 @@ def MeltingPass(system, inp, temperature_min, temperature_max, fit_order=1):
     ``solid_diagnostics`` / ``liquid_diagnostics`` are the per-leg bundles, for
     ``LegQuality``.
     """
-    from pyiron_nodes.atomistic.property.calphy import (
+    from aiflow_nodes.atomistic.property.calphy import (
         ApplyTemperatureWindow,
         CalphySystem,
         LiquidFreeEnergyWithTemp,
@@ -334,7 +334,7 @@ def LegQuality(solid_diagnostics, liquid_diagnostics):
     G(T) should lie on top of each other, and ``rs_max_dissipation`` should be
     below calphy's own 1e-4 eV/atom threshold.
     """
-    from pyiron_nodes.atomistic.property.calphy import (
+    from aiflow_nodes.atomistic.property.calphy import (
         CalphyDiagnostics,
         CalphyDiagnosticsTable,
         CalphyMeltingFromTrajectory,

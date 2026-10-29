@@ -1,4 +1,4 @@
-from pyiron_nodes.atomistic.engine import (
+from aiflow_nodes.atomistic.engine import (
     ase,
     # lammps,
 )

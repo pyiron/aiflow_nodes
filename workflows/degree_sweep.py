@@ -1,5 +1,5 @@
-from pyiron_nodes.controls import IterToDataFrame
-from pyiron_nodes.math_utils import Arange
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.math_utils import Arange
 from core import Workflow
 from core import group_node
 from core import as_function_node

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional, Literal
 
-from pyiron_nodes.executors import ThreadPoolExecutorNode
-from pyiron_nodes.controls import IterToDataFrame
+from aiflow_nodes.executors import ThreadPoolExecutorNode
+from aiflow_nodes.controls import IterToDataFrame
 from core import Workflow
 from core import as_function_node
 

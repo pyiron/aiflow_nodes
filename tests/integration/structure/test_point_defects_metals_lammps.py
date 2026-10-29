@@ -6,13 +6,13 @@ from pathlib import Path
 
 from ase.build import bulk
 
-from pyiron_nodes.atomistic.engine.lammps import (
+from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsStaticInput,
     CreateLammpsStructure,
     ParseLammpsOutput,
     RunLammpsCalculation,
 )
-from pyiron_nodes.atomistic.structure.container_new import (
+from aiflow_nodes.atomistic.structure.container_new import (
     AddPristine,
     CreateDefectFromIds,
     GetVoronoiInterstitialSites,

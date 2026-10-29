@@ -129,7 +129,7 @@ def ApplyVoigtStrain(structure, component: int = 0, magnitude: float = 0.005):
         A copy of *structure* with the cell deformed by ``I + eps`` and the
         atomic positions scaled along with it.
     """
-    from pyiron_nodes.atomistic.structure._atoms import _resolve_atoms
+    from aiflow_nodes.atomistic.structure._atoms import _resolve_atoms
 
     atoms = _resolve_atoms(structure).copy()
     deformation = np.eye(3) + voigt_strain_matrix(component, magnitude)
@@ -189,8 +189,8 @@ def StressStrainElasticConstants(
     C44 : float
         ``C[3, 3]`` in GPa.
     """
-    from pyiron_nodes.atomistic.engine.generic import OutputEngine
-    from pyiron_nodes.atomistic.structure._atoms import _resolve_atoms
+    from aiflow_nodes.atomistic.engine.generic import OutputEngine
+    from aiflow_nodes.atomistic.structure._atoms import _resolve_atoms
 
     if engine is None:
         from ase.calculators.emt import EMT

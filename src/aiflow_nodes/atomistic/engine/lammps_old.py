@@ -8,11 +8,11 @@ from ase import Atoms
 from pandas import DataFrame
 from pyiron_atomistics.lammps.control import LammpsControl
 
-from pyiron_nodes.atomistic.calculator.data import (
+from aiflow_nodes.atomistic.calculator.data import (
     InputCalcMD,
     InputCalcStatic,
 )
-from pyiron_nodes.dev_tools import FileObject
+from aiflow_nodes.dev_tools import FileObject
 from core import (
     as_function_node,
     as_inp_dataclass_node,
@@ -369,7 +369,7 @@ def Collect(
 ):
     import numpy as np
 
-    from pyiron_nodes.atomistic.calculator.data import (
+    from aiflow_nodes.atomistic.calculator.data import (
         OutputCalcMD,
         OutputCalcMinimize,
         OutputCalcStatic,
@@ -432,7 +432,7 @@ def Tip3pData(
     """
     import os
     import numpy as np
-    from pyiron_nodes.dev_tools import FileObject
+    from aiflow_nodes.dev_tools import FileObject
 
     os.makedirs(working_directory, exist_ok=True)
 

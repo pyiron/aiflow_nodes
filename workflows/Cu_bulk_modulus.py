@@ -41,13 +41,13 @@ or Au, whose EMT equilibrium volume is near 16.4 A^3/atom - for those, raise
 `cu_fcc.a` as well. Always check `ev_plot` before trusting `eos_fit`.
 """
 
-from pyiron_nodes.atomistic.calculator.data import OutputSEFS
-from pyiron_nodes.atomistic.calculator.generic import ApplyEngine, CreateSEFSContainer
-from pyiron_nodes.atomistic.engine.ase import EMT
-from pyiron_nodes.atomistic.property.bulk import FitBirchMurnaghanEOS, PlotEVCurve
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.structure.transform import GenerateStrainedStructures
-from pyiron_nodes.math_utils import Linspace
+from aiflow_nodes.atomistic.calculator.data import OutputSEFS
+from aiflow_nodes.atomistic.calculator.generic import ApplyEngine, CreateSEFSContainer
+from aiflow_nodes.atomistic.engine.ase import EMT
+from aiflow_nodes.atomistic.property.bulk import FitBirchMurnaghanEOS, PlotEVCurve
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.transform import GenerateStrainedStructures
+from aiflow_nodes.math_utils import Linspace
 from core import Workflow
 from core import as_function_node
 
@@ -74,7 +74,7 @@ def EnergyVolumeTable(structures, energies, per_atom: bool = True):
     """
     import pandas as pd
 
-    from pyiron_nodes.atomistic.structure._atoms import _resolve_atoms
+    from aiflow_nodes.atomistic.structure._atoms import _resolve_atoms
 
     volume_lst, energy_lst = [], []
     for structure, energy in zip(structures, energies):

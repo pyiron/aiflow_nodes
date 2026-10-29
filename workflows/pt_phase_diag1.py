@@ -1,6 +1,6 @@
-from pyiron_nodes.controls import IterToDataFrame
-from pyiron_nodes.math_utils import Linspace
-from pyiron_nodes.plotting import InputPlotOptions, PlotDataFrameXY
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.math_utils import Linspace
+from aiflow_nodes.plotting import InputPlotOptions, PlotDataFrameXY
 from core import Workflow
 from core import group_node
 
@@ -21,16 +21,16 @@ def GetMeltingT(
     store=True,
     liquid_fe__store=True,
 ):
-    from pyiron_nodes.atomistic.structure.build import Bulk
-    from pyiron_nodes.atomistic.structure.transform import Repeat
-    from pyiron_nodes.atomistic.property.calphy import (
+    from aiflow_nodes.atomistic.structure.build import Bulk
+    from aiflow_nodes.atomistic.structure.transform import Repeat
+    from aiflow_nodes.atomistic.property.calphy import (
         FindMeltingTemperature,
         InputClass,
         LiquidFreeEnergyWithTemp,
         SolidFreeEnergyWithTemp,
     )
-    from pyiron_nodes.atomistic.engine.lammps import ListPotentials
-    from pyiron_nodes.atomistic.structure.transform import Rattle
+    from aiflow_nodes.atomistic.engine.lammps import ListPotentials
+    from aiflow_nodes.atomistic.structure.transform import Rattle
     from core import Workflow
 
     inner_wf = Workflow("GetMeltingT")

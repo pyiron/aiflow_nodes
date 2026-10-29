@@ -36,8 +36,8 @@ What to do with it
    timeout, which contains hangs and crashes — it is **not** a security sandbox.
 """
 
-from pyiron_nodes.benchmark import BenchmarkReport, PlotBenchmark, _BenchmarkSuiteCore
-from pyiron_nodes.executors import SlurmExecutor
+from aiflow_nodes.benchmark import BenchmarkReport, PlotBenchmark, _BenchmarkSuiteCore
+from aiflow_nodes.executors import SlurmExecutor
 from core import Workflow
 
 wf = Workflow("workflow_agent_benchmark_repeating")

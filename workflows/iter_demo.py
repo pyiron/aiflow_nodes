@@ -1,7 +1,7 @@
 from core import Workflow
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.controls import IterToDataFrame
-from pyiron_nodes.math_utils import Linspace
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.math_utils import Linspace
 
 wf = Workflow("iter_demo")
 

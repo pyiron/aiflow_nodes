@@ -17,7 +17,7 @@ from vaspparser.vasp.output import Output, parse_vasp_output
 from vaspparser.vasp.volumetric_data import VaspVolumetricData
 
 from core import as_function_node, run_external
-from pyiron_nodes.atomistic.calculator.data import (
+from aiflow_nodes.atomistic.calculator.data import (
     InputMDVASP,
     InputDipoleCorrection,
     InputMinimizationVASP,

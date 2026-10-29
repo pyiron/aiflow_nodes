@@ -279,7 +279,7 @@ def PlotElectrostaticPotential(
     import numpy as np
     import matplotlib.pyplot as plt
     from ase.units import Bohr
-    from pyiron_nodes.electrochemistry.analysis.dielectric import _charge_map
+    from aiflow_nodes.electrochemistry.analysis.dielectric import _charge_map
 
     Data = context["density_data"]
     initial_structure = context["initial_structure"]
@@ -388,7 +388,7 @@ def PlotBulkElectricField(
     """
     import numpy as np
     import matplotlib.pyplot as plt
-    from pyiron_nodes.electrochemistry.analysis.dielectric import (
+    from aiflow_nodes.electrochemistry.analysis.dielectric import (
         _charge_map,
         _frame_charge_density,
         _poisson_potential,
@@ -459,7 +459,7 @@ def PlotBulkElectricField(
 def DoublLayerCapacitance(context: dict):
     import numpy as np
     from ase.units import Bohr
-    from pyiron_nodes.electrochemistry.analysis.dielectric import _charge_map
+    from aiflow_nodes.electrochemistry.analysis.dielectric import _charge_map
 
     Data = context["density_data"]
     initial_structure = context["initial_structure"]
@@ -517,8 +517,8 @@ def EnrichDensityContext(trajectory, sim_setup, initial_step=0):
     derived from them; earlier frames are dropped as equilibration.  It is also
     stored in the context so trajectory-based analysis nodes inherit it.
     """
-    from pyiron_nodes.atomistic.calculator.data import SimSetupBundle
-    from pyiron_nodes.electrochemistry.analysis.plots import (
+    from aiflow_nodes.atomistic.calculator.data import SimSetupBundle
+    from aiflow_nodes.electrochemistry.analysis.plots import (
         BuildDensityContext,
         ElementDensityFromTrajectory,
     )

@@ -9,7 +9,7 @@ from core import as_function_node
 def EMT():
     from ase.calculators.emt import EMT
 
-    from pyiron_nodes.atomistic.engine.generic import OutputEngine
+    from aiflow_nodes.atomistic.engine.generic import OutputEngine
 
     out = OutputEngine(calculator=EMT())
 
@@ -41,7 +41,7 @@ def GRACE(model: str = "GRACE-FS-OAM", use_symmetry: bool = True):
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
     from tensorpotential.calculator import grace_fm
 
-    from pyiron_nodes.atomistic.engine.generic import OutputEngine
+    from aiflow_nodes.atomistic.engine.generic import OutputEngine
 
     # A stable engine_id lets node_inputs_to_jsongroup contribute a reproducible
     # hash without pickling the calculator, which is neither cheap nor picklable.
@@ -83,8 +83,8 @@ def LammpsEngine(potential: str, resource_path: str = None):
 
     from ase.calculators.lammpslib import LAMMPSlib
 
-    from pyiron_nodes.atomistic.engine.generic import OutputEngine
-    from pyiron_nodes.atomistic.engine.lammps import get_usable_potential_by_name
+    from aiflow_nodes.atomistic.engine.generic import OutputEngine
+    from aiflow_nodes.atomistic.engine.lammps import get_usable_potential_by_name
 
     entry = get_usable_potential_by_name(
         potential_name=potential, resource_path=resource_path
@@ -110,7 +110,7 @@ def Ace(potential_file, use_symmetry: bool = True):
     from pyace import PyACECalculator
     from pyiron_snippets.logger import logger
 
-    from pyiron_nodes.atomistic.engine.generic import OutputEngine
+    from aiflow_nodes.atomistic.engine.generic import OutputEngine
 
     calc = PyACECalculator(potential_file)
     logger.setLevel(ERROR)

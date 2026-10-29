@@ -3,15 +3,15 @@ from __future__ import annotations
 import numpy as np
 
 from core import Workflow, as_function_node
-from pyiron_nodes.atomistic.structure.build_gb import (
+from aiflow_nodes.atomistic.structure.build_gb import (
     GrainBoundaryOptions,
     BuildGrainBoundary,
 )
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.engine.ase import EMT
-from pyiron_nodes.atomistic.calculator.ase import StaticEnergy, Minimize
-from pyiron_nodes.atomistic.calculator.output import GetEnergyLast
-from pyiron_nodes.atomistic.structure.view import PlotCNA
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.engine.ase import EMT
+from aiflow_nodes.atomistic.calculator.ase import StaticEnergy, Minimize
+from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
+from aiflow_nodes.atomistic.structure.view import PlotCNA
 
 
 @as_function_node("energy_per_atom")

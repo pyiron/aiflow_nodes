@@ -214,7 +214,7 @@ class InputMDVASP:
 
     Field names follow the LAMMPS ``InputCalcMD`` convention rather than the raw
     INCAR tags. The mapping onto INCAR is done in
-    ``pyiron_nodes.atomistic.engine.vasp_new._build_incar``:
+    ``aiflow_nodes.atomistic.engine.vasp_new._build_incar``:
 
     ensemble ``"NVT"``           → ISIF 2 (fixed cell)
     ensemble ``"NpT"``           → ISIF 3 (cell shape + volume free)

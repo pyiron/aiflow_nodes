@@ -1,12 +1,12 @@
 import pandas as pd
 from ase import Atoms
 from core import Workflow, as_function_node, group_node
-from pyiron_nodes.atomistic.structure.build import Bulk
-from pyiron_nodes.atomistic.calculator.ase import (
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,
     Relax,
 )
-from pyiron_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.engine.ase import GRACE
 
 # ── Local node definitions ──────────────────────
 
@@ -25,7 +25,7 @@ def BuildDecoratedStructures(
 
     Columns: structure (ASE Atoms), name (str, legend label).
     """
-    from pyiron_nodes.atomistic.structure.build_point_defects import (
+    from aiflow_nodes.atomistic.structure.build_point_defects import (
         expand_configs,
         make_config_row,
         make_pristine_reference,
@@ -85,7 +85,7 @@ def RelaxStructuresDataFrame(
 
     Returns df with 'structure' (relaxed ASE Atoms) and 'energy' (eV) columns.
     """
-    from pyiron_nodes.atomistic.structure._atoms import to_ase
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     relaxed, energies = [], []
     for s in df["structure"]:
@@ -116,7 +116,7 @@ def ChemicalPotentialSweep(
 @group_node("surface")
 def mg_surface(size="1 1 1", vacuum=1.0):
     from core import Workflow
-    from pyiron_nodes.atomistic.structure.build import Surface
+    from aiflow_nodes.atomistic.structure.build import Surface
 
     inner_wf = Workflow("mg_surface")
     inner_wf.slab = Surface(
@@ -128,11 +128,11 @@ def mg_surface(size="1 1 1", vacuum=1.0):
 @group_node("mu")
 def mu_mg(structure, engine, optimizer_settings=None):
     from core import Workflow, as_function_node
-    from pyiron_nodes.atomistic.calculator.ase import Relax
+    from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
     def _energy_per_atom(calc_result):
-        from pyiron_nodes.atomistic.structure._atoms import to_ase
+        from aiflow_nodes.atomistic.structure._atoms import to_ase
 
         s = to_ase(calc_result.structure)
         return calc_result.energy / len(s)
@@ -154,11 +154,11 @@ def mu_mg(structure, engine, optimizer_settings=None):
 @group_node("mu")
 def mu_ca_ref(structure, engine, optimizer_settings=None):
     from core import Workflow, as_function_node
-    from pyiron_nodes.atomistic.calculator.ase import Relax
+    from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
     def _energy_per_atom(calc_result):
-        from pyiron_nodes.atomistic.structure._atoms import to_ase
+        from aiflow_nodes.atomistic.structure._atoms import to_ase
 
         s = to_ase(calc_result.structure)
         return calc_result.energy / len(s)
@@ -180,7 +180,7 @@ def mu_ca_ref(structure, engine, optimizer_settings=None):
 @group_node("result")
 def FormationEnergies(df, mu_host, mu_solute):
     from core import Workflow, as_function_node
-    from pyiron_nodes.atomistic.thermodynamics.defect_phases import (
+    from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
         AddDefectConcentrationColumns,
         AddElementCountColumns,
         ComputeDefectFormationEnergy,

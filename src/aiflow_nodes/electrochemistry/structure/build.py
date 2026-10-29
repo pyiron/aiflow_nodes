@@ -53,7 +53,7 @@ def FixElectrodes(
     Every species in ``fixed_species`` gets a ``FixAtoms`` constraint, except
     ``piston_species``, which instead gets a ``FixedPlane`` that pins it in xy
     and leaves z free so a barostat can push it (see
-    ``pyiron_nodes.atomistic.engine.lammps.CreateLammpsMDInput``).
+    ``aiflow_nodes.atomistic.engine.lammps.CreateLammpsMDInput``).
 
     With ``piston_species=""`` this is equivalent to
     ``FixSpecies(fixed_species=fixed_species)``.
@@ -296,7 +296,7 @@ def AddNeonLayer(structure, d_eq: float = 3, hydrophobic_gap: float = 3.0):
     import numpy as np
     from ase.build import fcc111
 
-    # from pyiron_nodes.atomistic.structure.build import Surface
+    # from aiflow_nodes.atomistic.structure.build import Surface
 
     # Get the maximum z value of an atom in the structure
     max_z = np.max(structure.get_positions()[:, 2])

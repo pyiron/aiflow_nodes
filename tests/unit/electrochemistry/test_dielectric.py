@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 from ase import Atoms
 
-from pyiron_nodes.electrochemistry.analysis.dielectric import (
+from aiflow_nodes.electrochemistry.analysis.dielectric import (
     DielectricFromPolarizationFluctuations,
     DifferentialCapacitance,
     LocalDielectricProfile,
@@ -22,7 +22,7 @@ from pyiron_nodes.electrochemistry.analysis.dielectric import (
     K_BOLTZMANN,
     ANG_TO_M,
 )
-from pyiron_nodes.electrochemistry.analysis.plots import BuildDensityContext
+from aiflow_nodes.electrochemistry.analysis.plots import BuildDensityContext
 
 CHARGES = {
     "metal": "Al",

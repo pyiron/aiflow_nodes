@@ -1,4 +1,4 @@
-from pyiron_nodes.atomistic.calculator.data import (
+from aiflow_nodes.atomistic.calculator.data import (
     OutputCalcMinimize,
     OutputCalcStaticList,
 )

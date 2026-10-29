@@ -16,13 +16,13 @@ def ElectrochemicalCell(
     density: float = 1e-24,
     piston_species: str = "",
 ):
-    from pyiron_nodes.electrochemistry.structure.build import (
+    from aiflow_nodes.electrochemistry.structure.build import (
         AddIonPair,
         FixElectrodes,
         AddNeonLayer,
         AddWaterFilm,
     )
-    from pyiron_nodes.atomistic.structure.build import Surface
+    from aiflow_nodes.atomistic.structure.build import Surface
     from core import Workflow
 
     inner_wf = Workflow("ElectrochemicalCell")
@@ -60,9 +60,9 @@ def SimulationSetup(
     quasi_2d: bool = False,
     piston_species: str = "",
 ):
-    from pyiron_nodes.atomistic.calculator.data import SimSetupBundleInp
-    from pyiron_nodes.electrochemistry.structure.build import ConfigurePBC
-    from pyiron_nodes.electrochemistry.structure.equilibrate import IonPotential
+    from aiflow_nodes.atomistic.calculator.data import SimSetupBundleInp
+    from aiflow_nodes.electrochemistry.structure.build import ConfigurePBC
+    from aiflow_nodes.electrochemistry.structure.equilibrate import IonPotential
     from core import Workflow
 
     inner_wf = Workflow("SimulationSetup")
@@ -102,8 +102,8 @@ def Lammps(
     piston_pressure: float = 1.0,
     piston_damping: float = 0.0,
 ):
-    from pyiron_nodes.atomistic.calculator.data import SimSetupBundle, SimSetupBundleInp
-    from pyiron_nodes.atomistic.engine.lammps import (
+    from aiflow_nodes.atomistic.calculator.data import SimSetupBundle, SimSetupBundleInp
+    from aiflow_nodes.atomistic.engine.lammps import (
         CreateLammpsMDInput,
         CreateLammpsStructure,
         ParseElectrodeForce,

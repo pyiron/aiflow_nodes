@@ -8,8 +8,8 @@ import pandas as pd
 from ase.build import bulk, molecule
 from ase.constraints import FixAtoms
 
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
-from pyiron_nodes.atomistic.engine.lammps import (
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
+from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsMDInput,
     CreateLammpsMinimizeInput,
     CreateLammpsStaticInput,
@@ -21,7 +21,7 @@ from pyiron_nodes.atomistic.engine.lammps import (
     extract_charges_from_lammps_potential,
     write_lammps_data_full,
 )
-from pyiron_nodes.electrochemistry.structure.equilibrate import WaterPotential
+from aiflow_nodes.electrochemistry.structure.equilibrate import WaterPotential
 
 AL_POTENTIAL = "1999--Mishin-Y--Al--LAMMPS--ipr1"
 RESOURCE_PATH = os.environ.get(
@@ -419,7 +419,7 @@ class TestPistonBarostat(unittest.TestCase):
         self.assertIn("fix piston_damp frozen_ne viscous 2.5", with_damping)
 
     def test_the_load_is_the_pressure_times_the_area_per_atom(self):
-        from pyiron_nodes.atomistic.engine.lammps import _piston_barostat_lines
+        from aiflow_nodes.atomistic.engine.lammps import _piston_barostat_lines
 
         # Hand-computed for the miniature cell: 2 Ne atoms, 4x4 Å cross-section,
         # 1 bar, metal units where force is already eV/Å.
@@ -442,7 +442,7 @@ class TestPistonBarostat(unittest.TestCase):
     def test_the_load_is_converted_for_real_units(self):
         # The TIP3P water potential switches the run to `units real`, where the
         # same physical load is a different number.
-        from pyiron_nodes.atomistic.engine.lammps import _piston_barostat_lines
+        from aiflow_nodes.atomistic.engine.lammps import _piston_barostat_lines
 
         structure = self._structure()
         values = {}
@@ -468,7 +468,7 @@ class TestPistonBarostat(unittest.TestCase):
     def test_the_generated_script_uses_the_runs_own_units(self):
         # The potential drives the unit style, so the number in the script has
         # to follow it rather than a hard-coded default.
-        from pyiron_nodes.atomistic.engine.lammps import _piston_barostat_lines
+        from aiflow_nodes.atomistic.engine.lammps import _piston_barostat_lines
 
         text = self._input_string(
             "piston_units", piston_species="Ne", piston_pressure=1.0

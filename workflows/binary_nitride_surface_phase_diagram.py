@@ -14,16 +14,16 @@ second degree of freedom, so the entire phase diagram is swept by varying μ_cat
 from __future__ import annotations
 
 from core import Workflow
-from pyiron_nodes.atomistic.calculator.ase import Minimize
-from pyiron_nodes.atomistic.calculator.output import GetEnergyLast
-from pyiron_nodes.atomistic.engine.ase import GRACE
-from pyiron_nodes.atomistic.property.surface import (
+from aiflow_nodes.atomistic.calculator.ase import Minimize
+from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
+from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.property.surface import (
     BinarySlabConfigurations,
     RelaxSlabsDataFrame,
 )
-from pyiron_nodes.atomistic.structure.build import Bulk, BinaryWurtziteBulk
-from pyiron_nodes.atomistic.structure.calc import EnergyPerFormulaUnit, NumberOfAtoms
-from pyiron_nodes.atomistic.thermodynamics.defect_phases import (
+from aiflow_nodes.atomistic.structure.build import Bulk, BinaryWurtziteBulk
+from aiflow_nodes.atomistic.structure.calc import EnergyPerFormulaUnit, NumberOfAtoms
+from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
     AddDefectConcentrationColumns,
     AddElementCountColumns,
     BinaryChemicalPotentialSweep,
@@ -32,7 +32,7 @@ from pyiron_nodes.atomistic.thermodynamics.defect_phases import (
     PlotDefectFormationEnergy,
     SelectStableStructures,
 )
-from pyiron_nodes.math_utils import Identity
+from aiflow_nodes.math_utils import Identity
 
 # ── Material constants — update these when switching system ──────────────────
 # GaN defaults

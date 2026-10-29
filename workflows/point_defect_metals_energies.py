@@ -1,14 +1,14 @@
 from core import Workflow, group_node
-from pyiron_nodes.atomistic.thermodynamics.defect_phases import (
+from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
     AddDefectConcentrationColumns,
     AddElementCountColumns,
     ComputeChemicalPotentials,
     ComputeDefectFormationEnergy,
     PlotDefectFormationEnergy,
 )
-from pyiron_nodes.controls import IterToDataFrame
-from pyiron_nodes.dataframe import GetColumnFromDataFrame
-from pyiron_nodes.math_utils import Linspace
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.dataframe import GetColumnFromDataFrame
+from aiflow_nodes.math_utils import Linspace
 
 # ── Group node factories ─────────────────────────────
 
@@ -29,14 +29,14 @@ def CreateDefectStructures(
     into an energy/formation-energy pipeline like the one below.
     """
     from core import Workflow
-    from pyiron_nodes.atomistic.structure.build import Bulk
-    from pyiron_nodes.atomistic.structure.container_new import (
+    from aiflow_nodes.atomistic.structure.build import Bulk
+    from aiflow_nodes.atomistic.structure.container_new import (
         AddPristine,
         CreateDefectFromIds,
         GetStructureTable,
         GetVoronoiInterstitialSites,
     )
-    from pyiron_nodes.atomistic.structure.transform import Repeat
+    from aiflow_nodes.atomistic.structure.transform import Repeat
 
     inner_wf = Workflow("CreateDefectStructures")
     inner_wf.Bulk = Bulk(name=name, cubic=cubic)
@@ -85,8 +85,8 @@ def CreateDefectStructures(
 @group_node("energy")
 def group_GRACE_StaticEnergy(structure):
     from core import Workflow
-    from pyiron_nodes.atomistic.calculator.ase import StaticEnergy
-    from pyiron_nodes.atomistic.engine.ase import GRACE
+    from aiflow_nodes.atomistic.calculator.ase import StaticEnergy
+    from aiflow_nodes.atomistic.engine.ase import GRACE
 
     inner_wf = Workflow("group_GRACE_StaticEnergy")
     inner_wf.GRACE = GRACE()

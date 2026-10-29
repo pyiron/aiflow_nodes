@@ -27,7 +27,7 @@ graph stays a DAG and the whole task suite can be swept with
 ``IterToDataFrame`` — optionally in parallel through a thread pool.  One sweep
 per arm, stacked row-wise by ``StackResults``.
 
-Every node is defined in ``pyiron_nodes.benchmark``; this module is the canvas
+Every node is defined in ``aiflow_nodes.benchmark``; this module is the canvas
 wiring of them, and re-exports the names so older imports keep working.
 
 Three ways to run it
@@ -38,7 +38,7 @@ with every option of the ``workflow_bench --run`` CLI exposed as a port:
 
 .. code-block:: python
 
-    from pyiron_nodes.benchmark import RunBenchmarkSuite
+    from aiflow_nodes.benchmark import RunBenchmarkSuite
 
     bench = RunBenchmarkSuite(
         tier="atomistic_hard",
@@ -102,13 +102,13 @@ attempt, the raw ``chat_*.jsonl`` per agent turn (``save_chat=True``), and the
 """
 
 from core import Workflow
-from pyiron_nodes.controls import IterToDataFrame
-from pyiron_nodes.executors import ThreadPoolExecutorNode
+from aiflow_nodes.controls import IterToDataFrame
+from aiflow_nodes.executors import ThreadPoolExecutorNode
 
-# The nodes themselves live in ``pyiron_nodes.benchmark``; this module is one
+# The nodes themselves live in ``aiflow_nodes.benchmark``; this module is one
 # wiring of them.  The names not used by the graph below are re-exported for
 # the callers and notebooks that still import them from here.
-from pyiron_nodes.benchmark import (
+from aiflow_nodes.benchmark import (
     AggregateRepeats,
     ArmTasks,
     BenchmarkReport,

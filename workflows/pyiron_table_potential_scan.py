@@ -1,7 +1,7 @@
 """
 Example of "data mining using pyiron tables": equilibrium lattice parameter,
 bulk modulus and potential per Murnaghan job in a pyiron project, using
-BuildTable from pyiron_nodes.databases.pyiron_tables - no pyiron_base /
+BuildTable from aiflow_nodes.databases.pyiron_tables - no pyiron_base /
 pyiron_atomistics dependency, reads the project directory and job HDF5 files
 directly.
 
@@ -13,7 +13,7 @@ Run it with the path of a project that contains Murnaghan jobs:
 import sys
 
 from core import Workflow
-from pyiron_nodes.databases.pyiron_tables import (
+from aiflow_nodes.databases.pyiron_tables import (
     AddBulkModulus,
     AddLatticeParameter,
     AddPotential,

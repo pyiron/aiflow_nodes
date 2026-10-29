@@ -15,7 +15,7 @@ from pymatgen.core import Structure
 from pymatgen.io.vasp.inputs import Incar, Kpoints
 from pymatgen.io.vasp.outputs import Vasprun
 
-from pyiron_nodes.dev_tools import FileObject
+from aiflow_nodes.dev_tools import FileObject
 from core import Workflow
 
 

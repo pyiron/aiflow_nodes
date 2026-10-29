@@ -366,7 +366,7 @@ def _prepare_potential_and_structure(potential, structure, working_directory="."
         LammpsStructure,
     )
 
-    from pyiron_nodes.atomistic.engine.lammps import get_usable_potential_by_name
+    from aiflow_nodes.atomistic.engine.lammps import get_usable_potential_by_name
 
     potential_name = potential
     potential = get_usable_potential_by_name(potential_name=potential)
@@ -2569,7 +2569,7 @@ def MeltingTemperature(
         sweep was too fast.  Wire either into ``CalphyDiagnosticsTable`` or
         ``PlotCalphyHysteresis`` to inspect.
     """
-    from pyiron_nodes.atomistic.property.calphy import (
+    from aiflow_nodes.atomistic.property.calphy import (
         ApplyTemperatureWindow,
         EstimateCalphyTemperatureRange,
         InputClass,
@@ -2578,8 +2578,8 @@ def MeltingTemperature(
         SolidFreeEnergyWithTemp,
         SuggestTemperatureWindow,
     )
-    from pyiron_nodes.atomistic.engine.ase import LammpsEngine
-    from pyiron_nodes.atomistic.structure.transform import Rattle
+    from aiflow_nodes.atomistic.engine.ase import LammpsEngine
+    from aiflow_nodes.atomistic.structure.transform import Rattle
     from core import Workflow
 
     inner = Workflow("MeltingTemperature")

@@ -5,7 +5,7 @@ from ase import Atoms
 from phonopy.api_phonopy import Phonopy
 from structuretoolkit.common import atoms_to_phonopy, phonopy_to_atoms
 
-from pyiron_nodes.atomistic.engine.generic import OutputEngine
+from aiflow_nodes.atomistic.engine.generic import OutputEngine
 from core import (
     as_function_node,
     as_inp_dataclass_node,
@@ -52,14 +52,14 @@ def phonopy(
     GetThermalProperties__mesh="10",
 ):
 
-    from pyiron_nodes.atomistic.calculator.ase import Static
-    from pyiron_nodes.atomistic.property.phonons import (
+    from aiflow_nodes.atomistic.calculator.ase import Static
+    from aiflow_nodes.atomistic.property.phonons import (
         GenerateSupercells,
         GetDynamicalMatrix,
         GetThermalProperties,
         PhonopyObject,
     )
-    from pyiron_nodes.controls import GetAttribute, SetAttribute, iterate
+    from aiflow_nodes.controls import GetAttribute, SetAttribute, iterate
     from core import Workflow
 
     if phonopy_parameters is None:

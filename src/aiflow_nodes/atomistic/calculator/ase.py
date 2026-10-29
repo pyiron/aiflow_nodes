@@ -9,8 +9,8 @@ from ase import Atoms
 from ase.constraints import FixAtoms
 from ase.filters import FrechetCellFilter
 
-from pyiron_nodes.atomistic.engine.generic import OutputEngine
-from pyiron_nodes.atomistic.structure._atoms import (
+from aiflow_nodes.atomistic.engine.generic import OutputEngine
+from aiflow_nodes.atomistic.structure._atoms import (
     OutputAtoms,
     _ase_to_data,
     _data_to_ase,
@@ -318,7 +318,7 @@ def Minimize(
     """
     from ase.io.trajectory import Trajectory
     from ase.optimize import BFGS
-    from pyiron_nodes.atomistic.calculator.data import OutputCalcStaticList
+    from aiflow_nodes.atomistic.calculator.data import OutputCalcStaticList
 
     atoms = _resolve_atoms(structure)
 

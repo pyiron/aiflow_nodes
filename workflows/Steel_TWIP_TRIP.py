@@ -57,8 +57,8 @@ coefficients and into sigma -- so the experimental SFE minimum near 12 at.% Mn
 is not reproduced.
 """
 
-from pyiron_nodes.dataframe import DisplayDataFrame
-from pyiron_nodes.math_utils import Linspace
+from aiflow_nodes.dataframe import DisplayDataFrame
+from aiflow_nodes.math_utils import Linspace
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
