@@ -133,7 +133,7 @@ test = "coverage run --rcfile=.coveragerc && coverage report --rcfile=.coverager
 ruff = "==0.17.3"
 
 [tool.pixi.feature.lint.tasks]
-lint = "ruff format --check --diff ."
+lint = "ruff check . && ruff format --check --diff ."
 
 # deptry inspects the installed packages, so it runs in the full environment.
 [tool.pixi.feature.deptry.dependencies]
