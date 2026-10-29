@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Literal, Optional
 from ase.atoms import Atoms
-from core import as_function_node
-from core.groups import group_node
+from aiflow.core import as_function_node
+from aiflow.core.groups import group_node
 
 
 @as_function_node("structure")
@@ -166,7 +166,7 @@ def CubicBulkCell(
         CreateVacancy,
         Repeat,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     if (
         vacancy_index is not None

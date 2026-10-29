@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from core import Workflow
+from aiflow.core import Workflow
 
 from aiflow_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
 from aiflow_nodes.atomistic.engine.lammps import (

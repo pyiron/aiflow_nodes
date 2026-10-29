@@ -1,4 +1,4 @@
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.atomistic.structure.build import Surface
 from aiflow_nodes.atomistic.structure.view import Plot3d
 from aiflow_nodes.electrochemistry.structure.build import AddNeonLayer, AddWaterFilm

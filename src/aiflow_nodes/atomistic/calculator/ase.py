@@ -16,7 +16,12 @@ from aiflow_nodes.atomistic.structure._atoms import (
     _data_to_ase,
     _resolve_atoms,
 )
-from core import Node, as_function_node, as_inp_dataclass_node, as_out_dataclass_node
+from aiflow.core import (
+    Node,
+    as_function_node,
+    as_inp_dataclass_node,
+    as_out_dataclass_node,
+)
 
 
 @as_inp_dataclass_node
@@ -279,7 +284,7 @@ def _stop_if_cancelled(label: str) -> None:
     raising here comes straight back out of ``dyn.run``; ``Graph.run`` reports
     :class:`GraphCancelled` as *Cancelled* rather than *Failed*.
     """
-    from core.cancellation import GraphCancelled, is_cancelled
+    from aiflow.core.cancellation import GraphCancelled, is_cancelled
 
     if is_cancelled():
         raise GraphCancelled(label)

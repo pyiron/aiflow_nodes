@@ -1,5 +1,5 @@
 from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
-from core import as_function_node
+from aiflow.core import as_function_node
 import pandas as pd
 from typing import Literal
 from matplotlib.figure import Figure

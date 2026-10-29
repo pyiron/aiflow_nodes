@@ -16,14 +16,10 @@ Runnable headless (numpy + scikit-learn only). Produces two tidy results:
 figure script.
 """
 
-import sys
-
-# sys.path.insert(0, "pyiron_core/src")
-
 import numpy as np
 import pandas as pd
 
-from core import Workflow, as_function_node, Node
+from aiflow.core import Workflow, as_function_node, Node
 from aiflow_nodes.controls import IterToDataFrame
 
 # --------------------------------------------------------------------------- #

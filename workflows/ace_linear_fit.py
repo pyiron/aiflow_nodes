@@ -1,4 +1,4 @@
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.atomistic.ml_potentials.fitting.linearfit import (
     ParameterizePotentialConfig,
     PlotEnergyFittingCurve,

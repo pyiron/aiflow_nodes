@@ -101,7 +101,7 @@ attempt, the raw ``chat_*.jsonl`` per agent turn (``save_chat=True``), and the
    timeout, which contains hangs and crashes — it is **not** a security sandbox.
 """
 
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.executors import ThreadPoolExecutorNode
 

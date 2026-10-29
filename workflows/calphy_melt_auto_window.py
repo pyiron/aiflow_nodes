@@ -56,8 +56,6 @@ window tried and why each was abandoned.
 
 Usage
 -----
-    import sys
-    sys.path[:0] = ["pyiron_core/src"]  # aiflow_nodes: pip install -e .
     exec(open("workflows/calphy_melt_auto_window.py").read())
     wf.run()
     print(wf.melting_temperature.outputs.T_melt.value,
@@ -90,7 +88,7 @@ Then read, in this order:
     evidence behind the starting window.
 """
 
-from core import Workflow
+from aiflow.core import Workflow
 
 from aiflow_nodes.atomistic.engine.ase import LammpsEngine
 from aiflow_nodes.atomistic.property.calphy import (

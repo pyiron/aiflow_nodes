@@ -95,7 +95,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
 from collections.abc import Callable
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 if TYPE_CHECKING:
     import numpy as np

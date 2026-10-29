@@ -1,4 +1,4 @@
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.atomistic.engine.lammps import ListPotentials, CreateLammpsStructure
 from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,

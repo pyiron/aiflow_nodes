@@ -7,7 +7,7 @@ from typing import Literal
 
 import pandas as pd
 
-from core import Node, as_function_node
+from aiflow.core import Node, as_function_node
 
 
 @as_function_node("df")

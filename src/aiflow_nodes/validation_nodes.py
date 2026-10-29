@@ -32,7 +32,7 @@ from sklearn.metrics import (
     classification_report,
 )
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 # =============================================================================
 # UTILITY FUNCTIONS

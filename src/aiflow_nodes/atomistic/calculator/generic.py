@@ -2,7 +2,7 @@ from typing import Optional
 import numpy as np
 
 from aiflow_nodes.atomistic.calculator.data import OutputSEFS
-from core import as_function_node
+from aiflow.core import as_function_node
 
 
 @as_function_node

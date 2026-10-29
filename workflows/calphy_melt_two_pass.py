@@ -63,8 +63,6 @@ potential — the adaptive node is the right tool once those are settled.
 
 Usage
 -----
-    import sys
-    sys.path[:0] = ["pyiron_core/src"]  # aiflow_nodes: pip install -e .
     exec(open("workflows/calphy_melt_two_pass.py").read())
     wf.run()
     print(wf.pass2.outputs.T_melt.value,
@@ -103,7 +101,7 @@ When a pass misbehaves, open it: the legs, their windows and their diagnostics
 are all inside, and ``wf.pass2.subgraph`` reaches them from Python.
 """
 
-from core import Workflow, group_node
+from aiflow.core import Workflow, group_node
 
 from aiflow_nodes.atomistic.property.calphy import InputClass
 
@@ -158,7 +156,7 @@ def SystemWithPotential(
     from aiflow_nodes.atomistic.property.calphy import BuildCalphySystem
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.transform import Rattle, Repeat
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner = Workflow("SystemWithPotential")
     inner.crystal = Bulk(name=name, cubic=cubic)
@@ -201,7 +199,7 @@ def SuperheatingWindow(system, t_start=100.0, t_stop=3000.0):
         CalphySystem,
         EstimateCalphyTemperatureRange,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner = Workflow("SuperheatingWindow")
     inner.parts = CalphySystem(input=system)
@@ -260,7 +258,7 @@ def MeltingPass(system, inp, temperature_min, temperature_max, fit_order=1):
         SolidFreeEnergyWithTemp,
         SuggestTemperatureWindow,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner = Workflow("MeltingPass")
     inner.run_input = ApplyTemperatureWindow(
@@ -340,7 +338,7 @@ def LegQuality(solid_diagnostics, liquid_diagnostics):
         CalphyMeltingFromTrajectory,
         PlotCalphyHysteresis,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner = Workflow("LegQuality")
     inner.solid_parts = CalphyDiagnostics(input=solid_diagnostics)

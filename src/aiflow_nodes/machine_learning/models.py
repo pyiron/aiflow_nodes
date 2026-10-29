@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from core import as_function_node
+from aiflow.core import as_function_node
 
 if TYPE_CHECKING:
     import numpy as np

@@ -12,7 +12,7 @@ from typing import Optional
 
 import numpy as np
 
-from core import (
+from aiflow.core import (
     Node,
     as_function_node,
     as_inp_dataclass_node,

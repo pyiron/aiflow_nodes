@@ -3,8 +3,8 @@ from typing import Optional, Literal
 
 from aiflow_nodes.executors import ThreadPoolExecutorNode
 from aiflow_nodes.controls import IterToDataFrame
-from core import Workflow
-from core import as_function_node
+from aiflow.core import Workflow
+from aiflow.core import as_function_node
 
 # ── LLM config dataclass (plain data, not a node) ───────────────────────────
 

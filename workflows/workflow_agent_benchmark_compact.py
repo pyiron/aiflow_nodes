@@ -58,7 +58,7 @@ when the plumbing itself is the thing you are editing.
    timeout, which contains hangs and crashes — it is **not** a security sandbox.
 """
 
-from core import Workflow
+from aiflow.core import Workflow
 
 from aiflow_nodes.benchmark import (
     BenchmarkReport,

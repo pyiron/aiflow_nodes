@@ -64,7 +64,7 @@ from typing import Literal, Optional
 
 import pandas as pd
 
-from core import Workflow, as_function_node, as_inp_dataclass_node, group_node
+from aiflow.core import Workflow, as_function_node, as_inp_dataclass_node, group_node
 from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.executors import ThreadPoolExecutorNode
 

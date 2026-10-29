@@ -1,4 +1,4 @@
-from core import Workflow, group_node
+from aiflow.core import Workflow, group_node
 from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
     AddDefectConcentrationColumns,
     AddElementCountColumns,
@@ -15,7 +15,7 @@ from aiflow_nodes.math_utils import Linspace
 
 @group_node("table")
 def CreateStructures(name, element, cubic=False, repeat_scalar=1):
-    from core import Workflow
+    from aiflow.core import Workflow
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.container import (
         AddPristine,
@@ -44,7 +44,7 @@ def CreateStructures(name, element, cubic=False, repeat_scalar=1):
 
 @group_node("energy")
 def group_GRACE_StaticEnergy(structure):
-    from core import Workflow
+    from aiflow.core import Workflow
     from aiflow_nodes.atomistic.calculator.ase import StaticEnergy
     from aiflow_nodes.atomistic.engine.ase import GRACE
 

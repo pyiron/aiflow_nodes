@@ -8,7 +8,7 @@ from scipy.sparse import csr_matrix
 from ase import Atoms
 from ase.neighborlist import neighbor_list
 from typing import Tuple, Dict, List, Literal, Optional
-from core import as_function_node
+from aiflow.core import as_function_node
 
 
 # -------------------------------------------------------------------------

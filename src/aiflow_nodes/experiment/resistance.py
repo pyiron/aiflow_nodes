@@ -2,7 +2,7 @@ from dataclasses import field
 
 import numpy as np
 
-from core import Node, as_function_node, as_out_dataclass_node
+from aiflow.core import Node, as_function_node, as_out_dataclass_node
 
 
 @as_out_dataclass_node

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Literal
 
-from core import as_function_node, as_out_dataclass_node
-from core.data_fields import DataArray, EmptyArrayField
+from aiflow.core import as_function_node, as_out_dataclass_node
+from aiflow.core.data_fields import DataArray, EmptyArrayField
 
 # ── Structure helpers ────────────────────────────────────────────────────────
 

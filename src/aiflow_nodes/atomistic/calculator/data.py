@@ -1,8 +1,8 @@
 from dataclasses import field
 from typing import Optional, Literal
 
-from core import as_inp_dataclass_node, as_out_dataclass_node
-from core.data_fields import DataArray, EmptyArrayField
+from aiflow.core import as_inp_dataclass_node, as_out_dataclass_node
+from aiflow.core.data_fields import DataArray, EmptyArrayField
 
 
 # only conceptual, not truly implemented

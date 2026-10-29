@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from typing import Literal, Optional
-from core import Workflow, as_function_node, group_node
+from aiflow.core import Workflow, as_function_node, group_node
 
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.build_gb import (
@@ -480,7 +480,7 @@ def View3DStructure(
 @group_node("mu")
 def compute_reference_chemical_potential(structure, engine, optimizer_settings):
     """Relax a bulk reference and return its energy per atom (eV/atom)."""
-    from core import Workflow, as_function_node
+    from aiflow.core import Workflow, as_function_node
     from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
@@ -520,7 +520,7 @@ def compute_defect_formation_energies(
     undecorated GB.  This gives physically meaningful absolute values
     that reflect the thermodynamic cost of Nb incorporation.
     """
-    from core import Workflow, as_function_node
+    from aiflow.core import Workflow, as_function_node
     from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
         AddElementCountColumns,
     )

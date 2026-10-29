@@ -9,9 +9,9 @@ import tempfile
 
 import pytest
 
-from core import as_function_node
-from core.graph import Graph
-from pyiron_database.instance_database.InstanceDatabase import InstanceDatabase
+from aiflow.core import as_function_node
+from aiflow.core.graph import Graph
+from aiflow.database.instance_database.InstanceDatabase import InstanceDatabase
 
 from aiflow_nodes.controls import branch, _iterate_node
 
@@ -227,7 +227,7 @@ class CacheExecutor:
     """executorlib's file cache without a scheduler — recoverable, but local.
 
     Wraps ``SingleNodeExecutor`` and exposes ``info["executor_kwargs"]`` the way
-    the cluster executors do, so ``core.remote_cache`` treats it as one.
+    the cluster executors do, so ``aiflow.core.remote_cache`` treats it as one.
     """
 
     def __init__(self, directory, on_submit=None):
@@ -252,7 +252,7 @@ class CacheExecutor:
 
 def _sweep_graph(template, executor=None, values=(1, 2, 3)):
     """Build like a workflow file, run like the GUI: a *copy* holds the db."""
-    from core import Workflow
+    from aiflow.core import Workflow
 
     from aiflow_nodes.controls import IterToDataFrame
 
@@ -281,7 +281,7 @@ def _cells(db):
 def test_gui_like_run_stores_every_cell_linked_to_its_sweep(mode):
     from concurrent.futures import ThreadPoolExecutor
 
-    import pyiron_database as pdb
+    import aiflow.database as pdb
 
     executor = {
         "sequential": None,
@@ -317,7 +317,7 @@ def test_no_cells_are_stored_when_recording_is_off():
 
 
 def test_queued_cells_are_checkpointed_keyed_on_their_hash_and_never_resubmitted():
-    import pyiron_database as pdb
+    import aiflow.database as pdb
 
     with tempfile.TemporaryDirectory() as tmp:
         cache = str(pathlib.Path(tmp) / "cache")
@@ -357,7 +357,7 @@ def test_queued_cells_are_checkpointed_keyed_on_their_hash_and_never_resubmitted
 def test_non_modal_sweep_returns_at_once_and_is_collected_next_run(monkeypatch):
     import time
 
-    import core.remote_cache as rc
+    import aiflow.core.remote_cache as rc
 
     monkeypatch.setattr(rc, "wait_for_queue_id", lambda *a, **k: None)  # no scheduler
     with tempfile.TemporaryDirectory() as tmp:

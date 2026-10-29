@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from typing import Literal, Optional
-from core import Workflow, as_function_node, group_node
+from aiflow.core import Workflow, as_function_node, group_node
 
 from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
     SelectStableStructures,
@@ -664,7 +664,7 @@ def View3DStructure(
 
 @group_node("mu")
 def compute_reference_chemical_potential(structure, engine, optimizer_settings):
-    from core import Workflow, as_function_node
+    from aiflow.core import Workflow, as_function_node
     from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
@@ -691,7 +691,7 @@ def compute_reference_chemical_potential(structure, engine, optimizer_settings):
 @group_node("mu_gan_fu")
 def compute_gan_bulk_energy_per_fu(structure, engine, optimizer_settings):
     """Relax GaN bulk and return total energy per formula unit (GaN pair)."""
-    from core import Workflow, as_function_node
+    from aiflow.core import Workflow, as_function_node
     from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu_gan_fu")
@@ -719,7 +719,7 @@ def compute_gan_bulk_energy_per_fu(structure, engine, optimizer_settings):
 @group_node("formation_energies")
 def compute_surface_formation_energies(relaxed_df, mu_ga_sweep, mu_gan_fu):
     """Formation energies with GaN stoichiometric constraint: μ_N = μ_GaN_fu - μ_Ga."""
-    from core import Workflow, as_function_node
+    from aiflow.core import Workflow, as_function_node
     from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
         AddElementCountColumns,
         AddDefectConcentrationColumns,

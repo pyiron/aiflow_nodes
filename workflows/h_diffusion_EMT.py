@@ -1,4 +1,4 @@
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.atomistic.diffusion import AddInterstitialH, PlotNEBPath, RunNEB
 from aiflow_nodes.atomistic.engine.ase import EMT
 from aiflow_nodes.atomistic.structure.build import Bulk

@@ -1,4 +1,4 @@
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.dataframe import ReadDataFrame
 from aiflow_nodes.machine_learning.models import (
     EvaluateRegressionModelSklearn,

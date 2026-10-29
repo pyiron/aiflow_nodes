@@ -1,4 +1,4 @@
-from core import Workflow
+from aiflow.core import Workflow
 from aiflow_nodes.databases.node_hash_db import (
     CreateDB,
     DeleteDB,

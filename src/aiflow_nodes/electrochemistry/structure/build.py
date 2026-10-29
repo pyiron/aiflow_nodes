@@ -1,7 +1,7 @@
 import ase.units as units
 
 from ase.atoms import Atoms
-from core import as_function_node
+from aiflow.core import as_function_node
 
 
 @as_function_node

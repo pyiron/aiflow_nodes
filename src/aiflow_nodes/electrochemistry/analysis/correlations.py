@@ -2,7 +2,7 @@ from typing import Sequence, Optional
 import numpy as np
 
 from ase.atoms import Atoms
-from core import as_function_node
+from aiflow.core import as_function_node
 from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
 """

@@ -28,7 +28,7 @@ from typing import Any, Literal, Optional
 import pandas as pd
 import requests
 
-from core import Workflow, as_function_node
+from aiflow.core import Workflow, as_function_node
 
 log = logging.getLogger(__name__)
 

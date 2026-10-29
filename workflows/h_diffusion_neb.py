@@ -1,4 +1,4 @@
-from core import Workflow, group_node
+from aiflow.core import Workflow, group_node
 from aiflow_nodes.atomistic.diffusion import (
     AddInterstitialH,
     FindLowEnergyInterstitialSite,
@@ -16,7 +16,7 @@ from aiflow_nodes.atomistic.calculator.ase import (
 
 @group_node("structure")
 def Bulk(name, cubic=False, repeat_scalar=1):
-    from core import Workflow
+    from aiflow.core import Workflow
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.transform import Repeat
 
@@ -30,7 +30,7 @@ def Bulk(name, cubic=False, repeat_scalar=1):
 
 @group_node("engine")
 def LammpsEngine(structure, index):
-    from core import Workflow
+    from aiflow.core import Workflow
     from aiflow_nodes.atomistic.diffusion import LammpsAseEngine
     from aiflow_nodes.atomistic.engine.lammps import ListPotentials
     from aiflow_nodes.controls import pick_element

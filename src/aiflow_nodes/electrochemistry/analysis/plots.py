@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Literal
 
-from core import as_function_node
+from aiflow.core import as_function_node
 from matplotlib.figure import Figure
 
 
@@ -506,7 +506,7 @@ def DoublLayerCapacitance(context: dict):
     return C_metal, C_Ne
 
 
-from core import group_node
+from aiflow.core import group_node
 
 
 @group_node("context")
@@ -522,7 +522,7 @@ def EnrichDensityContext(trajectory, sim_setup, initial_step=0):
         BuildDensityContext,
         ElementDensityFromTrajectory,
     )
-    from core import Workflow
+    from aiflow.core import Workflow
 
     inner_wf = Workflow("EnrichDensityContext")
     inner_wf.density = ElementDensityFromTrajectory(

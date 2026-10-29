@@ -1,7 +1,7 @@
 from dataclasses import field
 from itertools import product
 
-from core import (
+from aiflow.core import (
     as_function_node,
     as_inp_dataclass_node,
 )

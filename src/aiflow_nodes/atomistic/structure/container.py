@@ -4,7 +4,7 @@ from typing import Optional, Literal
 import copy
 import pandas as pd
 
-from core import as_function_node
+from aiflow.core import as_function_node
 from aiflow_nodes.atomistic.structure._atoms import (
     OutputAtoms,
     _ase_to_data,

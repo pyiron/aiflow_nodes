@@ -16,12 +16,12 @@ from aiflow_nodes.atomistic.calculator.data import (
     InputCalcStatic,
 )
 
-from core import as_function_node, run_external
+from aiflow.core import as_function_node, run_external
 
 import pandas as pd
 
 from ase import Atoms
-from core import as_function_node
+from aiflow.core import as_function_node
 from dataclasses import dataclass
 
 

@@ -1,4 +1,4 @@
-from core import Node, as_function_node
+from aiflow.core import Node, as_function_node
 from ase.atoms import Atoms
 import numpy as np
 import pandas as pd

@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass, field
 
 import numpy as np
 import pandas as pd
-from core import Workflow, as_function_node
+from aiflow.core import Workflow, as_function_node
 
 
 @as_function_node
