@@ -2,3 +2,7 @@
 cac974dc2b8c7cb3c016f878b3af93d5332d8161
 # Rename package pyiron_nodes -> aiflow_nodes
 13676dc8dc8b0645f0dcaf2a0bf6229815d61974
+# Import aiflow.core and aiflow.database instead of core and pyiron_database
+807d3b11e73b90237f61f921ff6f736ea46694da
+# Format with black after the aiflow.core rename
+bd2d4c03659ce06e9fed0f90ab5c2e3395f66d93
