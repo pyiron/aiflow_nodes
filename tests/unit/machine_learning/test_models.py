@@ -2,7 +2,7 @@
 Comprehensive Unit Tests for machine_learning/models.py
 
 This module provides extensive unit tests for all scikit-learn model nodes
-in the pyiron_nodes package. Tests cover initialization, training, prediction,
+in the aiflow_nodes package. Tests cover initialization, training, prediction,
 edge cases, and integration with the pyiron workflow system.
 """
 
@@ -12,7 +12,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from pyiron_nodes.machine_learning.models import (
+from aiflow_nodes.machine_learning.models import (
     AdaBoostClassificationModel,
     # AdaBoost
     AdaBoostRegressionModel,

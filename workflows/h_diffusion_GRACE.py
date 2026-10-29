@@ -1,0 +1,73 @@
+from core import Workflow
+from aiflow_nodes.atomistic.diffusion import (
+    AddInterstitialH,
+    FindLowEnergyInterstitialSite,
+    PlotNEBPath,
+    RunNEB,
+)
+from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.view import Animate
+from aiflow_nodes.atomistic.calculator.ase import (
+    GenericOptimizerSettings,
+    Relax,
+)
+from aiflow_nodes.atomistic.structure.transform import Repeat
+
+wf = Workflow("h_diffusion_GRACE")
+
+wf.GRACE = GRACE()
+
+wf.al_unit = Bulk(name="Al", cubic=True)
+
+wf.opt_settings = GenericOptimizerSettings(max_steps=300, force_tolerance=0.02)
+
+wf.al_supercell = Repeat(structure=wf.al_unit, repeat_scalar=2)
+
+wf.site_positions = FindLowEnergyInterstitialSite(
+    structure=wf.al_supercell,
+    engine=wf.GRACE,
+    repeat_scalar=2,
+)
+
+wf.h_initial = AddInterstitialH(
+    structure=wf.al_supercell,
+    frac_pos=wf.site_positions.outputs.initial_pos,
+    repeat_scalar=2,
+)
+
+wf.h_final = AddInterstitialH(
+    structure=wf.al_supercell,
+    frac_pos=wf.site_positions.outputs.final_pos,
+    repeat_scalar=2,
+)
+
+wf.initial_relaxed = Relax(
+    structure=wf.h_initial,
+    engine=wf.GRACE,
+    opt_parameters=wf.opt_settings,
+    opt_mode="internal",
+    store=True,
+)
+
+wf.final_relaxed = Relax(
+    structure=wf.h_final,
+    engine=wf.GRACE,
+    opt_parameters=wf.opt_settings,
+    opt_mode="internal",
+    store=True,
+)
+
+wf.neb = RunNEB(
+    initial_state=wf.initial_relaxed,
+    final_state=wf.final_relaxed,
+    engine=wf.GRACE,
+    n_images=21,
+    store=True,
+)
+
+wf.neb_plot = PlotNEBPath(
+    path_energies=wf.neb.outputs.path_energies, barrier=wf.neb.outputs.barrier
+)
+
+wf.Animate = Animate(trajectory=wf.neb.outputs.trajectory)

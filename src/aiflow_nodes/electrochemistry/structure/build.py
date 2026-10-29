@@ -1,0 +1,428 @@
+import ase.units as units
+
+from ase.atoms import Atoms
+from core import as_function_node
+
+
+@as_function_node
+def ConfigurePBC(
+    structure: Atoms,
+    charges: dict,
+    slab_factor: float = 3.0,
+    bottom_margin: float = 2.0,
+) -> Atoms:
+    """
+    Set the z boundary condition to match the potential's ``quasi_2d`` setting.
+
+    PPPM slab mode needs ``boundary p p f`` (derived from ``pbc``, written before
+    ``read_data``) together with ``kspace_modify slab`` (set in the potential
+    Config).  ``quasi_2d`` is read from the potential's ``charges`` dict so the
+    two always agree.
+
+    For the quasi-2D case the cell is also padded along z: atoms are lifted off
+    the fixed z=0 boundary by ``bottom_margin`` and the box is grown to
+    ``slab_factor`` times the filled thickness.  Without this the slab
+    correction is invalid and atoms touching the boundary are deleted by LAMMPS.
+    """
+    import numpy as np
+
+    structure = structure.copy()
+    quasi_2d = charges["quasi_2d"]
+
+    if quasi_2d:
+        z = structure.positions[:, 2]
+        thickness = z.max() - z.min()
+        structure.positions[:, 2] += bottom_margin - z.min()
+
+        cell = structure.cell.array.copy()
+        cell[2, 2] = max(slab_factor * thickness, thickness + 2 * bottom_margin)
+        structure.set_cell(cell, scale_atoms=False)
+
+    structure.pbc = [True, True, not quasi_2d]
+    return structure
+
+
+@as_function_node("new_structure")
+def FixElectrodes(
+    structure: Atoms,
+    fixed_species: str = '["Al", "Ne"]',
+    piston_species: str = "",
+) -> Atoms:
+    """Freeze the electrodes, optionally leaving one of them free along z.
+
+    Every species in ``fixed_species`` gets a ``FixAtoms`` constraint, except
+    ``piston_species``, which instead gets a ``FixedPlane`` that pins it in xy
+    and leaves z free so a barostat can push it (see
+    ``aiflow_nodes.atomistic.engine.lammps.CreateLammpsMDInput``).
+
+    With ``piston_species=""`` this is equivalent to
+    ``FixSpecies(fixed_species=fixed_species)``.
+
+    Parameters
+    ----------
+    structure : ase.Atoms
+        Cell to constrain.  Copied; the original is untouched.
+    fixed_species : str
+        A single symbol (``"Al"``) or a string holding a list of them
+        (``'["Al", "Ne"]'``), matching ``FixSpecies``.
+    piston_species : str
+        Symbol of the electrode to leave free along z, or ``""`` for none.
+        It does not have to appear in ``fixed_species``.
+
+    Notes
+    -----
+    ``lammpsparser``'s ``_get_fixed_atom_boolean_vector`` reads
+    ``FixedPlane.direction`` as a *mask of frozen degrees of freedom*, not as
+    ASE's plane normal.  ``direction=[1, 1, 0]`` therefore means "x and y
+    frozen, z free" and becomes ``fix ... setforce 0.0 0.0 NULL``.  ASE
+    normalises the vector to ``[1/√2, 1/√2, 0]``, which that helper also
+    accepts, so the round-trip is stable.
+    """
+    import ast
+    from ase.constraints import FixAtoms, FixedPlane
+
+    try:
+        parsed = ast.literal_eval(fixed_species)
+    except (SyntaxError, ValueError):
+        parsed = fixed_species
+
+    if isinstance(parsed, str):
+        species_set = {parsed}
+    elif isinstance(parsed, (list, tuple, set)):
+        if not all(isinstance(item, str) for item in parsed):
+            raise ValueError("All entries in the element list must be strings.")
+        species_set = set(parsed)
+    else:
+        raise ValueError(
+            "fixed_species must be a single element symbol or a string "
+            "representation of a list/tuple of symbols."
+        )
+
+    symbols = structure.get_chemical_symbols()
+    piston_indices = [i for i, s in enumerate(symbols) if s == piston_species]
+    if piston_species and not piston_indices:
+        raise ValueError(
+            f"piston_species={piston_species!r} does not occur in the structure; "
+            f"present species are {sorted(set(symbols))}"
+        )
+    frozen_mask = [s in species_set and s != piston_species for s in symbols]
+
+    constraints = []
+    if any(frozen_mask):
+        constraints.append(FixAtoms(mask=frozen_mask))
+    if piston_indices:
+        constraints.append(FixedPlane(indices=piston_indices, direction=[1, 1, 0]))
+
+    new_structure = structure.copy()
+    if constraints:
+        new_structure.set_constraint(constraints)
+    return new_structure
+
+
+@as_function_node("water")
+def build_water(n_mols: int = 10) -> Atoms:
+    """
+    Construct a bulk water super‑cell with a target number of water molecules.
+
+    The function creates a cubic simulation cell whose volume is chosen so that,
+    at a user‑specified density, the cell contains exactly ``n_mols`` water molecules.
+    A single water molecule (H₂O) is placed in the primitive cell, then the cell
+    is repeated ``n × n × n`` times to reach the desired molecule count.
+
+    Parameters
+    ----------
+    n_mols : int, optional
+        Desired total number of water molecules in the final structure.
+        The function will automatically compute the cubic root to obtain the
+        repeat factor ``n``.  Default is ``10``.
+
+    Returns
+    -------
+    Atoms
+        A :class:`Atoms` object containing ``n_mols`` water
+        molecules arranged in a cubic lattice with periodic boundary conditions.
+    """
+
+    import numpy as np
+    from ase import Atoms
+    from ase.units import mol
+
+    density = 1.0e-24  # g/A^3
+    mol_mass_water = 18.015  # g/mol
+
+    # Determining the supercell size size
+    mass = mol_mass_water * n_mols / units.mol  # g
+    vol_h2o = mass / density  # in A^3
+    a = vol_h2o ** (1.0 / 3.0)  # A
+
+    # Constructing the unitcell
+    n = int(round(n_mols ** (1.0 / 3.0)))
+
+    dx = 0.7
+    r_O = [0, 0, 0]
+    r_H1 = [dx, dx, 0]
+    r_H2 = [-dx, dx, 0]
+    unit_cell = (a / n) * np.eye(3)
+
+    water = Atoms(
+        symbols=["H", "H", "O"],
+        positions=[r_H1, r_H2, r_O],
+        cell=unit_cell,
+        pbc=True,
+    )
+
+    # if isinstance(project, str):
+    #     project = Project(project)
+
+    # water = project.create_atoms(
+    #     elements=["H", "H", "O"], positions=[r_H1, r_H2, r_O], cell=unit_cell, pbc=True
+    # )
+
+    water = water.repeat([n, n, n])
+    return water
+
+
+@as_function_node
+def AddWaterFilm(
+    electrode: Atoms,
+    water_width: float = 10.0,
+    hydrophobic_gap: float = 3.0,
+    density: float = 1.0e-24,
+    seed: int = 42,
+) -> Atoms:
+    """
+    Append a thin slab of liquid water on top of an existing electrode structure.
+
+    The function builds a water film of user‑defined thickness (`water_width`) by
+    placing a single water molecule in a cubic cell sized to match the target
+    density, then repeating that cell to fill the lateral dimensions of the
+    electrode.  The film is shifted upward by ``hydrophobic_gap`` above the
+    highest atom of the electrode, mimicking a non‑wetting interfacial layer.
+
+    Parameters
+    ----------
+    electrode : Atoms
+        The base structure (typically a metallic or semiconductor slab) to which
+        the water film will be attached.  Must have a defined periodic cell.
+    water_width : float, optional
+        Desired thickness of the water slab in Ångström.  Default is ``10.0 Å``.
+    hydrophobic_gap : float, optional
+        Vertical separation (in Å) between the topmost electrode atom and the
+        first water molecule.  This mimics a hydrophobic “gap” often observed
+        experimentally.  Default is ``3.0 Å``.
+    density : float, optional
+        Target mass density of water in g Å⁻³.  The default corresponds to the
+        experimental value of ≈ 1 g cm⁻³.  Changing this value will affect the
+        number of water molecules placed in the film.
+
+    Returns
+    -------
+    Atoms
+        A new atomic structure that contains the original
+        electrode atoms plus the added water film.  The cell of the returned
+        object is identical to the electrode’s cell (periodic in all three
+        directions).
+    """
+
+    import ase.units as units
+    import numpy as np
+    from ase.build import molecule
+
+    lx, ly = electrode.cell.diagonal()[:2]
+    zmin = np.max(electrode.positions[:, 2])
+
+    # Water
+    n_mols = 1
+    mol_mass_water = 18.015  # g/mol
+
+    # Determining the supercell size size
+    mass = mol_mass_water * n_mols / units.mol  # g
+    vol_h2o = mass / density  # in A^3
+    a = vol_h2o ** (1.0 / 3.0)  # A
+    cell = np.array([lx, ly, water_width])
+    cell_repeat = (cell // a).astype(int)
+
+    H2O = molecule("H2O", cell=cell / cell_repeat)
+    H2O.set_pbc(True)
+    H2O = H2O.repeat(cell_repeat)
+
+    # Give every molecule a random orientation about its own oxygen.  Repeating
+    # a single molecule leaves them all pointing the same way, so neighbouring
+    # hydrogens face each other at ~1.8 A.  In TIP3P hydrogen carries a charge
+    # but no LJ radius, so nothing keeps them apart and the initial structure
+    # starts at a large positive electrostatic energy.
+    def _random_rotation(rng):
+        u1, u2, u3 = rng.random(3)
+        x = np.sqrt(1 - u1) * np.sin(2 * np.pi * u2)
+        y = np.sqrt(1 - u1) * np.cos(2 * np.pi * u2)
+        z = np.sqrt(u1) * np.sin(2 * np.pi * u3)
+        w = np.sqrt(u1) * np.cos(2 * np.pi * u3)
+        return np.array(
+            [
+                [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+                [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+                [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+            ]
+        )
+
+    rng = np.random.default_rng(seed)
+    for mol in range(len(H2O) // 3):
+        block = slice(3 * mol, 3 * mol + 3)
+        positions = H2O.positions[block]
+        oxygen = positions[0]
+        H2O.positions[block] = oxygen + (positions - oxygen) @ _random_rotation(rng).T
+
+    H2O.positions[:, 2] += zmin + hydrophobic_gap
+    H2O.set_cell(electrode.cell)
+
+    electrochemical_cell = electrode + H2O
+
+    return electrochemical_cell
+
+
+@as_function_node
+def AddNeonLayer(structure, d_eq: float = 3, hydrophobic_gap: float = 3.0):
+    """
+    Add a single layer of neon atoms to the input structure above the maximum z value of an atom.
+
+    Parameters:
+    structure (ase.Atoms): The input atomic structure.
+    d_eq (float): The optimum Ne-Ne distance.
+    hydrophobic_gap (float): The gap between the input structure and the neon layer. Default is 1.0.
+
+    Returns:
+    ase.Atoms: The modified structure with a single layer of neon atoms.
+    """
+    import numpy as np
+    from ase.build import fcc111
+
+    # from aiflow_nodes.atomistic.structure.build import Surface
+
+    # Get the maximum z value of an atom in the structure
+    max_z = np.max(structure.get_positions()[:, 2])
+
+    # Get the cell dimensions in the x and y directions
+    a = structure.get_cell()[0][0]
+    b = structure.get_cell()[1][1]
+
+    # Calculate the number of Ne atoms in the x and y directions
+    nx = int(np.ceil(a / d_eq))
+    ny = int(np.ceil(b / (d_eq * 2))) * 2
+
+    # Create a new Atoms object for the neon layer
+    neon_layer = fcc111(
+        "Ne",
+        size=(nx, ny, 1),
+        vacuum=25.0,
+        orthogonal=True,
+    )
+
+    # neon_layer = Surface(
+    #     "Ne", "fcc111", size=f"{nx} {ny} 1", vacuum=25.0, orthogonal=True
+    # ).run()
+
+    neon_layer.set_cell(cell=structure.cell, scale_atoms=True)
+    neon_layer.positions[:, 2] = max_z + hydrophobic_gap
+
+    # Create a new Atoms object for the modified structure
+    modified_structure = structure.copy()
+
+    # Add the neon layer to the modified structure
+    modified_structure.extend(neon_layer)
+
+    return modified_structure
+
+
+@as_function_node
+def AddIonPair(
+    structure: Atoms,
+    anion: str = "Na",
+    cation: str = "Cl",
+    no_of_pairs: int = 0,
+    seed: int = 1234,
+) -> Atoms:
+    """
+    Insert a specified number of ion pairs (anion/cation) into a structure.
+
+    The function selects ``number`` oxygen atoms at random, replaces the first
+    half with the provided ``anion`` species and the second half with the
+    ``cation`` species.  After the substitution, two atoms immediately above
+    each selected oxygen are removed – this mimics the removal of water
+    molecules that would otherwise coordinate the ion.
+
+    Parameters
+    ----------
+    structure : Any
+        An atomic structure that contains
+        oxygen atoms.  The structure is copied internally; the original is not
+        modified.
+    anion : str
+        Chemical symbol of the anion to place on the first half of the selected
+        oxygen sites.
+    cation : str
+        Chemical symbol of the cation to place on the second half of the
+        selected oxygen sites.
+    number : int
+        Total number of oxygen atoms to be replaced.  Must be an even number;
+        otherwise the integer division ``number // 2`` determines the split.
+    seed : int, optional
+        Random seed for reproducible selection of oxygen atoms.  Default is
+        ``1234``.
+
+    Returns
+    -------
+    Any
+        The modified structure with ion pairs inserted and neighbouring atoms
+        removed.
+    """
+    import numpy as np
+
+    # import random  # retained for compatibility; not used directly
+
+    # Work on a copy to avoid side‑effects on the input structure
+    electrolyte = structure.copy()
+
+    # Indices of all oxygen atoms in the structure
+    # ind_O = electrolyte.select_index("O")
+    ind_O = [atom.index for atom in electrolyte if atom.symbol == "O"]
+
+    # Randomly choose ``no_of_pairs`` distinct oxygen indices
+    rng = np.random.default_rng(seed)
+    picked = np.sort(rng.choice(ind_O, int(no_of_pairs), replace=False)).tolist()
+
+    # Replace the first half with the anion and the second half with the cation
+    half = no_of_pairs // 2
+
+    # get all chemical symbols as a list and modify it
+    symbols = electrolyte.get_chemical_symbols()
+    for i in picked[:half]:
+        symbols[i] = anion
+    for i in picked[half:no_of_pairs]:
+        symbols[i] = cation
+
+    # set the modified symbols back
+    electrolyte.set_chemical_symbols(symbols)
+
+    # Find the two hydrogens closest to each selected oxygen and remove them
+    indices_to_delete = []
+    positions = electrolyte.get_positions()
+    ind_H = [atom.index for atom in electrolyte if atom.symbol == "H"]
+
+    for i in picked:
+        # Calculate distances from this oxygen to all hydrogens
+        o_pos = positions[i]
+        h_positions = positions[ind_H]
+        distances = np.linalg.norm(h_positions - o_pos, axis=1)
+
+        # Get the two closest hydrogens
+        closest_two = np.array(ind_H)[np.argsort(distances)[:2]]
+        indices_to_delete.extend(closest_two.tolist())
+
+    # Delete in reverse order to avoid index shifting
+    for i in sorted(set(indices_to_delete), reverse=True):
+        del electrolyte[i]
+
+    return electrolyte
+
+
+add_ion_pair = AddIonPair

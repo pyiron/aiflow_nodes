@@ -6,7 +6,7 @@ pysqa ignores ``partition`` and, without a ``queue``, falls back to the site's
 
 import pytest
 
-from pyiron_nodes.executors import _pysqa_queue
+from aiflow_nodes.executors import _pysqa_queue
 
 QUEUE_YAML = """\
 queue_type: SLURM

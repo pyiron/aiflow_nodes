@@ -6,12 +6,12 @@ from pathlib import Path
 
 from core import Workflow
 
-from pyiron_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
-from pyiron_nodes.atomistic.engine.lammps import (
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, InputCalcMinimize
+from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsStructure,
     RunLammpsCalculation,
 )
-from pyiron_nodes.atomistic.engine.lammps_input import (
+from aiflow_nodes.atomistic.engine.lammps_input import (
     AssembleLammpsInput,
     LammpsDump,
     LammpsEnsemble,
@@ -22,7 +22,7 @@ from pyiron_nodes.atomistic.engine.lammps_input import (
     LammpsVelocity,
     SetLammpsCalcInput,
 )
-from pyiron_nodes.atomistic.structure.build import Bulk
+from aiflow_nodes.atomistic.structure.build import Bulk
 
 AL_POTENTIAL = "1999--Mishin-Y--Al--LAMMPS--ipr1"
 RESOURCE_PATH = os.environ.get(

@@ -1,1 +1,1 @@
-pyiron_nodes/_version.py export-subst
+src/aiflow_nodes/_version.py export-subst

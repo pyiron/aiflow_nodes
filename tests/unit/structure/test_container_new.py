@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from ase.build import bulk
 
-from pyiron_nodes.atomistic.structure.container_new import (
+from aiflow_nodes.atomistic.structure.container_new import (
     AddPristine,
     CreateDefectBatchFromIds,
     CreateDefectBatchFromSeed,
@@ -1234,7 +1234,7 @@ class TestOptionalDependencyFlagsFallback(unittest.TestCase):
     """
 
     def _check_flag_false_when_blocked(self, blocked_import_name, flag_name):
-        repo_root = str(Path(__file__).resolve().parents[4])
+        src_dir = str(Path(__file__).resolve().parents[3] / "src")
         script = (
             "import builtins\n"
             "real_import = builtins.__import__\n"
@@ -1243,7 +1243,7 @@ class TestOptionalDependencyFlagsFallback(unittest.TestCase):
             "        raise ImportError('blocked for test')\n"
             "    return real_import(name, *a, **k)\n"
             "builtins.__import__ = fake_import\n"
-            "from pyiron_nodes.atomistic.structure import container_new\n"
+            "from aiflow_nodes.atomistic.structure import container_new\n"
             f"assert getattr(container_new, {flag_name!r}) is False, "
             f"getattr(container_new, {flag_name!r})\n"
             "print('OK')\n"
@@ -1252,7 +1252,7 @@ class TestOptionalDependencyFlagsFallback(unittest.TestCase):
             [sys.executable, "-c", script],
             capture_output=True,
             text=True,
-            cwd=repo_root,
+            cwd=src_dir,
             check=False,
         )
         self.assertEqual(result.returncode, 0, msg=result.stderr)

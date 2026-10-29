@@ -11,7 +11,7 @@ apidoc/
 test_times.dat
 core.*
 /notebooks/example_obsolete.ipynb
-/notebooks/pyiron_nodes/
+/notebooks/aiflow_nodes/
 /notebooks/Sin/
 /tests/integration/test_notebooks.py
 pyiron_nodes_old/
@@ -22,4 +22,4 @@ __pycache__/
 venv/
 .cache/
 dist/
-build/
+build/*.egg-info/

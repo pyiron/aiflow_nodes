@@ -1,0 +1,50 @@
+from core import Workflow
+from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
+from aiflow_nodes.atomistic.engine.lammps import (
+    CreateLammpsMDInput,
+    CreateLammpsStructure,
+    ParseLammpsOutput,
+    RunLammpsCalculation,
+)
+from aiflow_nodes.atomistic.structure.build import Surface
+from aiflow_nodes.atomistic.structure.view import Animate
+from aiflow_nodes.electrochemistry.structure.build import AddNeonLayer, AddWaterFilm
+from aiflow_nodes.electrochemistry.structure.equilibrate import WaterPotential
+from aiflow_nodes.plotting import Plot
+
+wf = Workflow("tip3p_slab_md")
+
+wf.InputCalcMD = InputCalcMD(n_ionic_steps=1000)
+
+wf.Surface = Surface(element="Al", size="3 4 4", vacuum=20, orthogonal=True)
+
+wf.WaterPotential = WaterPotential()
+
+wf.AddWaterFilm = AddWaterFilm(electrode=wf.Surface)
+
+wf.AddNeonLayer = AddNeonLayer(structure=wf.AddWaterFilm)
+
+wf.CreateLammpsStructure = CreateLammpsStructure(
+    structure=wf.AddNeonLayer,
+    potential=wf.WaterPotential.outputs.water_potential,
+    working_directory="./tip3p_slab_md",
+    bond_dict=wf.WaterPotential.outputs.bond_dict,
+)
+
+wf.CreateLammpsMDInput = CreateLammpsMDInput(
+    io_bundle=wf.CreateLammpsStructure, calc_dataclass=wf.InputCalcMD
+)
+
+wf.RunLammpsCalculation = RunLammpsCalculation(
+    io_bundle=wf.CreateLammpsMDInput, debug=False, executor=None
+)
+
+wf.ParseLammpsOutput = ParseLammpsOutput(
+    io_bundle=wf.RunLammpsCalculation.outputs.io_bundle
+)
+
+wf.OutputCalcMD = OutputCalcMD(input=wf.ParseLammpsOutput)
+
+wf.Animate = Animate(trajectory=wf.ParseLammpsOutput)
+
+wf.Plot = Plot(y=wf.OutputCalcMD.outputs.temperatures)
