@@ -42,7 +42,6 @@ def CalculateEVCurve(
 
     calculator.inputs.use_symmetry = False
     structure.calc = calculator.pull()
-    initial_volume = structure.get_volume()
 
     data = {"volume": [], "energy": [], "ase_atoms": []}
 

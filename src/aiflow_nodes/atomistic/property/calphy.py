@@ -594,10 +594,10 @@ def _rs_forward_backward(simfolder, f0, t0, natoms, pressure, n_iterations):
     flambda = None
     for i in range(1, n_iterations + 1):
         fdx, _, fvol, flambda = np.loadtxt(
-            os.path.join(simfolder, "ts.forward_%d.dat" % i), unpack=True, comments="#"
+            os.path.join(simfolder, f"ts.forward_{i}.dat"), unpack=True, comments="#"
         )
         bdx, _, bvol, blambda = np.loadtxt(
-            os.path.join(simfolder, "ts.backward_%d.dat" % i), unpack=True, comments="#"
+            os.path.join(simfolder, f"ts.backward_{i}.dat"), unpack=True, comments="#"
         )
         fdx = fdx / flambda + p * fvol / natoms
         bdx = bdx / blambda + p * bvol / natoms

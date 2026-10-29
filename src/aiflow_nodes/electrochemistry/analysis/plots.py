@@ -289,7 +289,6 @@ def PlotElectrostaticPotential(
 
     z = np.array(Data["Na"][0])
 
-    metal = charges["metal"]
     charge_map = _charge_map(charges)
     rho_e = sum(
         charge * np.array(Data[el][1])

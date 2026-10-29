@@ -182,7 +182,7 @@ def InitLammps(
         pot.df = potential
 
     units = None
-    if "units" in pot.keys():
+    if "units" in pot.keys():  # noqa: SIM118  pot is not a dict
         from pyiron_atomistics import pyiron_to_ase
 
         print("Potential contains structure block")
@@ -762,7 +762,6 @@ def compute_water_bonds_and_angles(
 
     # Chemical symbols as a simple list; we locate O and H indices using
     o_idxs = structure.select_index("O")
-    h_idxs = structure.select_index("H")
 
     bonds: list[tuple[int, int]] = []
     angles: list[tuple[int, int, int]] = []

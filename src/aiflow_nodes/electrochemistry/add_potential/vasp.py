@@ -434,10 +434,6 @@ def CDCESetup(
 
     nelect_adjusted = float(nelect_neutral) + np.round(Q0)
 
-    # Langevin gamma string - must have one value per element in the system
-    n_elements = len(unique_elements)
-    langevin_gamma_str = " ".join([str(langevin_gamma)] * n_elements)
-
     # -------------------------------------------------------------------------
     # INCAR dictionary
     # -------------------------------------------------------------------------

@@ -436,22 +436,26 @@ def ComputeChemicalPotentials(
     # ------------------------------------------------------------------
     # 2.  Validate mu_reference / mu_reference_element pair
     # ------------------------------------------------------------------
-    if mu_reference is not None:
-        if not isinstance(mu_reference_element, str) or not mu_reference_element:
-            raise ValueError(
-                "mu_reference_element must be a non-empty string when "
-                "mu_reference is provided."
-            )
+    if mu_reference is not None and (
+        not isinstance(mu_reference_element, str) or not mu_reference_element
+    ):
+        raise ValueError(
+            "mu_reference_element must be a non-empty string when "
+            "mu_reference is provided."
+        )
 
     elements = [c[len("n_") :] for c in n_columns]
 
-    if mu_reference_element is not None and mu_reference is not None:
-        if mu_reference_element not in elements:
-            raise ValueError(
-                f"mu_reference_element='{mu_reference_element}' is not "
-                f"present in the DataFrame columns. "
-                f"Available elements: {elements}."
-            )
+    if (
+        mu_reference_element is not None
+        and mu_reference is not None
+        and mu_reference_element not in elements
+    ):
+        raise ValueError(
+            f"mu_reference_element='{mu_reference_element}' is not "
+            f"present in the DataFrame columns. "
+            f"Available elements: {elements}."
+        )
 
     # ------------------------------------------------------------------
     # 3.  Resolve pristine row
@@ -461,7 +465,7 @@ def ComputeChemicalPotentials(
         raise IndexError("DataFrame is empty.")
 
     try:
-        ref_abs = all_rows[pristine_row]
+        _ = all_rows[pristine_row]  # bounds check
     except IndexError:
         raise IndexError(
             f"pristine_row={pristine_row} is out of range for a "

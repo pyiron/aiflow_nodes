@@ -417,12 +417,12 @@ class StructureContainer:
     def get_defect_table(self) -> pd.DataFrame:
         """Return a filtered copy containing only defect rows."""
         df = self.to_dataframe()
-        return df[df["is_pristine"] == False].copy()
+        return df[~df["is_pristine"]].copy()
 
     def get_pristine_table(self) -> pd.DataFrame:
         """Return a filtered copy containing only pristine rows."""
         df = self.to_dataframe()
-        return df[df["is_pristine"] == True].copy()
+        return df[df["is_pristine"]].copy()
 
     # ------------------------------------------------------------------
     # Add Structures

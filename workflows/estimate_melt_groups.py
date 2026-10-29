@@ -65,7 +65,7 @@ def GetT(
     inner_wf.ListPotentials = ListPotentials(structure=inner_wf.Bulk)
     inner_wf.FixSpecies = FixSpecies(structure=inner_wf.Repeat)
     inner_wf.potential = pick_element(lst=inner_wf.ListPotentials, index=index)
-    inner_wf.Lammps = Lammps(
+    inner_wf.Lammps = Lammps(  # noqa: F821  TODO: Lammps node was removed from engine.lammps
         structure=inner_wf.FixSpecies,
         potential=inner_wf.potential,
         calc_dataclass=inner_wf.md_params,

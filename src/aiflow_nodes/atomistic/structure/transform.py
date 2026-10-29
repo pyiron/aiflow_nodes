@@ -652,7 +652,6 @@ def LayerShift(
 
     # Step 2: Sort atoms by z-coordinate
     z_positions = new_structure.positions[:, 2]
-    sorted_indices = np.argsort(z_positions)
 
     # Step 3: Calculate cutoff position
     z_min = np.min(z_positions)

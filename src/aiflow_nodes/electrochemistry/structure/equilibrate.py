@@ -352,21 +352,10 @@ def Ion_density(trajectory, initial_structure):
 def Charge_distribution_Ion(Data: dict, initial_structure):
 
     import numpy as np
-    from ase.units import Bohr
     from matplotlib import pyplot as plt
-
-    def get_volume(deltares):
-        V = (
-            initial_structure.cell[0, 0]
-            * initial_structure.cell[1, 1]
-            * deltares
-            * (1 / Bohr) ** 3
-        )
-        return V
 
     Sum = np.array(Data["Na"][1]) - np.array(Data["F"][1])
     z = np.array(Data["Na"][0])
-    electron = -Sum / get_volume(np.gradient(z)[0])
 
     fig, ax = plt.subplots(1, 1, figsize=(3.25, 2))
     ax.plot(z, Sum)

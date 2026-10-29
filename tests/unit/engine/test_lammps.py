@@ -341,7 +341,7 @@ def _water_cell_input(working_directory, structure=None, **md_kwargs):
 
 def _piston_load_value(lines):
     """The z force on the `fix piston_load` line, whatever its position."""
-    line = next(l for l in lines if "piston_load" in l)
+    line = next(ln for ln in lines if "piston_load" in ln)
     return float(line.split()[-1])
 
 
@@ -392,7 +392,7 @@ class TestPistonBarostat(unittest.TestCase):
         # no load is applied, yet LAMMPS runs happily to completion.
         text = self._input_string("piston_not_null", piston_species="Ne")
 
-        line = next(l for l in text.splitlines() if "piston_load" in l)
+        line = next(ln for ln in text.splitlines() if "piston_load" in ln)
         self.assertNotEqual(line.split()[-1], "NULL")
         self.assertEqual(line.split()[-3:-1], ["NULL", "NULL"])
 
@@ -476,7 +476,7 @@ class TestPistonBarostat(unittest.TestCase):
         self.assertIn("units      real", text)
 
         in_script = float(
-            next(l for l in text.splitlines() if "piston_load" in l).split()[-1]
+            next(ln for ln in text.splitlines() if "piston_load" in ln).split()[-1]
         )
         expected = _piston_load_value(
             _piston_barostat_lines(
@@ -532,7 +532,7 @@ class TestElectrodeForceGroups(unittest.TestCase):
         # charged electrode is most of the electrostatics.
         text = _water_cell_input(self._tmp.name + "/kspace")
 
-        compute_lines = [l for l in text.splitlines() if "group/group" in l]
+        compute_lines = [ln for ln in text.splitlines() if "group/group" in ln]
         self.assertTrue(compute_lines)
         for line in compute_lines:
             self.assertIn("kspace yes", line)

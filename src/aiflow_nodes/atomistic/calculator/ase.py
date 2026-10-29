@@ -217,7 +217,7 @@ def MapCalculatorOnStructures(
     else:
         raise ValueError("Unknown data type for structures")
 
-    relaxed_structures, energies, forces, stresses, volumes = [], [], [], [], []
+    relaxed_structures, energies, forces, stresses = [], [], [], []
     for structure in atoms_list:
         if isinstance(structure, OutputAtoms):
             structure = _data_to_ase(structure)

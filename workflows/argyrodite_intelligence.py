@@ -727,9 +727,10 @@ def _validate_one_record(record: dict, criteria: TargetCriteriaData) -> tuple:
         if el in record.get("element_dict", {}):
             errors.append(f"prohibited_element:{el}")
 
-    if record.get("h2s_ppm") is not None:
-        if record.get("rh_percent") is None or record.get("exposure_min") is None:
-            errors.append("incomplete_moisture_data")
+    if record.get("h2s_ppm") is not None and (
+        record.get("rh_percent") is None or record.get("exposure_min") is None
+    ):
+        errors.append("incomplete_moisture_data")
 
     synth_t = record.get("synthesis_temperature_C")
     if synth_t is not None and not (0 < synth_t <= 1000):

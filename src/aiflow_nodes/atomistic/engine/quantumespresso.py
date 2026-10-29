@@ -82,7 +82,6 @@ def converge_energy_cutoff(
 ):
     import numpy as np
 
-    encut = dft_function.inputs.encut.value
     energy_lst = [dft_function()[0]]
     for i in range(max_steps):
         dft_function.inputs.encut.value += 1

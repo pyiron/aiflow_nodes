@@ -1,5 +1,5 @@
 import pandas as pd
-from aiflow.core import Workflow, as_function_node, group_node
+from aiflow.core import Node, Workflow, as_function_node, group_node
 from ase import Atoms
 
 from aiflow_nodes.atomistic.calculator.ase import (

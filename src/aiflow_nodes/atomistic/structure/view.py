@@ -187,7 +187,7 @@ def PlotCNA(
     }
 
     labels = stk.analyse_cna_adaptive(structure, mode="numeric")
-    colors = np.array([_CNA_COLORS.get(int(l), "#c0c0c0") for l in labels])
+    colors = np.array([_CNA_COLORS.get(int(label), "#c0c0c0") for label in labels])
 
     return stk.plot3d(
         structure,

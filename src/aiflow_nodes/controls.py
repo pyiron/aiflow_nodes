@@ -998,7 +998,7 @@ def IterToDataFrame(
     # 2.1 Input column(s) – one per swept label, avoiding name clashes
     #     with node outputs
     # ------------------------------------------------------------------
-    output_labels = [label for label in node.outputs.keys() if label != "self"]
+    output_labels = [label for label in node.outputs.keys() if label != "self"]  # noqa: SIM118  iterating yields ports
     labels = _sweep_labels(input_label)
     for idx, label in enumerate(labels):
         column = f"input_{label}" if label in output_labels else label

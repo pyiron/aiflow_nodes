@@ -1,11 +1,11 @@
 import os
 import shutil
+import subprocess
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
 import pandas as pd
 from aiflow.core import as_function_node, run_external
-from ase import Atoms
 from ase.atoms import Atoms
 from lammpsparser.compatibility.calculate import calc_md, calc_minimize, calc_static
 from lammpsparser.compatibility.constraints import set_selective_dynamics
@@ -482,21 +482,22 @@ def CreateLammpsMDInput(
     write_restart_file = bool(write_restart_filename)
 
     lmp_str_lst = []
-    for l in lammps_file_initialization(
+    for line in lammps_file_initialization(
         structure=io_bundle.structure,
         units=io_bundle.units,
         read_restart_file=read_restart_file,
         restart_file=read_restart_filename,
     ):
-        if l.strip().startswith("units") and "units" in potential_replace:
+        if line.strip().startswith("units") and "units" in potential_replace:
             lmp_str_lst.append(potential_replace["units"])
-        elif l.strip().startswith("atom_style") and "atom_style" in potential_replace:
+        elif (
+            line.strip().startswith("atom_style") and "atom_style" in potential_replace
+        ):
             lmp_str_lst.append(potential_replace["atom_style"])
-            atom_type = potential_replace["atom_style"].split()[-1]
-        elif l.strip().startswith("dimension") and "dimension" in potential_replace:
+        elif line.strip().startswith("dimension") and "dimension" in potential_replace:
             lmp_str_lst.append(potential_replace["dimension"])
         else:
-            lmp_str_lst.append(l)
+            lmp_str_lst.append(line)
 
     # Strip bond/angle coefficient lines when the structure has no bonds.
     if not io_bundle.has_bonds:
@@ -507,9 +508,9 @@ def CreateLammpsMDInput(
             "angle_coeff",
         )
         potential_lst = [
-            l
-            for l in potential_lst
-            if not any(l.strip().startswith(p) for p in _bond_angle_prefixes)
+            line
+            for line in potential_lst
+            if not any(line.strip().startswith(p) for p in _bond_angle_prefixes)
         ]
 
     # Handle potential: write to file if DataFrame, else inline
@@ -533,7 +534,7 @@ def CreateLammpsMDInput(
         'dump_modify 1 sort id format line "%d %d %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g %20.15g"',
     ]
 
-    if "n_ionic_steps" in calc_kwargs.keys():
+    if "n_ionic_steps" in calc_kwargs:
         n_ionic_steps = int(calc_kwargs.pop("n_ionic_steps"))
     else:
         n_ionic_steps = 1
@@ -656,20 +657,22 @@ def CreateLammpsStaticInput(
     )
 
     lmp_str_lst = []
-    for l in lammps_file_initialization(
+    for line in lammps_file_initialization(
         structure=io_bundle.structure,
         units=io_bundle.units,
         read_restart_file=False,
         restart_file=None,
     ):
-        if l.strip().startswith("units") and "units" in potential_replace:
+        if line.strip().startswith("units") and "units" in potential_replace:
             lmp_str_lst.append(potential_replace["units"])
-        elif l.strip().startswith("atom_style") and "atom_style" in potential_replace:
+        elif (
+            line.strip().startswith("atom_style") and "atom_style" in potential_replace
+        ):
             lmp_str_lst.append(potential_replace["atom_style"])
-        elif l.strip().startswith("dimension") and "dimension" in potential_replace:
+        elif line.strip().startswith("dimension") and "dimension" in potential_replace:
             lmp_str_lst.append(potential_replace["dimension"])
         else:
-            lmp_str_lst.append(l)
+            lmp_str_lst.append(line)
 
     if isinstance(io_bundle.potential, pd.DataFrame):
         lmp_str_lst += [f"include {io_bundle.lammps_potential_filename}\n"]
@@ -718,20 +721,22 @@ def CreateLammpsMinimizeInput(
     )
 
     lmp_str_lst = []
-    for l in lammps_file_initialization(
+    for line in lammps_file_initialization(
         structure=io_bundle.structure,
         units=io_bundle.units,
         read_restart_file=False,
         restart_file=None,
     ):
-        if l.strip().startswith("units") and "units" in potential_replace:
+        if line.strip().startswith("units") and "units" in potential_replace:
             lmp_str_lst.append(potential_replace["units"])
-        elif l.strip().startswith("atom_style") and "atom_style" in potential_replace:
+        elif (
+            line.strip().startswith("atom_style") and "atom_style" in potential_replace
+        ):
             lmp_str_lst.append(potential_replace["atom_style"])
-        elif l.strip().startswith("dimension") and "dimension" in potential_replace:
+        elif line.strip().startswith("dimension") and "dimension" in potential_replace:
             lmp_str_lst.append(potential_replace["dimension"])
         else:
-            lmp_str_lst.append(l)
+            lmp_str_lst.append(line)
 
     if isinstance(io_bundle.potential, pd.DataFrame):
         lmp_str_lst += [f"include {io_bundle.lammps_potential_filename}\n"]
@@ -806,10 +811,9 @@ def RunLammpsBase(
             lmp_command,
             cwd=io_bundle.working_directory,
             shell=True,
-            universal_newlines=True,
+            text=True,
             env=os.environ.copy(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         )
         if result.returncode != 0:
             error_path = os.path.join(io_bundle.working_directory, "error.msg")
