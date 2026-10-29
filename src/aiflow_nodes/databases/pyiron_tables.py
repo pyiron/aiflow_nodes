@@ -52,7 +52,7 @@ as plain Python objects they do not pull their upstream outputs.
     )
     table = wf.run()
 
-A complete example is ``Workflows/pyiron_table_potential_scan.py``.
+A complete example is ``workflows/pyiron_table_potential_scan.py``.
 
 Adding a property
 -----------------

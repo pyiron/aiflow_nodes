@@ -1,5 +1,3 @@
 [run]
 source = aiflow_nodes
-command_line = -m unittest discover aiflow_nodes/tests
-omit =
-    aiflow_nodes/Workflows/*
+command_line = -m unittest discover tests

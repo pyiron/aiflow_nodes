@@ -27,7 +27,7 @@ RESOURCE_PATH = os.environ.get(
 
 def static_energy(atoms, working_directory, tag):
     """Run a single-point LAMMPS static calculation, mirroring
-    Workflows/lammps_static_basic.py, and return the potential energy (eV)."""
+    workflows/lammps_static_basic.py, and return the potential energy (eV)."""
     io_bundle = CreateLammpsStructure._original_func(
         structure=atoms,
         potential=AL_POTENTIAL,
@@ -43,10 +43,10 @@ def static_energy(atoms, working_directory, tag):
 class TestPointDefectsMetalsWithLammps(unittest.TestCase):
     """
     Integration test combining the container_new defect-creation nodes
-    (as demonstrated in Workflows/point_defects_metals.py) with a real,
+    (as demonstrated in workflows/point_defects_metals.py) with a real,
     fast LAMMPS static energy calculation (as in
-    Workflows/lammps_static_basic.py), rather than the slower GRACE
-    ML-potential path used in Workflows/point_defect_metals_energies.py.
+    workflows/lammps_static_basic.py), rather than the slower GRACE
+    ML-potential path used in workflows/point_defect_metals_energies.py.
     """
 
     @classmethod

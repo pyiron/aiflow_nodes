@@ -50,7 +50,7 @@ this number worth quoting.  ``False`` means the second window still missed, and
 its ``temperature_min`` / ``temperature_max`` are where a third pass belongs —
 at which point use ``CalphyMeltingTemperatureSearch`` instead, which does exactly this
 loop with a bracket that tightens on every attempt (see
-``Workflows/calphy_melt_auto_window.py``).  At the demo settings below
+``workflows/calphy_melt_auto_window.py``).  At the demo settings below
 (``n_switching_steps=5000``, one iteration) that does happen for the default
 potential: runs have ended with pass 2 measuring the crossing inside its window
 and with pass 2 placing it at the window's top edge, unbracketed.  The leg noise
@@ -65,7 +65,7 @@ Usage
 -----
     import sys
     sys.path[:0] = ["pyiron_core/src", "/path/to/aiflow_nodes"]
-    exec(open("Workflows/calphy_melt_two_pass.py").read())
+    exec(open("workflows/calphy_melt_two_pass.py").read())
     wf.run()
     print(wf.pass2.outputs.T_melt.value,
           wf.pass2.outputs.bracketed.value)

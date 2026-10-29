@@ -58,7 +58,7 @@ Usage
 -----
     import sys
     sys.path[:0] = ["pyiron_core/src", "/path/to/aiflow_nodes"]
-    exec(open("Workflows/calphy_melt_auto_window.py").read())
+    exec(open("workflows/calphy_melt_auto_window.py").read())
     wf.run()
     print(wf.melting_temperature.outputs.T_melt.value,
           wf.melting_temperature.outputs.converged.value)

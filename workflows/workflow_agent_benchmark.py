@@ -81,7 +81,7 @@ source or watch the sweep progress:
 **One group.**  ``BenchmarkSuite`` is that same canvas folded into a single
 ``@group_node``: every option above is a boundary port, and expanding the node
 puts all twelve inner nodes back on the canvas, so nothing is given up for the
-tidier picture.  ``Workflows/workflow_agent_benchmark_compact`` wires it to the
+tidier picture.  ``workflows/workflow_agent_benchmark_compact`` wires it to the
 report and the plot — three nodes for the whole experiment.  Unlike
 ``RunBenchmarkSuite`` it has no ``repeats``: one group is one repetition.
 

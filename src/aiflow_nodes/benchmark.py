@@ -4,8 +4,8 @@ Nodes for the agentic workflow-generation benchmark
 The node library for the aiflow-vs-from-scratch benchmark: every node the
 experiment is built from, independent of any particular wiring of them.
 
-``Workflows/workflow_agent_benchmark`` assembles these into the canvas graph,
-and ``Workflows/workflow_agent_benchmark_compact`` into the two-node version.
+``workflows/workflow_agent_benchmark`` assembles these into the canvas graph,
+and ``workflows/workflow_agent_benchmark_compact`` into the two-node version.
 Import from here when writing a graph of your own.
 
 Entry points
@@ -143,7 +143,7 @@ def TaskSuite(
 def NodeLibraryMirror(allow_reference_workflows: bool = False, dest: str = ""):
     """Build the node library the agent is allowed to read.
 
-    ``aiflow_nodes/Workflows/`` holds finished reference workflows for several
+    the repository's ``workflows/`` directory holds finished reference workflows for several
     benchmark tasks — a GaN surface phase diagram, an Al melting point, an H NEB
     barrier.  Exposing them would turn the aiflow arm into a retrieval test, so
     by default the agent gets a mirror of the library with that directory
@@ -157,7 +157,7 @@ def NodeLibraryMirror(allow_reference_workflows: bool = False, dest: str = ""):
     Parameters
     ----------
     allow_reference_workflows : bool
-        ``False`` (default) mirrors the library without ``Workflows/``.
+        ``False`` (default) mirrors the library without ``workflows/``.
     dest : str
         Where to build the mirror; empty uses a fresh temporary directory.
         Slurm jobs need it on shared storage, so wire ``BenchWorkDir`` here
@@ -382,7 +382,7 @@ class BenchConfig:
         Reasoning effort forwarded to ``claude --effort``; ``"default"`` omits
         the flag.
     allow_reference_workflows : bool
-        Expose ``aiflow_nodes/Workflows/`` to the agent.  Useful as a second
+        Expose the repository's ``workflows/`` directory to the agent.  Useful as a second
         experimental condition but breaks the aiflow-vs-scratch comparison.
     run_variant : bool
         Run the declared follow-up edit after a task passes.
