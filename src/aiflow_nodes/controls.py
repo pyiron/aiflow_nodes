@@ -475,7 +475,10 @@ def _cells_are_recoverable(node, executor) -> bool:
     what goes to the queue, so the cache holds exactly what a node-level
     submission would and the Database panel can collect it the same way.
     """
-    from aiflow.core.remote_cache import executor_cache_directory, is_recoverable_executor
+    from aiflow.core.remote_cache import (
+        executor_cache_directory,
+        is_recoverable_executor,
+    )
 
     return (
         is_recoverable_executor(executor)

@@ -16,7 +16,12 @@ from aiflow_nodes.atomistic.structure._atoms import (
     _data_to_ase,
     _resolve_atoms,
 )
-from aiflow.core import Node, as_function_node, as_inp_dataclass_node, as_out_dataclass_node
+from aiflow.core import (
+    Node,
+    as_function_node,
+    as_inp_dataclass_node,
+    as_out_dataclass_node,
+)
 
 
 @as_inp_dataclass_node
