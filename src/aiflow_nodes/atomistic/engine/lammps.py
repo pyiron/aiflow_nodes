@@ -827,7 +827,7 @@ def RunLammpsBase(
                 if result.stderr:
                     f.write(result.stderr)
             raise RuntimeError(
-                f"LAMMPS exited with code {result.returncode}. " f"{result.stdout}"
+                f"LAMMPS exited with code {result.returncode}. {result.stdout}"
             )
         output = result.stdout
     else:
@@ -896,7 +896,7 @@ def RunLammpsCalculation(
                 if result.stderr:
                     f.write(result.stderr)
             raise RuntimeError(
-                f"LAMMPS exited with code {result.returncode}. " f"{result.stdout}"
+                f"LAMMPS exited with code {result.returncode}. {result.stdout}"
             )
         output = result.stdout
     else:
@@ -1095,7 +1095,6 @@ def write_lammps_data_full(
 
     for center_el, specs in bond_dict.items():
         for spec_name, spec in specs.items():
-
             if "max_bond_num" in spec:
                 cutoff = spec["cutoff"]
                 neighbor_el = spec["neighbor_type"]
@@ -1207,7 +1206,7 @@ def write_lammps_data_full(
         charge = charges.get(el, 0.0)
         x, y, z = coords[idx]
         lines.append(
-            f"{idx+1:6d} "
+            f"{idx + 1:6d} "
             f"{mol_ids[idx]:6d} "
             f"{atype:4d} "
             f"{charge:10.6f} "
@@ -1220,14 +1219,14 @@ def write_lammps_data_full(
     if bond_list:
         lines.append("Bonds\n")
         for b_id, (i, j, btype) in enumerate(bond_list, start=1):
-            lines.append(f"{b_id:6d} {btype:4d} {i+1:6d} {j+1:6d}")
+            lines.append(f"{b_id:6d} {btype:4d} {i + 1:6d} {j + 1:6d}")
         lines.append("")
 
     # Angles
     if angle_list:
         lines.append("Angles\n")
         for a_id, (i, j, k, atype) in enumerate(angle_list, start=1):
-            lines.append(f"{a_id:6d} {atype:4d} {i+1:6d} {j+1:6d} {k+1:6d}")
+            lines.append(f"{a_id:6d} {atype:4d} {i + 1:6d} {j + 1:6d} {k + 1:6d}")
         lines.append("")
 
     return "\n".join(lines)  # ← caller decides what to do with it

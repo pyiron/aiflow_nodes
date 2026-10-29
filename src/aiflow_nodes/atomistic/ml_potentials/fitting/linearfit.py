@@ -268,8 +268,10 @@ def SplitTrainingAndTesting(
         training_frac = np.abs(training_frac)
 
     if training_frac > 1:
-        print("Can't have the training dataset more than 100 % of the dataset\n\
-            Setting the value to 100%")
+        print(
+            "Can't have the training dataset more than 100 % of the dataset\n\
+            Setting the value to 100%"
+        )
         training_frac = 1
     elif training_frac == 0:
         print("Can'fit with no training dataset\nSetting the value to 1%")
@@ -397,7 +399,6 @@ def PredictEnergiesAndForces(
     data_dict["predicted_training_fpa"] = np.concatenate(training_predict[1]).flatten()
 
     if df_test.empty is False:
-
         testing_structures = df_test.ase_atoms
 
         # Reference data

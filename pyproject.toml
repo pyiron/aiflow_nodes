@@ -130,10 +130,10 @@ pytest = ">=8"
 test = "coverage run --rcfile=.coveragerc && coverage report --rcfile=.coveragerc"
 
 [tool.pixi.feature.lint.dependencies]
-black = "*"
+ruff = "==0.17.3"
 
 [tool.pixi.feature.lint.tasks]
-lint = "black --check --diff --line-length 88 ."
+lint = "ruff format --check --diff ."
 
 # deptry inspects the installed packages, so it runs in the full environment.
 [tool.pixi.feature.deptry.dependencies]

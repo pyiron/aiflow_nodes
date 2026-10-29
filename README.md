@@ -17,7 +17,7 @@ environment is locked in `pixi.lock`.
 ```bash
 pixi install          # default environment, with aiflow_nodes installed editable
 pixi run test         # unit tests with coverage
-pixi run lint         # black --check
+pixi run lint         # ruff format --check
 pixi run deptry       # imports vs. declared dependencies
 ```
 

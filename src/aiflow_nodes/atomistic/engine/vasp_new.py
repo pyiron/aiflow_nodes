@@ -972,7 +972,6 @@ def CreateVaspInputResources(
         io_bundle.extra_incar = {**(io_bundle.extra_incar or {}), **plugin_incar}
 
         if plugin_data.override_potcar is not None:
-
             for old_line, new_line in plugin_data.override_potcar.items():
                 if old_line not in io_bundle.potcar_content:
                     raise ValueError(f"Line '{old_line}' not found in POTCAR content.")

@@ -218,8 +218,7 @@ def AlloyVerdict(assessment: dict = None):
         )
     else:
         lines.append(
-            "- The TRIP/TWIP threshold is not crossed on the scanned "
-            "composition range"
+            "- The TRIP/TWIP threshold is not crossed on the scanned composition range"
         )
     if np.isfinite(x_twip_slip):
         lines.append(

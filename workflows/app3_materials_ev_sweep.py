@@ -87,6 +87,8 @@ if __name__ == "__main__":
     fit = birch_murnaghan_fit(df["volume"], df["energy"])
     print("\n=== Birch-Murnaghan fit ===")
     print(f"  E0 = {fit['E0']:.4f} eV/atom")
-    print(f"  V0 = {fit['V0']:.4f} Ang^3/atom  (a0 = {(4*fit['V0'])**(1/3):.4f} Ang)")
+    print(
+        f"  V0 = {fit['V0']:.4f} Ang^3/atom  (a0 = {(4 * fit['V0']) ** (1 / 3):.4f} Ang)"
+    )
     print(f"  B0 = {fit['B0_GPa']:.1f} GPa")
     print(f"  B0'= {fit['Bp']:.2f}")

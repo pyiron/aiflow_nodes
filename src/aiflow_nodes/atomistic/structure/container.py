@@ -421,7 +421,7 @@ class StructureContainer:
         parent_idx = int(self.table.loc[absolute_row, "parent_index"])
         if parent_idx == -1:
             raise ValueError(
-                f"Row {absolute_row} is a pristine structure and has " f"no parent."
+                f"Row {absolute_row} is a pristine structure and has no parent."
             )
         return self.table.loc[parent_idx, "structure"]
 
@@ -478,7 +478,7 @@ def _ensure_container(
         return StructureContainer()
     if not isinstance(container, StructureContainer):
         raise TypeError(
-            f"Expected a StructureContainer or None, " f"got {type(container)!r}."
+            f"Expected a StructureContainer or None, got {type(container)!r}."
         )
     return container
 
@@ -962,7 +962,7 @@ def GetStructureTable(
     """
     if not isinstance(structure_container, StructureContainer):
         raise TypeError(
-            f"Expected a StructureContainer, " f"got {type(structure_container)!r}."
+            f"Expected a StructureContainer, got {type(structure_container)!r}."
         )
     table = structure_container.table.copy()
     return table
@@ -978,7 +978,7 @@ def GetDefectTable(
     """
     if not isinstance(structure_container, StructureContainer):
         raise TypeError(
-            f"Expected a StructureContainer, " f"got {type(structure_container)!r}."
+            f"Expected a StructureContainer, got {type(structure_container)!r}."
         )
     mask = structure_container.table["is_pristine"].eq(False)
     table = structure_container.table[mask].copy()
@@ -995,7 +995,7 @@ def GetPristineTable(
     """
     if not isinstance(structure_container, StructureContainer):
         raise TypeError(
-            f"Expected a StructureContainer, " f"got {type(structure_container)!r}."
+            f"Expected a StructureContainer, got {type(structure_container)!r}."
         )
     mask = structure_container.table["is_pristine"].eq(True)
     table = structure_container.table[mask].copy()

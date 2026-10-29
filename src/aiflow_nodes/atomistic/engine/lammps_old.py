@@ -171,9 +171,9 @@ def InitLammps(
     if create_dir:
         os.makedirs(working_directory, exist_ok=True)
     else:
-        assert os.path.isdir(
-            working_directory
-        ), f"working directory {working_directory} is missing, create it!"
+        assert os.path.isdir(working_directory), (
+            f"working directory {working_directory} is missing, create it!"
+        )
 
     pot = LammpsPotential()
     if isinstance(potential, str):
@@ -1023,7 +1023,7 @@ def write_lammps_data_full(
         pos = convert(pos, "distance", "ASE", units)
         for i, r in enumerate(pos):
             s = species.index(symbols[i]) + 1
-            fd.write(f"{i+1:>6} {s:>3} {r[0]:23.17g} {r[1]:23.17g} {r[2]:23.17g}\n")
+            fd.write(f"{i + 1:>6} {s:>3} {r[0]:23.17g} {r[1]:23.17g} {r[2]:23.17g}\n")
     elif atom_style == "full":
         # If charges list is provided, override atomic charges
         if charges is not None:
@@ -1041,7 +1041,7 @@ def write_lammps_data_full(
             s = species.index(symbols[i]) + 1
             # print('charge: ', i, s, q, f"{q:>9.6f}")
             fd.write(
-                f"{i+1:>6} {m:>3} {s:>3} {q:>9.6f} {r[0]:23.17g} {r[1]:23.17g} {r[2]:23.17g}\n"
+                f"{i + 1:>6} {m:>3} {s:>3} {q:>9.6f} {r[0]:23.17g} {r[1]:23.17g} {r[2]:23.17g}\n"
             )
 
     # -------- Bonds section ------------

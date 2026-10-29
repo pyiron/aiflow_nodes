@@ -855,7 +855,7 @@ def SCC_SCF(
         diff = np.linalg.norm(residual)
         if diff < tol:
             if verbose:
-                print(f"SCC converged after {it+1} iteration(s).")
+                print(f"SCC converged after {it + 1} iteration(s).")
             q = q_new
             break
 
@@ -917,7 +917,7 @@ def SCC_SCF(
         diff_list.append(diff)
         if verbose:
             print(
-                f"SCC iteration {it+1:2d}: charge change = {diff:.3e} (scheme={mixing_scheme})"
+                f"SCC iteration {it + 1:2d}: charge change = {diff:.3e} (scheme={mixing_scheme})"
             )
 
     else:

@@ -1935,7 +1935,9 @@ def _plot_headline(df, stats, overall, arms, max_repairs):
     arm_rows = (
         stats[stats["group"].str.startswith("arm=")]
         if stats is not None and len(stats) and "group" in stats.columns
-        else stats.iloc[0:0] if stats is not None else None
+        else stats.iloc[0:0]
+        if stats is not None
+        else None
     )
     n_panels = 3 if arm_rows is not None and len(arm_rows) > 1 else 2
 
@@ -2584,12 +2586,10 @@ FIGURE_MARKER = "{{figure:%s}}"
 FIGURE_CAPTIONS = {
     "figure": "the headline — ladder pass rates, the repair-budget curve and "
     "the arm comparison",
-    "failures": "where tasks stopped on the ladder, and who each failure is "
-    "blamed on",
+    "failures": "where tasks stopped on the ladder, and who each failure is blamed on",
     "cost": "cost per attempt and per solved task, cost against wall clock, "
     "and how the repair budget was spent",
-    "reliability": "per-task pass rate with 95 % Wilson intervals, hardest "
-    "task first",
+    "reliability": "per-task pass rate with 95 % Wilson intervals, hardest task first",
     "reuse": "pass rate by arm and tier, and how many graph nodes were reused "
     "from the library rather than written fresh",
 }

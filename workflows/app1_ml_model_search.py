@@ -135,7 +135,8 @@ def poly_cv(degree: int = 1, alpha: float = 1.0, folds: int = 5):
 wf = Workflow("degree_sweep")
 wf.template = poly_cv(alpha=1.0, folds=5)
 wf.sweep = IterToDataFrame(
-    node=wf.template, input_label="degree"  # , values=list(degrees)
+    node=wf.template,
+    input_label="degree",  # , values=list(degrees)
 )
 # return wf.run()
 

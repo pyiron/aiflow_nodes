@@ -79,9 +79,9 @@ def regression_data() -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
     return X_train, y_train, X_test, y_test
 
 
-def binary_classification_data() -> (
-    tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
-):
+def binary_classification_data() -> tuple[
+    pd.DataFrame, pd.Series, pd.DataFrame, pd.Series
+]:
     """Generate synthetic binary classification dataset."""
     np.random.seed(42)
     n_train, n_test, n_features = 50, 20, 5
@@ -105,9 +105,9 @@ def binary_classification_data() -> (
     return X_train, y_train, X_test, y_test
 
 
-def multiclass_classification_data() -> (
-    tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]
-):
+def multiclass_classification_data() -> tuple[
+    pd.DataFrame, pd.Series, pd.DataFrame, pd.Series
+]:
     """Generate synthetic multiclass (3-class) classification dataset."""
     np.random.seed(42)
     n_train, n_test, n_features = 60, 25, 5

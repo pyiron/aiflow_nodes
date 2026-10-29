@@ -50,7 +50,7 @@ fails because a Node is not a dataclass.
 
 ```python
 wf.lammps_input = CreateLammpsMDInput(
-    calc_dataclass=wf.md_params.outputs.output,   # ✓
+    calc_dataclass=wf.md_params.outputs.output,  # ✓
 )
 ```
 
@@ -64,7 +64,7 @@ This applies to **every** `@as_inp_dataclass_node` passed to any
 ```python
 out = OutputCalcMD.pure_dataclass()
 ...
-return out          # → output port is called "out"
+return out  # → output port is called "out"
 ```
 
 Use the explicit port reference when connecting to custom nodes:
@@ -87,7 +87,7 @@ The function returns a **tuple** `(io_bundle, output)`, giving two ports:
 
 ```python
 wf.parsed_output = ParseLammpsOutput(
-    io_bundle=wf.lammps_run.outputs.io_bundle   # ✓
+    io_bundle=wf.lammps_run.outputs.io_bundle  # ✓
 )
 ```
 
@@ -136,15 +136,15 @@ cart_pos = np.dot([0.25, 0.0, 0.0], supercell.cell)
 
 # ✓ correct — recover the unit cell first
 unit_cell = supercell.cell / repeat_scalar
-cart_pos = np.dot([0.25, 0.0, 0.0], unit_cell)   # ~1 Å, actual interstitial
+cart_pos = np.dot([0.25, 0.0, 0.0], unit_cell)  # ~1 Å, actual interstitial
 ```
 
 `AddInterstitialH` accepts `repeat_scalar: int = 1` for this purpose; always
 pass it to match the value used in `Repeat`:
 
 ```python
-wf.al_supercell    = Repeat(structure=wf.al_bulk, repeat_scalar=3)
-wf.al_h_structure  = AddInterstitialH(structure=wf.al_supercell, repeat_scalar=3)
+wf.al_supercell = Repeat(structure=wf.al_bulk, repeat_scalar=3)
+wf.al_h_structure = AddInterstitialH(structure=wf.al_supercell, repeat_scalar=3)
 ```
 
 ### 8. Plotting: `Plot` returns a figure, not axes

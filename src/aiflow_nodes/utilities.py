@@ -39,7 +39,7 @@ def ListOf(items: PortList = PortList(["x1", "x2"])) -> list:
 
 @as_function_node("list")
 def ListOfStrings(
-    items: PortList = PortList[str](["x1", "x2"], required=False)
+    items: PortList = PortList[str](["x1", "x2"], required=False),
 ) -> list:
     """Collect a variable number of text inputs into a list.
 
@@ -52,7 +52,7 @@ def ListOfStrings(
 
 @as_function_node("list")
 def ListOfIntegers(
-    items: PortList = PortList[int](["x1", "x2"], required=False)
+    items: PortList = PortList[int](["x1", "x2"], required=False),
 ) -> list:
     """Collect a variable number of integer inputs into a list.
 
@@ -65,7 +65,7 @@ def ListOfIntegers(
 
 @as_function_node("list")
 def ListOfFloats(
-    items: PortList = PortList[float](["x1", "x2"], required=False)
+    items: PortList = PortList[float](["x1", "x2"], required=False),
 ) -> list:
     """Collect a variable number of float inputs into a list.
 
@@ -78,7 +78,7 @@ def ListOfFloats(
 
 @as_function_node("list")
 def ListOfBooleans(
-    items: PortList = PortList[bool](["x1", "x2"], required=False)
+    items: PortList = PortList[bool](["x1", "x2"], required=False),
 ) -> list:
     """Collect a variable number of boolean inputs into a list.
 
