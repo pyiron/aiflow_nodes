@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.17.3
     hooks:
       - id: ruff
         name: ruff lint
@@ -8,9 +8,3 @@ repos:
         files: '\.py$'
       - id: ruff-format
         name: ruff format
-
-  - repo: https://github.com/psf/black
-    rev: 24.3.0
-    hooks:
-      - id: black
-        name: black format
