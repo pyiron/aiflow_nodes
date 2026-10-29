@@ -1,5 +1,4 @@
 exclude = [
-    ".ci_support",
     "docs",
     "notebooks",
 ]
