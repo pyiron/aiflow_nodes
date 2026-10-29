@@ -3,15 +3,14 @@ from dataclasses import dataclass
 from enum import Enum
 
 import numpy as np
-from ase import Atoms
-from ase.calculators.calculator import Calculator
-from ase.constraints import FixAtoms
-from ase.filters import FrechetCellFilter
-
 from aiflow.core import (
     as_function_node,
     as_inp_dataclass_node,
 )
+from ase import Atoms
+from ase.calculators.calculator import Calculator
+from ase.constraints import FixAtoms
+from ase.filters import FrechetCellFilter
 
 GPA2EVA3 = 0.006_241_509_074
 

@@ -4,17 +4,16 @@ For graphical representations of data.
 
 from __future__ import annotations
 
-from typing import Optional, Literal
+from typing import Literal
 
 import numpy as np
 import pandas as pd
-
-from aiflow.core import as_function_node, as_inp_dataclass_node, PortList
+from aiflow.core import PortList, as_function_node, as_inp_dataclass_node
 
 
 @as_inp_dataclass_node
 class InputPlotOptions:
-    title: Optional[str] = ""
+    title: str | None = ""
     color: Literal[
         "b",
         "g",
@@ -58,7 +57,7 @@ class InputPlotOptions:
         "|",
         "_",
     ] = "o"
-    legend_label: Optional[str] = ""
+    legend_label: str | None = ""
     log_x: bool = False
     log_y: bool = False
 
@@ -66,8 +65,8 @@ class InputPlotOptions:
 @as_function_node("fig")
 def PlotDataFrame(
     df: pd.DataFrame,
-    x: Optional[list | np.ndarray] = None,
-    options: Optional[InputPlotOptions] = None,
+    x: list | np.ndarray | None = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     Plot a pandas DataFrame.
@@ -113,8 +112,8 @@ def MergePlots(figures: PortList = PortList(["fig1", "fig2"])):
     source of every line is immediately identifiable.  Add or remove input
     ports with the + / × buttons on the node.  A legend is always shown.
     """
-    from matplotlib import pyplot as plt
     import matplotlib.collections as mcoll
+    from matplotlib import pyplot as plt
 
     # Categorical palette — colorblind-distinguishable, light-background
     COLORS = [
@@ -179,8 +178,8 @@ def MergePlots(figures: PortList = PortList(["fig1", "fig2"])):
 @as_function_node("fig")
 def PlotDataFrameXY(
     df: pd.DataFrame,
-    x: Optional[list | np.ndarray] = None,
-    options: Optional[InputPlotOptions] = None,
+    x: list | np.ndarray | None = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     Plot a DataFrame with X‑ and Y‑axes.
@@ -235,9 +234,9 @@ def PlotDataFrameXY(
 
 @as_function_node("fig")
 def Scatter(
-    x: Optional[list | np.ndarray] = None,
-    y: Optional[list | np.ndarray] = None,
-    options: Optional[InputPlotOptions] = None,
+    x: list | np.ndarray | None = None,
+    y: list | np.ndarray | None = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     Simple scatter plot.
@@ -269,17 +268,17 @@ def Scatter(
 
 @as_function_node("fig")
 def LinearFittingCurve(
-    x: Optional[list | np.ndarray] = None,
-    y: Optional[list | np.ndarray] = None,
-    options: Optional[InputPlotOptions] = None,
+    x: list | np.ndarray | None = None,
+    y: list | np.ndarray | None = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     Plot data together with a linear fit and an ideal line.
     """
     if options is None:
         options = InputPlotOptions().run()
-    from matplotlib import pyplot as plt
     import numpy as np
+    from matplotlib import pyplot as plt
 
     rms = np.sqrt(np.var(x - y))
     correlation_coefficient = np.corrcoef(x, y)[0, 1]
@@ -309,9 +308,9 @@ def LinearFittingCurve(
 
 @as_function_node("fig")
 def ShowArray(
-    mat: Optional[np.ndarray],
+    mat: np.ndarray | None,
     aspect_ratio: float = None,
-    options: Optional[InputPlotOptions] = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     Display an array as an image.
@@ -340,9 +339,9 @@ def ShowArray(
 
 @as_function_node("fig")
 def Histogram(
-    x: Optional[list | np.ndarray],
+    x: list | np.ndarray | None,
     bins: int = 50,
-    options: Optional[InputPlotOptions] = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     Plot a histogram.
@@ -368,10 +367,10 @@ def Histogram(
 
 @as_function_node("figure")
 def Plot(
-    y: Optional[list | np.ndarray | pd.core.series.Series],
-    x: Optional[list | np.ndarray | pd.core.series.Series] = None,
-    axis: Optional[object] = None,
-    options: Optional[InputPlotOptions] = None,
+    y: list | np.ndarray | pd.core.series.Series | None,
+    x: list | np.ndarray | pd.core.series.Series | None = None,
+    axis: object | None = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     General plot function that respects InputPlotOptions.
@@ -379,7 +378,6 @@ def Plot(
     if options is None:
         options = InputPlotOptions().run()
     import numpy as np
-    import pandas as pd
     from matplotlib import pyplot as plt
 
     print("plotting: ", len(np.shape(y)))
@@ -425,10 +423,10 @@ def Plot(
 
 @as_function_node("figure")
 def MultiPlot(
-    y: Optional[list | np.ndarray | pd.core.series.Series],
-    x: Optional[list | np.ndarray | pd.core.series.Series] = None,
-    axis: Optional[object] = None,
-    options: Optional[InputPlotOptions] = None,
+    y: list | np.ndarray | pd.core.series.Series | None,
+    x: list | np.ndarray | pd.core.series.Series | None = None,
+    axis: object | None = None,
+    options: InputPlotOptions | None = None,
 ):
     """
     Plot multiple series respecting InputPlotOptions.
@@ -488,10 +486,10 @@ def MultiPlot(
 
 @as_function_node("axes")
 def Subplot(
-    nrows: Optional[int] = 1,
-    ncols: Optional[int] = 1,
-    sharex: Optional[bool] = False,
-    sharey: Optional[bool] = False,
+    nrows: int | None = 1,
+    ncols: int | None = 1,
+    sharex: bool | None = False,
+    sharey: bool | None = False,
 ):
     from matplotlib import pyplot as plt
 
@@ -501,7 +499,7 @@ def Subplot(
 
 
 @as_function_node("axis")
-def Title(axis: Optional[object] = None, title: Optional[str] = ""):
+def Title(axis: object | None = None, title: str | None = ""):
     from matplotlib import pyplot as plt
 
     if axis is None:
@@ -515,8 +513,8 @@ def Title(axis: Optional[object] = None, title: Optional[str] = ""):
 
 @as_function_node
 def AnalyseConvergencePlot(
-    y: "np.ndarray",
-    x: Optional["np.ndarray"] = None,
+    y: np.ndarray,
+    x: np.ndarray | None = None,
     i_start: int = 0,
     smoothen: bool = False,
     window_size: int = 10,
@@ -563,8 +561,8 @@ def AnalyseConvergencePlot(
     # Imports – kept inside the node so that the node can be imported
     # without pulling heavy optional dependencies.
     # ------------------------------------------------------------------
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
     from scipy.ndimage import uniform_filter1d
 
     # ------------------------------------------------------------------

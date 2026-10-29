@@ -526,8 +526,8 @@ def PlotDielectricProfile(
     water — the model's own value, which is well below the experimental 78 for
     SPC/E-like comparisons and worth having on the axes.
     """
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     z = np.asarray(z)
     eps_profile = np.asarray(eps_profile)
@@ -573,8 +573,8 @@ def PlotPotentialDropHistogram(
     bimodal histogram means ``DifferentialCapacitance`` is not applicable to
     that run yet — usually a sign of too little sampling.
     """
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     colors = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B"]
     fig, ax = plt.subplots()

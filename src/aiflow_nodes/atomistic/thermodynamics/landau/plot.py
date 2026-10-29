@@ -5,7 +5,6 @@ import landau
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-
 from aiflow.core import Workflow, as_function_node, group_node
 
 

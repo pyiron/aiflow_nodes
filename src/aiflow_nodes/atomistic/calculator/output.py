@@ -1,7 +1,3 @@
-from aiflow_nodes.atomistic.calculator.data import (
-    OutputCalcMinimize,
-    OutputCalcStaticList,
-)
 from aiflow.core import as_function_node
 
 

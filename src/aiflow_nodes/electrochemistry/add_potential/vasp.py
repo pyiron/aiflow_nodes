@@ -1,19 +1,18 @@
-from dataclasses import dataclass, field
 import os
-from typing import Optional
-from ase import Atoms
-import numpy as np
 import re
-
-from aiflow.core import as_function_node
+from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
+from aiflow.core import as_function_node
+from ase import Atoms
+
 from aiflow_nodes.atomistic.engine.vasp_new import (
+    VaspInput,
     VaspInputResources,
     VaspPlugin,
-    VaspInput,
-    _ordered_elements,
     _get_potcar_paths,
+    _ordered_elements,
     read_potcar_config,
 )
 
@@ -36,13 +35,13 @@ class CEParameters:
     az: float  # Cell dimension c (Å), filled in by node
     d_electrode: float  # Electrode distance (Å), filled in by node
     # CCE-specific parameters
-    i_Ne: Optional[int] = None  # Index of Ne in POTCAR, filled in by node
-    n_elements: Optional[int] = None  # Number of unique elements, filled in by node
-    n_Ne: Optional[int] = None  # Number of Ne atoms, filled in by node
+    i_Ne: int | None = None  # Index of Ne in POTCAR, filled in by node
+    n_elements: int | None = None  # Number of unique elements, filled in by node
+    n_Ne: int | None = None  # Number of Ne atoms, filled in by node
     # CDCE-specific parameters
-    Q_pos: Optional[np.array] = None  # Position of the Gaussian charge (Å)
-    width_wall: Optional[float] = None  # Width of the wall potential (Å)
-    pos_right_wall: Optional[float] = None  # Position of the right wall (
+    Q_pos: np.ndarray | None = None  # Position of the Gaussian charge (Å)
+    width_wall: float | None = None  # Width of the wall potential (Å)
+    pos_right_wall: float | None = None  # Position of the right wall (
 
 
 def _plugin_content(ce_params: CEParameters):
@@ -63,7 +62,7 @@ def _plugin_content(ce_params: CEParameters):
     plugin_path = os.path.expanduser(ce_params.path_to_plugin)
     if not os.path.exists(plugin_path):
         raise FileNotFoundError(f"Plugin template not found: {plugin_path}")
-    with open(plugin_path, "r") as f:
+    with open(plugin_path) as f:
         plugin_string = f.read()
 
     plugin_params = {
@@ -179,7 +178,7 @@ def CCESetup(
     unique_elements = _ordered_elements(structure)
 
     for el, potcar_path in zip(unique_elements, potcar_paths):
-        with open(potcar_path, "r") as f:
+        with open(potcar_path) as f:
             content = f.read()
         # Take first match — each individual POTCAR has exactly one ZVAL
         match = re.search(r"ZVAL\s*=\s*([\d.]+)", content)
@@ -382,7 +381,7 @@ def CDCESetup(
     unique_elements = _ordered_elements(structure)
 
     for el, potcar_path in zip(unique_elements, potcar_paths):
-        with open(potcar_path, "r") as f:
+        with open(potcar_path) as f:
             content = f.read()
         # Take first match — each individual POTCAR has exactly one ZVAL
         match = re.search(r"ZVAL\s*=\s*([\d.]+)", content)
@@ -434,10 +433,6 @@ def CDCESetup(
     Q_pos = f"np.array({Q_pos.tolist()})"
 
     nelect_adjusted = float(nelect_neutral) + np.round(Q0)
-
-    # Langevin gamma string - must have one value per element in the system
-    n_elements = len(unique_elements)
-    langevin_gamma_str = " ".join([str(langevin_gamma)] * n_elements)
 
     # -------------------------------------------------------------------------
     # INCAR dictionary
@@ -517,9 +512,8 @@ def ParsePotential(
     nsw = None
     if io_bundle.extra_incar is not None:
         nsw = io_bundle.extra_incar.get("NSW") or io_bundle.extra_incar.get("nsw")
-    if nsw is None and io_bundle.calc is not None:
-        if io_bundle.calc.md is not None:
-            nsw = io_bundle.calc.md.n_ionic_steps
+    if nsw is None and io_bundle.calc is not None and io_bundle.calc.md is not None:
+        nsw = io_bundle.calc.md.n_ionic_steps
     if nsw is None:
         raise ValueError("NSW is not set in extra_incar or in the MD settings")
 

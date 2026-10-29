@@ -1,14 +1,13 @@
 from __future__ import annotations
-from typing import Literal, Optional
+
+from typing import Literal
 
 import numpy as np
-from ase import Atoms as _Atoms
-
 from aiflow.core import as_function_node
+from ase import Atoms as _Atoms
 
 # from aiflow_nodes.atomistic.engine.lammps import LammpsIOBundle
 from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _data_to_ase, to_ase
-from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
 
 @as_function_node("plot")
@@ -17,9 +16,9 @@ def Plot3d(
     camera: str = "orthographic",
     particle_size: float = 1.0,
     background: Literal["white", "black"] = "white",
-    select_atoms: Optional[np.ndarray | list] = None,
-    view_plane: Optional[list] = None,
-    distance_from_camera: Optional[float] = 1.0,
+    select_atoms: np.ndarray | list | None = None,
+    view_plane: list | None = None,
+    distance_from_camera: float | None = 1.0,
 ):
     """
     Display atomistic structure (ase.Atoms or OutputAtoms) using nglview.
@@ -133,7 +132,7 @@ def PlotCNA(
     camera: str = "orthographic",
     particle_size: float = 1.0,
     background: Literal["white", "black"] = "white",
-    view_plane: Optional[list] = None,
+    view_plane: list | None = None,
     distance_from_camera: float = 1.0,
 ):
     """
@@ -170,6 +169,7 @@ def PlotCNA(
     """
     import numpy as np
     import structuretoolkit as stk
+
     from aiflow_nodes.atomistic.structure._atoms import OutputAtoms, _data_to_ase
 
     if view_plane is None:
@@ -187,7 +187,7 @@ def PlotCNA(
     }
 
     labels = stk.analyse_cna_adaptive(structure, mode="numeric")
-    colors = np.array([_CNA_COLORS.get(int(l), "#c0c0c0") for l in labels])
+    colors = np.array([_CNA_COLORS.get(int(label), "#c0c0c0") for label in labels])
 
     return stk.plot3d(
         structure,
@@ -207,12 +207,13 @@ def VisualizeMultipleStructures(
     figure_size: float = 4.0,
     rotation: str = "0x,0y,0z",
 ):
-    import matplotlib.pyplot as plt
-    import matplotlib.image as mpimg
-    from ase.io import write
-    import tempfile
-    import os
     import math
+    import os
+    import tempfile
+
+    import matplotlib.image as mpimg
+    import matplotlib.pyplot as plt
+    from ase.io import write
 
     # Suppress any intermediate plots
     plt.ioff()  # turn off interactive mode

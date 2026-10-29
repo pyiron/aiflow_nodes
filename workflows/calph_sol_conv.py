@@ -1,10 +1,10 @@
+from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.engine.lammps import GetPotential
 from aiflow_nodes.atomistic.property.calphy import InputClass, SolidFreeEnergyWithTemp
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.transform import Repeat
 from aiflow_nodes.plotting import InputPlotOptions, MergePlots, Plot
-from aiflow.core import Workflow
-from aiflow.core import group_node
 
 wf = Workflow("calph_sol_conv")
 

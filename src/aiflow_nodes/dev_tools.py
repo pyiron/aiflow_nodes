@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pathlib
 from dataclasses import dataclass
-from typing import Optional
 
 from pyiron_base.storage.hdfio import ProjectHDFio
 
@@ -254,7 +253,7 @@ def wf_data_class(*args, doc_func=None, **kwargs):
 @wf_data_class()
 class wfMetaData:
     log_level: int = 0
-    doc: Optional[str] = None
+    doc: str | None = None
 
 
 def parse_input_kwargs(input_kwargs, expected_type):

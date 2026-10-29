@@ -3,16 +3,17 @@ Multi‑species sp‑tight‑binding builder for an ASE Atoms object.
 The neighbour‑list construction is compatible with all ASE releases.
 """
 
+from typing import Literal
+
 import numpy as np
-from scipy.sparse import csr_matrix
+from aiflow.core import as_function_node
 from ase import Atoms
 from ase.neighborlist import neighbor_list
-from typing import Tuple, Dict, List, Literal, Optional
-from aiflow.core import as_function_node
+from scipy.sparse import csr_matrix
 
 
 # -------------------------------------------------------------------------
-def _pair_key(el1: str, el2: str) -> Tuple[str, str]:
+def _pair_key(el1: str, el2: str) -> tuple[str, str]:
     """Order‑independent dict key for a pair of elements."""
     return tuple(sorted((el1, el2)))
 
@@ -40,15 +41,15 @@ def _sk_matrix(
 def tbHamilton(
     atoms: Atoms,
     rcut: float = 5.0,
-    onsite: Dict[str, Tuple[float, float, float, float]] | None = None,
-    hoppings: Dict[Tuple[str, str], Tuple[float, float, float, float]] | None = None,
+    onsite: dict[str, tuple[float, float, float, float]] | None = None,
+    hoppings: dict[tuple[str, str], tuple[float, float, float, float]] | None = None,
     scaling: Literal["harrison", "none"] = "harrison",
     H_format: Literal["sparse", "full"] = "full",
     verbose: bool = False,
     charges: np.ndarray | None = None,
     chi: np.ndarray | None = None,
     U: np.ndarray | None = None,
-) -> Tuple[csr_matrix, List[Tuple[int, str]]]:
+) -> tuple[csr_matrix, list[tuple[int, str]]]:
     """
     Convert an ASE Atoms object (any composition) into a real‑space sp‑TB Hamiltonian.
 
@@ -301,7 +302,7 @@ def FermiOccupations(
     eigenvectors: np.ndarray,
     electronic_temperature: float,
     n_electrons: float,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Calculate Fermi occupations and orbital‑resolved DOS.
 
     Parameters
@@ -513,9 +514,9 @@ def ShiftDiagonal(
 @as_function_node(["chi", "U"])
 def ChiUData(
     atoms: Atoms,
-    chi_params: Dict[str, float] | None = None,
-    U_params: Dict[str, float] | None = None,
-) -> Tuple[np.ndarray, np.ndarray]:
+    chi_params: dict[str, float] | None = None,
+    U_params: dict[str, float] | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
     """Generate atom‑specific ``chi`` and ``U`` arrays from the atomic structure.
 
     The function mirrors the style of :func:`OnsiteData` by providing a simple
@@ -559,8 +560,8 @@ def ChiUData(
     chi_lookup = chi_params if chi_params is not None else default_chi
     U_lookup = U_params if U_params is not None else default_U
 
-    chi_list: List[float] = []
-    U_list: List[float] = []
+    chi_list: list[float] = []
+    U_list: list[float] = []
     for atom in atoms:
         symbol = atom.symbol
         if symbol not in chi_lookup:
@@ -576,7 +577,7 @@ def ChiUData(
 @as_function_node("chi_dict")
 def ChiData(
     chi_Pt: float = 0.5, chi_O: float = 0.3, chi_H: float = 0.1
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Return a dictionary of ``chi`` parameters for supported elements.
 
     This helper node mirrors the style of :func:`OnsiteData` and provides a
@@ -607,7 +608,7 @@ def ChiData(
 
 
 @as_function_node("u_dict")
-def UData(U_Pt: float = 5.0, U_O: float = 3.0, U_H: float = 2.0) -> Dict[str, float]:
+def UData(U_Pt: float = 5.0, U_O: float = 3.0, U_H: float = 2.0) -> dict[str, float]:
     """Return a dictionary of ``U`` parameters for supported elements.
 
     Mirrors :func:`ChiData` but for the quadratic stiffness coefficients ``U``.
@@ -729,8 +730,8 @@ def InitialChargeDensity(atoms: Atoms, total_charge: float = 0.0) -> np.ndarray:
 def SCC_SCF(
     atoms: Atoms,
     rcut: float = 5.0,
-    onsite: Dict[str, Tuple[float, float, float, float]] | None = None,
-    hoppings: Dict[Tuple[str, str], Tuple[float, float, float, float]] | None = None,
+    onsite: dict[str, tuple[float, float, float, float]] | None = None,
+    hoppings: dict[tuple[str, str], tuple[float, float, float, float]] | None = None,
     scaling: Literal["harrison", "none"] = "harrison",
     H_format: Literal["sparse", "full"] = "full",
     max_iter: int = 20,
@@ -740,7 +741,7 @@ def SCC_SCF(
     electronic_temperature: float = 300.0,
     total_charge: float = 0.0,
     verbose: bool = False,
-) -> Tuple[csr_matrix, np.ndarray, np.ndarray, list, float]:
+) -> tuple[csr_matrix, np.ndarray, np.ndarray, list, float]:
     """
     Perform a simple self‑consistent charge (SCC) SCF loop.
 
@@ -945,7 +946,7 @@ def SCC_SCF(
 @as_function_node
 def ShiftAtom(
     structure: Atoms,
-    species: Optional[str] = None,
+    species: str | None = None,
     atomic_index: int = 0,
     x: float = 0,
     y: float = 0,
@@ -959,9 +960,9 @@ def ShiftAtom(
 
 @as_function_node
 def PlotDos(
-    x: Optional[list | np.ndarray],
+    x: list | np.ndarray | None,
     bins: int = 50,
-    e_Fermi: Optional[float] = None,
+    e_Fermi: float | None = None,
     color: str = "b",
 ):
     """

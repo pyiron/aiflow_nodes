@@ -1,8 +1,8 @@
-from aiflow.core import Node, as_function_node
-from ase.atoms import Atoms
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+from aiflow.core import Node, as_function_node
+from ase.atoms import Atoms
 
 
 @as_function_node
@@ -28,7 +28,6 @@ def CalculateEVCurve(
         DataFrame: columns 'volume', 'energy', 'ase_atoms'
     """
     from ase.optimize import BFGS
-    from ase.filters import ExpCellFilter
 
     volume_factors = np.linspace(
         (1 - vol_range) ** (1 / 3), (1.0 + vol_range) ** (1 / 3), num_of_points
@@ -43,7 +42,6 @@ def CalculateEVCurve(
 
     calculator.inputs.use_symmetry = False
     structure.calc = calculator.pull()
-    initial_volume = structure.get_volume()
 
     data = {"volume": [], "energy": [], "ase_atoms": []}
 

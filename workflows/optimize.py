@@ -1,10 +1,11 @@
 from aiflow.core import Workflow
-from aiflow_nodes.atomistic.engine.ase import GRACE
-from aiflow_nodes.atomistic.structure.build import Bulk
+
 from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,
     Relax,
 )
+from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.structure.build import Bulk
 
 wf = Workflow("optimize")
 

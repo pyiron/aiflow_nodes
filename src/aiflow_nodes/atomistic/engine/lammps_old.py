@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Optional, List, Tuple
+
+from aiflow.core import (
+    as_function_node,
+    as_inp_dataclass_node,
+    as_macro_node,
+    as_out_dataclass_node,
+)
 
 # if TYPE_CHECKING:
 from ase import Atoms
@@ -13,12 +19,6 @@ from aiflow_nodes.atomistic.calculator.data import (
     InputCalcStatic,
 )
 from aiflow_nodes.dev_tools import FileObject
-from aiflow.core import (
-    as_function_node,
-    as_inp_dataclass_node,
-    as_macro_node,
-    as_out_dataclass_node,
-)
 
 # as_inp_dataclass_node()
 
@@ -56,7 +56,7 @@ def Calc(parameters):
 
 
 @as_function_node("calculator")
-def CalcStatic(calculator_input: Optional[InputCalcStatic] = None):
+def CalcStatic(calculator_input: InputCalcStatic | None = None):
     if calculator_input is None:
         calculator_input = InputCalcStatic().run()
 
@@ -70,7 +70,7 @@ def CalcStatic(calculator_input: Optional[InputCalcStatic] = None):
 
 
 @as_function_node("calculator")
-def CalcMinimize(calculator_input: Optional[InputCalcMinimizeLammps] = None):
+def CalcMinimize(calculator_input: InputCalcMinimizeLammps | None = None):
     if calculator_input is None:
         calculator_input = InputCalcMinimizeLammps().run()
 
@@ -84,7 +84,7 @@ def CalcMinimize(calculator_input: Optional[InputCalcMinimizeLammps] = None):
 
 
 @as_function_node("calculator")
-def CalcMD(calculator_input: Optional[InputCalcMD] = None):
+def CalcMD(calculator_input: InputCalcMD | None = None):
     from dataclasses import asdict
 
     if calculator_input is None:
@@ -182,7 +182,7 @@ def InitLammps(
         pot.df = potential
 
     units = None
-    if "units" in pot.keys():
+    if "units" in pot.keys():  # noqa: SIM118  pot is not a dict
         from pyiron_atomistics import pyiron_to_ase
 
         print("Potential contains structure block")
@@ -263,8 +263,8 @@ def compute_water_bonds_indices(
     o_idxs = structure.select_index("O")
     h_idxs = structure.select_index("H")
 
-    bonds: List[Tuple[int, int]] = []
-    angles: List[Tuple[int, int, int]] = []
+    bonds: list[tuple[int, int]] = []
+    angles: list[tuple[int, int, int]] = []
 
     # Loop over each oxygen atom and find hydrogen neighbors within ``cutoff``.
     neigh_obj = get_neighbors(structure, num_neighbors=5, cutoff_radius=cutoff)
@@ -322,8 +322,8 @@ class ShellOutput:
 def Shell(
     working_directory: str,
     command: str = "lmp",
-    environment: Optional[dict] = None,
-    arguments: Optional[list] = None,
+    environment: dict | None = None,
+    arguments: list | None = None,
 ):
     arguments = ["-in", "control.inp"] if arguments is None else arguments
     import os
@@ -431,8 +431,8 @@ def Tip3pData(
     the data file as a ``FileObject``.
     """
     import os
+
     import numpy as np
-    from aiflow_nodes.dev_tools import FileObject
 
     os.makedirs(working_directory, exist_ok=True)
 
@@ -566,7 +566,7 @@ def Tip3pData(
 
 
 @as_function_node("potential")
-def Potential(structure, name: Optional[str] = None, index: int = 0):
+def Potential(structure, name: str | None = None, index: int = 0):
     from pyiron_atomistics.lammps.potential import list_potentials as lp
 
     potentials = lp(structure)
@@ -608,7 +608,7 @@ def GetEnergyPot(generic, i_start: int = 0, i_end: int = -1):
 def Code(
     structure: Atoms,
     calculator,
-    potential: Optional[str] = None,
+    potential: str | None = None,
     working_dir: str = "test2",
 ):
 
@@ -645,7 +645,7 @@ def DummyNode(structure1: Atoms, structure2: Atoms):
 def Code1(
     structure: Atoms,
     calculator,
-    potential: Optional[str] = None,
+    potential: str | None = None,
     working_dir: str = "test2",
 ):
 
@@ -681,7 +681,7 @@ def Code1(
 def Lammps(
     structure: Atoms,
     calculator,
-    potential: Optional[str] = None,
+    potential: str | None = None,
     working_dir: str = "test2",
     store: bool = False,
 ):
@@ -733,7 +733,6 @@ def ParseOutput(working_directory, structure, potential, units="metal"):
 
 
 # helper functions (move later to separate library)
-from ase import Atoms
 
 
 def compute_water_bonds_and_angles(
@@ -763,10 +762,9 @@ def compute_water_bonds_and_angles(
 
     # Chemical symbols as a simple list; we locate O and H indices using
     o_idxs = structure.select_index("O")
-    h_idxs = structure.select_index("H")
 
-    bonds: List[Tuple[int, int]] = []
-    angles: List[Tuple[int, int, int]] = []
+    bonds: list[tuple[int, int]] = []
+    angles: list[tuple[int, int, int]] = []
 
     # Loop over each oxygen atom and find hydrogen neighbors within ``cutoff``.
     neigh_obj = get_neighbors(structure, num_neighbors=5, cutoff_radius=cutoff)
@@ -857,7 +855,7 @@ def extract_charges_from_lammps_potential(lines):
     max_type = max(type_to_group.keys())
     charges_list = [None] * max_type
     for type_id, group_name in type_to_group.items():
-        charges_list[type_id - 1] = charges_dict.get(group_name, None)
+        charges_list[type_id - 1] = charges_dict.get(group_name)
 
     return charges_list
 

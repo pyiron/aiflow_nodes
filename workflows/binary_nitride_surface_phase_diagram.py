@@ -14,6 +14,7 @@ second degree of freedom, so the entire phase diagram is swept by varying μ_cat
 from __future__ import annotations
 
 from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.calculator.ase import Minimize
 from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
 from aiflow_nodes.atomistic.engine.ase import GRACE
@@ -21,7 +22,7 @@ from aiflow_nodes.atomistic.property.surface import (
     BinarySlabConfigurations,
     RelaxSlabsDataFrame,
 )
-from aiflow_nodes.atomistic.structure.build import Bulk, BinaryWurtziteBulk
+from aiflow_nodes.atomistic.structure.build import BinaryWurtziteBulk, Bulk
 from aiflow_nodes.atomistic.structure.calc import EnergyPerFormulaUnit, NumberOfAtoms
 from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
     AddDefectConcentrationColumns,

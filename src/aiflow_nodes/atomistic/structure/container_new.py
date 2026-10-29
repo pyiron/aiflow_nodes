@@ -90,12 +90,12 @@ expects.
 
 from __future__ import annotations  # Enables lazy imports for type hints
 
-from ase import Atoms
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal
-from collections.abc import Callable
 
 from aiflow.core import as_function_node
+from ase import Atoms
 
 if TYPE_CHECKING:
     import numpy as np
@@ -211,9 +211,8 @@ def _protected_uids_from_events(events):
                 forbid.add(int(ev["atom_uid"]))
             elif "site_uid" in ev:
                 forbid.add(int(ev["site_uid"]))
-        elif t == "interstitial":
-            if "atom_uid" in ev:
-                forbid.add(int(ev["atom_uid"]))
+        elif t == "interstitial" and "atom_uid" in ev:
+            forbid.add(int(ev["atom_uid"]))
     return forbid
 
 
@@ -418,12 +417,12 @@ class StructureContainer:
     def get_defect_table(self) -> pd.DataFrame:
         """Return a filtered copy containing only defect rows."""
         df = self.to_dataframe()
-        return df[df["is_pristine"] == False].copy()
+        return df[~df["is_pristine"]].copy()
 
     def get_pristine_table(self) -> pd.DataFrame:
         """Return a filtered copy containing only pristine rows."""
         df = self.to_dataframe()
-        return df[df["is_pristine"] == True].copy()
+        return df[df["is_pristine"]].copy()
 
     # ------------------------------------------------------------------
     # Add Structures
@@ -459,6 +458,7 @@ class StructureContainer:
             Absolute row index of the (possibly pre-existing) pristine entry
         """
         from datetime import datetime
+
         import numpy as np
 
         atoms = ensure_uids(atoms)
@@ -2098,6 +2098,7 @@ def _resolve_parent(
     A clear warning is displayed in this case.
     """
     import warnings
+
     import numpy as np
 
     # Warning: Both parameters provided (aiflow_nodes behavior)
@@ -3350,7 +3351,6 @@ def GetVoronoiInterstitialSites(
     GetVoronoiInterstitialSitesPymatgen : Symmetry-aware alternative (slower, requires pymatgen).
     GetDelaunayInterstitialSites : Equivalent via Delaunay circumcenters.
     """
-    import numpy as np
     from scipy.spatial import Voronoi
 
     if (primitive_atoms is None) != (repeat is None):

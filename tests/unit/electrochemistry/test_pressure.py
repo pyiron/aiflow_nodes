@@ -6,8 +6,6 @@ from pathlib import Path
 
 import numpy as np
 from ase import Atoms
-from ase.constraints import FixAtoms, FixedPlane
-
 from lammpsparser.compatibility.constraints import (
     _get_fixed_atom_boolean_vector,
     set_selective_dynamics,

@@ -133,7 +133,7 @@ test = "coverage run --rcfile=.coveragerc && coverage report --rcfile=.coverager
 ruff = "==0.17.3"
 
 [tool.pixi.feature.lint.tasks]
-lint = "ruff format --check --diff ."
+lint = "ruff check . && ruff format --check --diff ."
 
 # deptry inspects the installed packages, so it runs in the full environment.
 [tool.pixi.feature.deptry.dependencies]
@@ -159,3 +159,37 @@ DEP001 = ["pyiron_ai", "pyironflow", "qe_xml_parser"]
 DEP002 = ["aiflow_nodes"]
 # Only used by benchmark.py, which needs pyiron_ai anyway.
 DEP003 = ["markdown"]
+
+[tool.ruff]
+exclude = [
+    "docs",
+    "notebooks",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "I",   # isort
+    "C4",  # flake8-comprehensions
+    # Not enabled yet, too many violations to fix in one go:
+    # "B",   # flake8-bugbear
+    # "ERA", # eradicate
+    # "PL",  # pylint
+]
+ignore = [
+    "E402",   # module-level import not at top of file
+    "E501",   # line length handled by formatter
+    "PLC0415",# import should be at top-level (pylint rule)
+    "PLR0913",# too many arguments
+    "PLR2004",# magic values in comparisons
+    "PLR0912",# too many branches
+    "SIM108", # ternary instead of if-else block, often less readable
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # submodule imports populate the package namespace
+"workflows/whileloop.py_fix.py" = ["F821"]  # patch snippet, not runnable on its own
+"src/aiflow_nodes/electrochemistry/tb/ham.py" = ["E741"]  # l, m, n are direction cosines

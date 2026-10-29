@@ -1,8 +1,8 @@
+from aiflow.core import Workflow, group_node
+
 from aiflow_nodes.controls import IterToDataFrame
 from aiflow_nodes.math_utils import Linspace
 from aiflow_nodes.plotting import InputPlotOptions, PlotDataFrameXY
-from aiflow.core import Workflow
-from aiflow.core import group_node
 
 # ── Group node factories ─────────────────────────────
 
@@ -21,17 +21,17 @@ def GetMeltingT(
     store=True,
     liquid_fe__store=True,
 ):
-    from aiflow_nodes.atomistic.structure.build import Bulk
-    from aiflow_nodes.atomistic.structure.transform import Repeat
+    from aiflow.core import Workflow
+
+    from aiflow_nodes.atomistic.engine.lammps import ListPotentials
     from aiflow_nodes.atomistic.property.calphy import (
         FindMeltingTemperature,
         InputClass,
         LiquidFreeEnergyWithTemp,
         SolidFreeEnergyWithTemp,
     )
-    from aiflow_nodes.atomistic.engine.lammps import ListPotentials
-    from aiflow_nodes.atomistic.structure.transform import Rattle
-    from aiflow.core import Workflow
+    from aiflow_nodes.atomistic.structure.build import Bulk
+    from aiflow_nodes.atomistic.structure.transform import Rattle, Repeat
 
     inner_wf = Workflow("GetMeltingT")
     inner_wf.Bulk = Bulk(name=name, cubic=cubic)

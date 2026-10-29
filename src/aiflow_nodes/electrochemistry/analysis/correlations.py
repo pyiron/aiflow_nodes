@@ -1,8 +1,6 @@
-from typing import Sequence, Optional
 import numpy as np
-
-from ase.atoms import Atoms
 from aiflow.core import as_function_node
+
 from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
 """
@@ -86,7 +84,7 @@ def _rotation_matrix(axis: np.ndarray, angle: float) -> np.ndarray:
 def rotate_water_frame(
     md_output: OutputCalcMD.dataclass_type,
     eps: float = 0.1,
-    xy_max: Optional[float] = 5,
+    xy_max: float | None = 5,
     as_log: bool = True,
     n_bins: int = 100,
 ):

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 import pandas as pd
 from aiflow.core import as_function_node
@@ -84,7 +84,7 @@ def SetLammpsCalcInput(
 @as_function_node("init")
 def LammpsInit(
     io_bundle: LammpsIOBundle,
-    read_restart: Optional[str] = None,
+    read_restart: str | None = None,
 ) -> str:
     """Initialization block: units, dimension, boundary, atom_style,
     read_data/read_restart.
@@ -151,7 +151,7 @@ def LammpsPotential(
 @as_function_node("dump")
 def LammpsDump(
     io_bundle: LammpsIOBundle,
-    n_print: Optional[int] = None,
+    n_print: int | None = None,
     filename: str = "dump.out",
 ) -> str:
     """Dump block: trajectory output configuration.
@@ -169,7 +169,7 @@ def LammpsDump(
 @as_function_node("thermo")
 def LammpsThermo(
     io_bundle: LammpsIOBundle,
-    n_print: Optional[int] = None,
+    n_print: int | None = None,
 ) -> str:
     """Thermo block: output frequency, style, and format for log.lammps.
 
@@ -183,13 +183,13 @@ def LammpsThermo(
 @as_function_node(["ensemble", "fix_ids"])
 def LammpsEnsemble(
     io_bundle: LammpsIOBundle,
-    temperature: Optional[float] = None,
-    pressure: Optional[float] = None,
-    temperature_damping: Optional[float] = None,
-    pressure_damping: Optional[float] = None,
-    langevin: Optional[bool] = None,
-    seed: Optional[int] = None,
-    ensemble: Optional[Literal["nve", "nvt", "npt"]] = None,
+    temperature: float | None = None,
+    pressure: float | None = None,
+    temperature_damping: float | None = None,
+    pressure_damping: float | None = None,
+    langevin: bool | None = None,
+    seed: int | None = None,
+    ensemble: Literal["nve", "nvt", "npt"] | None = None,
 ) -> tuple[str, list[str]]:
     """Ensemble block: fix NVE / NVT / NPT (Nosé–Hoover or Langevin).
 
@@ -278,10 +278,10 @@ def LammpsEnsemble(
 @as_function_node("velocity")
 def LammpsVelocity(
     io_bundle: LammpsIOBundle,
-    temperature: Optional[float] = None,
-    initial_temperature: Optional[float] = None,
-    seed: Optional[int] = None,
-    time_step: Optional[float] = None,
+    temperature: float | None = None,
+    initial_temperature: float | None = None,
+    seed: int | None = None,
+    time_step: float | None = None,
 ) -> str:
     """Velocity + timestep block.
 
@@ -313,11 +313,11 @@ def LammpsVelocity(
 @as_function_node("minimize")
 def LammpsMinimize(
     io_bundle: LammpsIOBundle,
-    e_tol: Optional[float] = None,
-    f_tol: Optional[float] = None,
-    max_iter: Optional[int] = None,
-    style: Optional[str] = None,
-    pressure: Optional[float] = None,
+    e_tol: float | None = None,
+    f_tol: float | None = None,
+    max_iter: int | None = None,
+    style: str | None = None,
+    pressure: float | None = None,
 ) -> str:
     """Minimization block: optional box relaxation, min_style, minimize.
 
@@ -363,9 +363,9 @@ def AssembleLammpsInput(
     calculation: str = "",
     calculation_fix_ids: list[str] = [],
     velocity: str = "",
-    run: Optional[int] = None,
-    write_restart: Optional[str] = None,
-    mode: Optional[str] = None,
+    run: int | None = None,
+    write_restart: str | None = None,
+    mode: str | None = None,
 ) -> LammpsIOBundle:
     """Assemble named sections into a LAMMPS input, in the fixed order LAMMPS
     requires (init, potential, dump, thermo, velocity, calculation, run), and

@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 
 import numpy as np
-
 from aiflow.core import (
     Workflow,
     as_function_node,
-    group_node,
     as_out_dataclass_node,
+    group_node,
 )
 
 kB_meV = 8.617333262145e-2  # Boltzmann's constant in eV/K

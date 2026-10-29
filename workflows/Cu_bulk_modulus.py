@@ -41,6 +41,8 @@ or Au, whose EMT equilibrium volume is near 16.4 A^3/atom - for those, raise
 `cu_fcc.a` as well. Always check `ev_plot` before trusting `eos_fit`.
 """
 
+from aiflow.core import Workflow, as_function_node
+
 from aiflow_nodes.atomistic.calculator.data import OutputSEFS
 from aiflow_nodes.atomistic.calculator.generic import ApplyEngine, CreateSEFSContainer
 from aiflow_nodes.atomistic.engine.ase import EMT
@@ -48,8 +50,6 @@ from aiflow_nodes.atomistic.property.bulk import FitBirchMurnaghanEOS, PlotEVCur
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.transform import GenerateStrainedStructures
 from aiflow_nodes.math_utils import Linspace
-from aiflow.core import Workflow
-from aiflow.core import as_function_node
 
 # ── Local node definitions ──────────────────────
 

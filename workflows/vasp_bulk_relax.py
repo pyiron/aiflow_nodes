@@ -1,3 +1,5 @@
+from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.calculator.data import (
     InputMinimizationVASP,
     InputSCF,
@@ -9,8 +11,6 @@ from aiflow_nodes.atomistic.engine.vasp_new import (
     RunVaspCalculation,
 )
 from aiflow_nodes.atomistic.structure.build import Bulk
-from aiflow.core import Workflow
-from aiflow.core import group_node
 
 wf = Workflow("vasp_bulk_relax")
 

@@ -1,6 +1,5 @@
 from aiflow.core import Workflow
-from aiflow_nodes.atomistic.engine.ase import GRACE
-from aiflow_nodes.dataframe import GetColumnFromDataFrame
+
 from aiflow_nodes.atomistic.assyst2.structures import (
     ElementInput,
     SpaceGroupSampling,
@@ -11,6 +10,8 @@ from aiflow_nodes.atomistic.calculator.ase import (
     Relax,
     Static,
 )
+from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.dataframe import GetColumnFromDataFrame
 from aiflow_nodes.math_utils import Multiply
 from aiflow_nodes.plotting import (
     Histogram,

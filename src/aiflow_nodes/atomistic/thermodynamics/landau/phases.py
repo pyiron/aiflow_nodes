@@ -2,7 +2,6 @@ from dataclasses import replace
 
 import landau
 import numpy as np
-
 from aiflow.core import as_function_node
 
 

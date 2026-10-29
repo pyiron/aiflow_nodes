@@ -14,32 +14,29 @@ Features:
 - Detailed comparison reports
 """
 
-from typing import Optional, Dict, Any, Tuple, List, Union
-import pandas as pd
-import numpy as np
 import warnings
-from pathlib import Path
+from typing import Any
 
-from sklearn.metrics import (
-    r2_score,
-    mean_squared_error,
-    mean_absolute_error,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    confusion_matrix,
-    classification_report,
-)
-
+import numpy as np
+import pandas as pd
 from aiflow.core import as_function_node
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+)
 
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================
 
 
-def infer_task_type(y: Union[pd.Series, np.ndarray]) -> str:
+def infer_task_type(y: pd.Series | np.ndarray) -> str:
     """
     Automatically infer task type from target variable.
 
@@ -64,8 +61,8 @@ def infer_task_type(y: Union[pd.Series, np.ndarray]) -> str:
 
 
 def validate_data(
-    X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray]
-) -> Tuple[pd.DataFrame, pd.Series]:
+    X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray
+) -> tuple[pd.DataFrame, pd.Series]:
     """
     Validate and convert input data to proper format.
 
@@ -105,7 +102,7 @@ def validate_data(
     return X, y
 
 
-def validate_models_dict(models: Dict[str, Any]) -> Dict[str, Any]:
+def validate_models_dict(models: dict[str, Any]) -> dict[str, Any]:
     """
     Validate that all models in dictionary are fitted estimators.
 
@@ -138,13 +135,13 @@ def validate_models_dict(models: Dict[str, Any]) -> Dict[str, Any]:
 
 @as_function_node("validation_results")
 def ValidateRegressionModels(
-    models: Dict[str, Any],
-    X_test: Union[pd.DataFrame, np.ndarray],
-    y_test: Union[pd.Series, np.ndarray],
+    models: dict[str, Any],
+    X_test: pd.DataFrame | np.ndarray,
+    y_test: pd.Series | np.ndarray,
     metric: str = "r2",
-    output_file: Optional[str] = None,
+    output_file: str | None = None,
     verbose: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate and rank multiple pre-trained regression models.
 
@@ -241,9 +238,9 @@ def ValidateRegressionModels(
 
     if verbose:
         print()
-        print(f"═" * 80)
+        print("═" * 80)
         print(f"Best Model: {best_model_name:30s} {metric.upper()}={best_score:.6f}")
-        print(f"═" * 80)
+        print("═" * 80)
 
     # Save to CSV if requested
     if output_file:
@@ -269,13 +266,13 @@ def ValidateRegressionModels(
 
 @as_function_node("validation_results")
 def ValidateClassificationModels(
-    models: Dict[str, Any],
-    X_test: Union[pd.DataFrame, np.ndarray],
-    y_test: Union[pd.Series, np.ndarray],
+    models: dict[str, Any],
+    X_test: pd.DataFrame | np.ndarray,
+    y_test: pd.Series | np.ndarray,
     metric: str = "accuracy",
-    output_file: Optional[str] = None,
+    output_file: str | None = None,
     verbose: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate and rank multiple pre-trained classification models.
 
@@ -376,9 +373,9 @@ def ValidateClassificationModels(
 
     if verbose:
         print()
-        print(f"═" * 80)
+        print("═" * 80)
         print(f"Best Model: {best_model_name:30s} {metric.upper()}={best_score:.6f}")
-        print(f"═" * 80)
+        print("═" * 80)
 
     # Save to CSV if requested
     if output_file:
@@ -408,13 +405,13 @@ def ValidateClassificationModels(
 
 @as_function_node("validation_results")
 def ValidateModelsAuto(
-    models: Dict[str, Any],
-    X_test: Union[pd.DataFrame, np.ndarray],
-    y_test: Union[pd.Series, np.ndarray],
-    metric: Optional[str] = None,
-    output_file: Optional[str] = None,
+    models: dict[str, Any],
+    X_test: pd.DataFrame | np.ndarray,
+    y_test: pd.Series | np.ndarray,
+    metric: str | None = None,
+    output_file: str | None = None,
     verbose: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Automatically detect task type and validate pre-trained models.
 
@@ -472,12 +469,12 @@ def ValidateModelsAuto(
 
 @as_function_node("detailed_report")
 def GenerateDetailedValidationReport(
-    models: Dict[str, Any],
-    X_test: Union[pd.DataFrame, np.ndarray],
-    y_test: Union[pd.Series, np.ndarray],
-    output_file: Optional[str] = None,
+    models: dict[str, Any],
+    X_test: pd.DataFrame | np.ndarray,
+    y_test: pd.Series | np.ndarray,
+    output_file: str | None = None,
     verbose: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Generate a comprehensive validation report with all available metrics.
 
@@ -509,7 +506,7 @@ def GenerateDetailedValidationReport(
 
     if verbose:
         print(f"Task Type: {task_type}")
-        print(f"Generating detailed validation report...")
+        print("Generating detailed validation report...")
         print()
 
     detailed_results = []
@@ -628,10 +625,10 @@ def CompareModelPair(
     model_1_name: str,
     model_2: Any,
     model_2_name: str,
-    X_test: Union[pd.DataFrame, np.ndarray],
-    y_test: Union[pd.Series, np.ndarray],
+    X_test: pd.DataFrame | np.ndarray,
+    y_test: pd.Series | np.ndarray,
     verbose: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Compare two pre-trained models side-by-side.
 

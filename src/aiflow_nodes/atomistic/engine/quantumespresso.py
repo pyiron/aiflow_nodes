@@ -1,8 +1,9 @@
 import os
 import subprocess
+
+from aiflow.core import Node, as_function_node, run_external
 from ase.build import bulk
 from ase.io import write
-from aiflow.core import as_function_node, Node, run_external
 
 
 def _write_input(input_dict, working_directory="."):
@@ -81,7 +82,6 @@ def converge_energy_cutoff(
 ):
     import numpy as np
 
-    encut = dft_function.inputs.encut.value
     energy_lst = [dft_function()[0]]
     for i in range(max_steps):
         dft_function.inputs.encut.value += 1

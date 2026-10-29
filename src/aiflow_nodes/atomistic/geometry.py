@@ -13,19 +13,16 @@ by their chemical symbol ``"O"`` and the H atoms by ``"H"``.
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
-
 import numpy as np
-from ase import Atoms
-
 from aiflow.core import as_function_node
+from ase import Atoms
 
 
 @as_function_node("structure")
 def compute_water_bonds_angles(
     structure: Atoms,
     cutoff: float = 1.2,
-) -> Dict[str, List]:
+) -> dict[str, list]:
     """Compute O–H bond lengths and H‑O‑H angles for water molecules.
 
     Parameters
@@ -61,8 +58,8 @@ def compute_water_bonds_angles(
     o_indices = np.where(symbols == "O")[0]
     h_indices = np.where(symbols == "H")[0]
 
-    bonds: List[Tuple[int, int, float]] = []
-    angles: List[Tuple[int, int, int, float]] = []
+    bonds: list[tuple[int, int, float]] = []
+    angles: list[tuple[int, int, int, float]] = []
 
     # Pre‑compute distance matrix for efficiency
     diff = positions[:, None, :] - positions[None, :, :]

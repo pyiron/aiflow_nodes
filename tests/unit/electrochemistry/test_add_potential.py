@@ -56,13 +56,13 @@ _NE_POTCAR = "  POMASS =   20.180; ZVAL   =    8.000    mass and valenz\n"
 
 def make_scf(**overrides) -> InputSCF:
     """Build a pure ``InputSCF`` dataclass instance (kpoints is required)."""
-    params = dict(kpoints="4 4 4")
+    params = {"kpoints": "4 4 4"}
     params.update(overrides)
     return InputSCF._original_dataclass(**params)
 
 
 def make_md(**overrides) -> InputMDVASP:
-    params = dict(temperature=400.0, n_ionic_steps=20)
+    params = {"temperature": 400.0, "n_ionic_steps": 20}
     params.update(overrides)
     return InputMDVASP._original_dataclass(**params)
 
@@ -82,20 +82,20 @@ class TestPluginContent(unittest.TestCase):
         self._tmp.cleanup()
 
     def _params(self, **kw):
-        base = dict(
-            path_to_plugin=self.template,
-            phi0=0.5,
-            Q0=0.0,
-            nelect_neutral=38,
-            grid_position_frac=0.85,
-            grid_roll_frac=0.1,
-            tau=50.0,
-            temperature=400.0,
-            ax=10.0,
-            ay=10.0,
-            az=12.0,
-            d_electrode=4.0,
-        )
+        base = {
+            "path_to_plugin": self.template,
+            "phi0": 0.5,
+            "Q0": 0.0,
+            "nelect_neutral": 38,
+            "grid_position_frac": 0.85,
+            "grid_roll_frac": 0.1,
+            "tau": 50.0,
+            "temperature": 400.0,
+            "ax": 10.0,
+            "ay": 10.0,
+            "az": 12.0,
+            "d_electrode": 4.0,
+        }
         base.update(kw)
         return CEParameters(**base)
 
@@ -327,25 +327,25 @@ class TestPluginTemplatesFormat(unittest.TestCase):
     stray unescaped brace sneaking into a shipped template."""
 
     def _all_params(self):
-        return dict(
-            phi0=0.0,
-            Q0=0.0,
-            nelect_neutral=38,
-            grid_roll_frac=0.1,
-            grid_position_frac=0.85,
-            tau=50.0,
-            temperature=400.0,
-            ax=10.0,
-            ay=10.0,
-            az=12.0,
-            d_electrode=4.0,
-            i_Ne=1,
-            n_elements=2,
-            n_Ne=2,
-            Q_pos="np.array([5.0, 5.0, 7.0])",
-            width_wall=6.5,
-            pos_right_wall=0.75,
-        )
+        return {
+            "phi0": 0.0,
+            "Q0": 0.0,
+            "nelect_neutral": 38,
+            "grid_roll_frac": 0.1,
+            "grid_position_frac": 0.85,
+            "tau": 50.0,
+            "temperature": 400.0,
+            "ax": 10.0,
+            "ay": 10.0,
+            "az": 12.0,
+            "d_electrode": 4.0,
+            "i_Ne": 1,
+            "n_elements": 2,
+            "n_Ne": 2,
+            "Q_pos": "np.array([5.0, 5.0, 7.0])",
+            "width_wall": 6.5,
+            "pos_right_wall": 0.75,
+        }
 
     def test_templates_are_format_compatible(self):
         for name in ("vasp_plugin-CCE.plugin", "vasp_plugin-CDCE_MD.plugin"):

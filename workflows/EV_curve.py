@@ -1,4 +1,5 @@
 from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.calculator.data import OutputSEFS
 from aiflow_nodes.atomistic.calculator.generic import ApplyEngine, CreateSEFSContainer
 from aiflow_nodes.atomistic.engine.ase import GRACE

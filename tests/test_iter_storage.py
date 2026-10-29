@@ -8,12 +8,11 @@ import pathlib
 import tempfile
 
 import pytest
-
 from aiflow.core import as_function_node
 from aiflow.core.graph import Graph
 from aiflow.database.instance_database.InstanceDatabase import InstanceDatabase
 
-from aiflow_nodes.controls import branch, _iterate_node
+from aiflow_nodes.controls import _iterate_node, branch
 
 
 class MemDB(InstanceDatabase):
@@ -143,8 +142,9 @@ class PicklingExecutor:
         self.submitted = 0
 
     def submit(self, fn, *args, **kwargs):
-        import cloudpickle
         from concurrent.futures import Future
+
+        import cloudpickle
 
         self.submitted += 1
         payload = cloudpickle.dumps((fn, args, kwargs))  # raises if unpicklable

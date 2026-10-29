@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Optional, Literal
+from typing import Literal
 
 from aiflow.core import as_inp_dataclass_node, as_out_dataclass_node
 from aiflow.core.data_fields import DataArray, EmptyArrayField
@@ -14,14 +14,12 @@ def wfMetaData(log_level=0, doc=""):
 class OutputSEFS:
     import numpy as np
 
-    structures: Optional[np.ndarray] = field(
+    structures: np.ndarray | None = field(
         default=None, metadata=wfMetaData(log_level=10)
     )
-    energies: Optional[float] = field(default=None, metadata=wfMetaData(log_level=0))
-    forces: Optional[np.ndarray] = field(default=None, metadata=wfMetaData(log_level=0))
-    stresses: Optional[np.ndarray] = field(
-        default=None, metadata=wfMetaData(log_level=10)
-    )
+    energies: float | None = field(default=None, metadata=wfMetaData(log_level=0))
+    forces: np.ndarray | None = field(default=None, metadata=wfMetaData(log_level=0))
+    stresses: np.ndarray | None = field(default=None, metadata=wfMetaData(log_level=10))
 
 
 @as_out_dataclass_node
@@ -29,14 +27,12 @@ class OutputCalcStatic:
     import numpy as np
     from ase import Atoms
 
-    energy: Optional[float] = field(default=None, metadata=wfMetaData(log_level=0))
-    force: Optional[np.ndarray] = field(default=None, metadata=wfMetaData(log_level=0))
-    stress: Optional[np.ndarray] = field(
-        default=None, metadata=wfMetaData(log_level=10)
-    )
-    structure: Optional[Atoms] = field(default=None, metadata=wfMetaData(log_level=10))
+    energy: float | None = field(default=None, metadata=wfMetaData(log_level=0))
+    force: np.ndarray | None = field(default=None, metadata=wfMetaData(log_level=0))
+    stress: np.ndarray | None = field(default=None, metadata=wfMetaData(log_level=10))
+    structure: Atoms | None = field(default=None, metadata=wfMetaData(log_level=10))
 
-    atomic_energies: Optional[float] = field(
+    atomic_energies: float | None = field(
         default=None,
         metadata=wfMetaData(
             log_level=0, doc="per atom energy, only if supported by calculator"
@@ -48,14 +44,12 @@ class OutputCalcStatic:
 class OutputCalcStaticList:
     import numpy as np
 
-    energies_pot: Optional[np.ndarray] = field(
+    energies_pot: np.ndarray | None = field(
         default=None, metadata=wfMetaData(log_level=0)
     )
-    forces: Optional[np.ndarray] = field(default=None, metadata=wfMetaData(log_level=0))
-    stresses: Optional[np.ndarray] = field(
-        default=None, metadata=wfMetaData(log_level=10)
-    )
-    structures: Optional[np.ndarray] = field(
+    forces: np.ndarray | None = field(default=None, metadata=wfMetaData(log_level=0))
+    stresses: np.ndarray | None = field(default=None, metadata=wfMetaData(log_level=10))
+    structures: np.ndarray | None = field(
         default=None, metadata=wfMetaData(log_level=10)
     )
     is_converged: bool = False
@@ -67,11 +61,11 @@ class OutputCalcMinimize:
     cells: DataArray = EmptyArrayField()
     positions: DataArray = EmptyArrayField()
     species: DataArray = EmptyArrayField()
-    initial: Optional[OutputCalcStatic] = field(
+    initial: OutputCalcStatic | None = field(
         default_factory=lambda: OutputCalcStatic.pure_dataclass(),
         metadata=wfMetaData(log_level=0),
     )
-    final: Optional[OutputCalcStatic] = field(
+    final: OutputCalcStatic | None = field(
         default_factory=lambda: OutputCalcStatic.pure_dataclass(),
         metadata=wfMetaData(log_level=0),
     )
@@ -118,21 +112,21 @@ class InputCalcMD:
     temperature: float = 300  # in K, we need more than one temperature field to support rescaling, but this is the default/initial temperature
     n_ionic_steps: int = 10_000
     n_print: int = 100
-    n_print_force: Optional[int] = (
+    n_print_force: int | None = (
         None  # electrode-force sampling interval; None follows n_print.  Kept separate because a force sample is a few bytes and a trajectory frame is ~200 kB
     )
-    pressure: Optional[float] = None
+    pressure: float | None = None
     time_step: float = 1.0
-    temperature_damping_timescale: Optional[float] = 100.0
-    pressure_damping_timescale: Optional[float] = 1000.0
+    temperature_damping_timescale: float | None = 100.0
+    pressure_damping_timescale: float | None = 1000.0
     seed: int = 42
-    tloop: Optional[int] = (
+    tloop: int | None = (
         None  # number of steps to loop over for temperature rescaling, if applicable, should be int???
     )
-    initial_temperature: Optional[float] = None  # FIXME
+    initial_temperature: float | None = None  # FIXME
     langevin: bool = False
-    delta_temp: Optional[float] = None
-    delta_press: Optional[float] = None
+    delta_temp: float | None = None
+    delta_press: float | None = None
 
 
 @as_inp_dataclass_node
@@ -234,17 +228,17 @@ class InputMDVASP:
 
     ensemble: Literal["NVT", "NpT"] = "NVT"
     temperature: float = 300.0  # in K, initial/target temperature
-    final_temperature: Optional[float] = None  # in K, None → isothermal at temperature
+    final_temperature: float | None = None  # in K, None → isothermal at temperature
     n_ionic_steps: int = 10_000
     n_print: int = 100
     time_step: float = 1.0  # in fs
-    pressure: Optional[float] = None  # in GPa, required for NpT, ignored for NVT
+    pressure: float | None = None  # in GPa, required for NpT, ignored for NVT
     temperature_damping_timescale: float = 100.0  # in fs, Langevin friction on the ions
     pressure_damping_timescale: float = 1000.0  # in fs, Langevin friction on the cell
     lattice_mass: float = (
         1000.0  # in amu, fictitious mass of the cell degrees of freedom
     )
-    seed: Optional[int] = None  # None → let VASP pick its own random seed
+    seed: int | None = None  # None → let VASP pick its own random seed
 
 
 @as_inp_dataclass_node
@@ -274,8 +268,8 @@ class OutputVaspDOS:
     total_densities: DataArray = EmptyArrayField()
     integrated_densities: DataArray = EmptyArrayField()
     resolved_densities: DataArray = EmptyArrayField()
-    orbitals: Optional[list] = None
-    efermi: Optional[float] = None
+    orbitals: list | None = None
+    efermi: float | None = None
 
 
 @as_inp_dataclass_node
@@ -296,8 +290,8 @@ class InputVaspDOS:
 
     n_points: int = 301  # NEDOS: number of points on the energy grid
     projected: bool = False  # LORBIT 11: site- and orbital-projected DOS
-    energy_min: Optional[float] = None  # EMIN: lower end of the window, None → auto
-    energy_max: Optional[float] = None  # EMAX: upper end of the window, None → auto
+    energy_min: float | None = None  # EMIN: lower end of the window, None → auto
+    energy_max: float | None = None  # EMAX: upper end of the window, None → auto
 
 
 @as_inp_dataclass_node
@@ -323,16 +317,16 @@ class InputVaspOutputFiles:
 class AdditionalInputFlags:
     """Adding additional Input Flags that are not present in the predefined dataclasses."""
 
-    key1: Optional[str] = None
-    value1: Optional[str] = None
-    key2: Optional[str] = None
-    value2: Optional[str] = None
-    key3: Optional[str] = None
-    value3: Optional[str] = None
-    key4: Optional[str] = None
-    value4: Optional[str] = None
-    key5: Optional[str] = None
-    value5: Optional[str] = None
+    key1: str | None = None
+    value1: str | None = None
+    key2: str | None = None
+    value2: str | None = None
+    key3: str | None = None
+    value3: str | None = None
+    key4: str | None = None
+    value4: str | None = None
+    key5: str | None = None
+    value5: str | None = None
 
     def to_dict(self) -> dict:
 

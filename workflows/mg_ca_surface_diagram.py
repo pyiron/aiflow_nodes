@@ -1,12 +1,13 @@
 import pandas as pd
+from aiflow.core import Node, Workflow, as_function_node, group_node
 from ase import Atoms
-from aiflow.core import Workflow, as_function_node, group_node
-from aiflow_nodes.atomistic.structure.build import Bulk
+
 from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,
     Relax,
 )
 from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.structure.build import Bulk
 
 # ── Local node definitions ──────────────────────
 
@@ -116,6 +117,7 @@ def ChemicalPotentialSweep(
 @group_node("surface")
 def mg_surface(size="1 1 1", vacuum=1.0):
     from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.structure.build import Surface
 
     inner_wf = Workflow("mg_surface")
@@ -128,6 +130,7 @@ def mg_surface(size="1 1 1", vacuum=1.0):
 @group_node("mu")
 def mu_mg(structure, engine, optimizer_settings=None):
     from aiflow.core import Workflow, as_function_node
+
     from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
@@ -154,6 +157,7 @@ def mu_mg(structure, engine, optimizer_settings=None):
 @group_node("mu")
 def mu_ca_ref(structure, engine, optimizer_settings=None):
     from aiflow.core import Workflow, as_function_node
+
     from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
@@ -180,6 +184,7 @@ def mu_ca_ref(structure, engine, optimizer_settings=None):
 @group_node("result")
 def FormationEnergies(df, mu_host, mu_solute):
     from aiflow.core import Workflow, as_function_node
+
     from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
         AddDefectConcentrationColumns,
         AddElementCountColumns,

@@ -56,10 +56,9 @@ Usage
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Union
 
-from ase.atoms import Atoms
 from aiflow.core.data_fields import DataArray, EmptyArrayField
+from ase.atoms import Atoms
 
 # ---------------------------------------------------------------------------
 # OutputAtoms dataclass
@@ -109,7 +108,7 @@ class OutputAtoms:
 #: Use this in function signatures to signal that both raw ASE
 #: :class:`~ase.atoms.Atoms` and picklable :class:`OutputAtoms`
 #: instances are valid inputs.
-AtomsLike = Union[Atoms, OutputAtoms]
+AtomsLike = Atoms | OutputAtoms
 
 
 # ---------------------------------------------------------------------------

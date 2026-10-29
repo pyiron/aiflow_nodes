@@ -1,3 +1,5 @@
+from aiflow.core import Workflow, group_node
+
 from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsStructure,
     ListPotentials,
@@ -7,8 +9,6 @@ from aiflow_nodes.atomistic.engine.lammps_input import LammpsInit, WriteFile
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.controls import pick_element
 from aiflow_nodes.executors import SlurmExecutor
-from aiflow.core import Workflow
-from aiflow.core import group_node
 
 # ── Group node factories ─────────────────────────────
 
@@ -23,6 +23,8 @@ def LammpsMiniimze(
     run=None,
     write_restart=None,
 ):
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.engine.lammps_input import (
         AssembleLammpsInput,
         LammpsDump,
@@ -30,7 +32,6 @@ def LammpsMiniimze(
         LammpsPotential,
         LammpsThermo,
     )
-    from aiflow.core import Workflow
 
     inner_wf = Workflow("LammpsMiniimze")
     inner_wf.LammpsDump = LammpsDump(io_bundle=io_bundle)
@@ -54,12 +55,13 @@ def LammpsMiniimze(
 
 @group_node("io_bundle")
 def LammpsMD(io_bundle, run=None, write_restart=None):
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.engine.lammps_input import (
         AssembleLammpsInput,
         LammpsEnsemble,
         LammpsVelocity,
     )
-    from aiflow.core import Workflow
 
     inner_wf = Workflow("LammpsMD")
     inner_wf.LammpsEnsemble = LammpsEnsemble(io_bundle=io_bundle)

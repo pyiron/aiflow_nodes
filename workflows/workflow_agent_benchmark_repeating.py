@@ -36,9 +36,10 @@ What to do with it
    timeout, which contains hangs and crashes — it is **not** a security sandbox.
 """
 
+from aiflow.core import Workflow
+
 from aiflow_nodes.benchmark import BenchmarkReport, PlotBenchmark, _BenchmarkSuiteCore
 from aiflow_nodes.executors import SlurmExecutor
-from aiflow.core import Workflow
 
 wf = Workflow("workflow_agent_benchmark_repeating")
 wf.storage_enabled = True

@@ -1,5 +1,4 @@
 import pathlib
-from typing import Optional
 
 from aiflow.core import as_function_node
 from aiflow.core.graph import Graph, Node
@@ -23,8 +22,8 @@ def LoadGraph(path: str):
     aiflow.core.graph.Graph
         The deserialized workflow graph.
     """
-    from aiflow.core.graph import Graph
     from aiflow.core.config import paths
+    from aiflow.core.graph import Graph
 
     # 1️⃣  Is the supplied path already absolute?
     if not pathlib.Path(path).is_absolute():
@@ -37,8 +36,9 @@ def LoadGraph(path: str):
 
 @as_function_node
 def SaveGraph(graph: Graph, path: str):
-    from aiflow.core.config import paths
     from os.path import isfile
+
+    from aiflow.core.config import paths
 
     # 1️⃣  Is the supplied path already absolute?
     if not pathlib.Path(path).is_absolute():
@@ -87,7 +87,7 @@ def DisplayEdges(graph: Graph):
 
 
 @as_function_node
-def NodesToGui(graph: Graph, remove_none: Optional[bool] = False):
+def NodesToGui(graph: Graph, remove_none: bool | None = False):
     from pyironflow.gui_utilities import _nodes_to_gui
 
     nodes = _nodes_to_gui(graph, remove_none=False)
@@ -173,8 +173,8 @@ def ExpandNode(graph: Graph, node_label: str):
 
 @as_function_node
 def AnalyzeParents(graph: Graph):
-    from pyironflow.gui_utilities import _nodes_to_gui
     import pandas as pd
+    from pyironflow.gui_utilities import _nodes_to_gui
 
     # print(f"graph.nodes keys: {list(graph.nodes.keys())}")
     # for label, node in graph.nodes.items():
@@ -200,7 +200,6 @@ def GetCodeFromGraph(
 
 @as_function_node
 def GetFunctionFromNode(node: Node):
-    import inspect
 
     code = f"# {node._module_path}\n{node._source}"
     return code

@@ -1,18 +1,19 @@
 from __future__ import annotations
 
+from typing import Literal
+
 import numpy as np
 import pandas as pd
-from typing import Literal, Optional
 from aiflow.core import Workflow, as_function_node, group_node
 
-from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
-    SelectStableStructures,
-    AddElementCountColumns,
-    AddDefectConcentrationColumns,
-    ComputeDefectFormationEnergy,
-)
 from aiflow_nodes.atomistic.calculator.ase import GenericOptimizerSettings, Relax
 from aiflow_nodes.atomistic.engine.ase import GRACE
+from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
+    AddDefectConcentrationColumns,
+    AddElementCountColumns,
+    ComputeDefectFormationEnergy,
+    SelectStableStructures,
+)
 
 
 @as_function_node("structure")
@@ -43,7 +44,6 @@ def BuildGaNSurface(
 ):
     """Build GaN slab. orthogonal=True → rectangular cell; ga_polar=True → (0001) Ga at top."""
     from ase.build import bulk, surface
-    import numpy as np
 
     bulk_cell = bulk("GaN", "wurtzite", a=a, c=c, orthorhombic=orthogonal)
     slab = surface(bulk_cell, (0, 0, 1), n_layers, vacuum=vacuum, periodic=True)
@@ -69,13 +69,14 @@ def BuildSurfaceDefects(
     """Build pristine + defect configurations: V_Ga, V_N, Ga adatom, N adatom."""
     import numpy as np
     import pandas as pd
+
+    from aiflow_nodes.atomistic.structure._atoms import _ase_to_data, to_ase
     from aiflow_nodes.atomistic.structure.build_point_defects import (
-        make_pristine_reference,
         make_config_row,
-        op_vacancy,
+        make_pristine_reference,
         op_interstitial,
+        op_vacancy,
     )
-    from aiflow_nodes.atomistic.structure._atoms import to_ase, _ase_to_data
 
     ase_slab = to_ase(surface_structure)
     atoms0, pristine_pos = make_pristine_reference._original_func(ase_slab)
@@ -170,8 +171,8 @@ def RelaxStructuresDataFrame(
     opt_mode: str = "full",
     store: bool = True,
 ) -> pd.DataFrame:
+    from aiflow_nodes.atomistic.calculator.ase import GenericOptimizerSettings
     from aiflow_nodes.atomistic.structure._atoms import to_ase
-    from aiflow_nodes.atomistic.calculator.ase import Relax, GenericOptimizerSettings
 
     if opt_parameters is None:
         opt_parameters = GenericOptimizerSettings()
@@ -207,8 +208,8 @@ def PlotDefectPhase(
     title: str = "GaN(0001) surface phase diagram",
     exclude_keys: list = None,
 ) -> object:
-    import numpy as np
     import matplotlib.pyplot as plt
+    import numpy as np
 
     mu_arr = np.atleast_1d(np.asarray(formation_energies["mu_values"], dtype=float))
     reserved = {"mu_values"}
@@ -282,9 +283,10 @@ def PlotDefectPhase(
 
 def _draw_bonds_2d(atoms, ax, rotation_str, bond_color="#505050"):
     """Draw bonds over a matplotlib axis (call AFTER plot_atoms; default zorder=2 is on top)."""
-    import numpy as np
     import re
-    from math import sin, cos, radians
+    from math import cos, radians, sin
+
+    import numpy as np
     from ase.neighborlist import NeighborList, natural_cutoffs
 
     R = np.eye(3)
@@ -344,9 +346,11 @@ def PlotStableDecoratedStructures(
     render_style: Literal["spacefill", "ball+stick"] = "spacefill",
 ) -> object:
     import math
-    import numpy as np
+
     import matplotlib.pyplot as plt
+    import numpy as np
     from ase.visualize.plot import plot_atoms
+
     from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     _GA_COLOR = "#ff8c00"  # orange for bulk Ga
@@ -465,7 +469,7 @@ def _element_color_hex(symbol: str) -> str:
     if symbol in overrides:
         return overrides[symbol]
     rgb = jmol_colors[atomic_numbers[symbol]]
-    return "#%02x%02x%02x" % tuple(int(round(c * 255)) for c in rgb)
+    return "#{:02x}{:02x}{:02x}".format(*tuple(int(round(c * 255)) for c in rgb))
 
 
 def _orientation_matrix(view_plane):
@@ -515,9 +519,10 @@ def _build_view3d(
     spacefill   : vdW spheres (radiusScale 0.55), coloured per group.
     ball+stick  : small vdW spheres (radiusScale 0.18) + grey ``licorice`` bond sticks.
     """
-    import numpy as np
     from collections import OrderedDict
+
     import nglview as nv
+    import numpy as np
 
     view = nv.show_ase(atoms)
     view.clear_representations()
@@ -598,13 +603,14 @@ def View3DStructure(
     perspective: Literal["xy", "xz", "yz"] = "xz",
     render_style: Literal["spacefill", "ball+stick"] = "spacefill",
     stable_only: bool = False,
-    formation_energies: Optional[dict] = None,
+    formation_energies: dict | None = None,
     camera: str = "orthographic",
     particle_size: float = 1.0,
     background: Literal["white", "black"] = "white",
     distance_from_camera: float = 1.0,
 ):
     import numpy as np
+
     from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     _CNA_COLOR = {0: "#c0c0c0", 1: "#39a600", 2: "#ff2800", 3: "#0053d6", 4: "#ffdc00"}
@@ -665,7 +671,6 @@ def View3DStructure(
 @group_node("mu")
 def compute_reference_chemical_potential(structure, engine, optimizer_settings):
     from aiflow.core import Workflow, as_function_node
-    from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
     def _energy_per_atom(calc_result):
@@ -692,7 +697,6 @@ def compute_reference_chemical_potential(structure, engine, optimizer_settings):
 def compute_gan_bulk_energy_per_fu(structure, engine, optimizer_settings):
     """Relax GaN bulk and return total energy per formula unit (GaN pair)."""
     from aiflow.core import Workflow, as_function_node
-    from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu_gan_fu")
     def _energy_per_fu(calc_result):
@@ -720,11 +724,6 @@ def compute_gan_bulk_energy_per_fu(structure, engine, optimizer_settings):
 def compute_surface_formation_energies(relaxed_df, mu_ga_sweep, mu_gan_fu):
     """Formation energies with GaN stoichiometric constraint: μ_N = μ_GaN_fu - μ_Ga."""
     from aiflow.core import Workflow, as_function_node
-    from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
-        AddElementCountColumns,
-        AddDefectConcentrationColumns,
-        ComputeDefectFormationEnergy,
-    )
 
     @as_function_node("chemical_potentials")
     def _build_chem_pots(mu_ga_sweep, mu_gan_fu: float):

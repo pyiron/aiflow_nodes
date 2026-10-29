@@ -1,19 +1,20 @@
 from __future__ import annotations
 
+from typing import Literal
+
 import numpy as np
 import pandas as pd
-from typing import Literal, Optional
 from aiflow.core import Workflow, as_function_node, group_node
 
+from aiflow_nodes.atomistic.calculator.ase import GenericOptimizerSettings, Relax
+from aiflow_nodes.atomistic.engine.ase import GRACE
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.build_gb import (
-    GrainBoundaryOptions,
     BuildGrainBoundary,
+    GrainBoundaryOptions,
 )
 from aiflow_nodes.atomistic.structure.view import PlotCNA
 from aiflow_nodes.atomistic.thermodynamics.defect_phases import SelectStableStructures
-from aiflow_nodes.atomistic.calculator.ase import GenericOptimizerSettings, Relax
-from aiflow_nodes.atomistic.engine.ase import GRACE
 
 # ── Local node definitions ──────────────────────────────────────────────────
 
@@ -57,13 +58,13 @@ def BuildDecoratedStructures(
     host_structure may be OutputAtoms or OutputCalcOpt (structure extracted automatically).
     Columns: structure (OutputAtoms), name (str).
     """
+    from aiflow_nodes.atomistic.structure._atoms import _ase_to_data, to_ase
     from aiflow_nodes.atomistic.structure.build_point_defects import (
-        make_pristine_reference,
-        make_config_row,
-        op_substitute,
         expand_configs,
+        make_config_row,
+        make_pristine_reference,
+        op_substitute,
     )
-    from aiflow_nodes.atomistic.structure._atoms import to_ase, _ase_to_data
 
     if hasattr(host_structure, "structure"):
         ase_input = to_ase(host_structure.structure)
@@ -127,8 +128,8 @@ def RelaxStructuresDataFrame(
     store=True enables hash-based caching (recommended for production runs).
     Returns df extended with 'structure' (OutputAtoms) and 'energy' (eV).
     """
+    from aiflow_nodes.atomistic.calculator.ase import GenericOptimizerSettings
     from aiflow_nodes.atomistic.structure._atoms import to_ase
-    from aiflow_nodes.atomistic.calculator.ase import Relax, GenericOptimizerSettings
 
     if opt_parameters is None:
         opt_parameters = GenericOptimizerSettings()
@@ -174,9 +175,8 @@ def PlotDefectPhase(
     phase transitions immediately visible as color changes. Transition
     boundaries are marked with vertical dashed lines.
     """
-    import numpy as np
     import matplotlib.pyplot as plt
-    import matplotlib.colors as mcolors
+    import numpy as np
 
     mu_arr = np.atleast_1d(np.asarray(formation_energies["mu_values"], dtype=float))
     reserved = {"mu_values"}
@@ -285,11 +285,13 @@ def PlotStableDecoratedStructures(
         middle of the cell).
     """
     import math
-    import numpy as np
+
     import matplotlib.pyplot as plt
-    from ase.visualize.plot import plot_atoms
-    from aiflow_nodes.atomistic.structure._atoms import to_ase
+    import numpy as np
     import structuretoolkit as stk
+    from ase.visualize.plot import plot_atoms
+
+    from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     # ── Find stable phase names ──────────────────────────────────────────────
     reserved = {"mu_values"}
@@ -374,7 +376,7 @@ def View3DStructure(
     coloring: Literal["cna", "element"] = "cna",
     perspective: Literal["xy", "xz", "yz"] = "xz",
     stable_only: bool = False,
-    formation_energies: Optional[dict] = None,
+    formation_energies: dict | None = None,
     camera: str = "orthographic",
     particle_size: float = 1.0,
     background: Literal["white", "black"] = "white",
@@ -405,6 +407,7 @@ def View3DStructure(
     """
     import numpy as np
     import structuretoolkit as stk
+
     from aiflow_nodes.atomistic.structure._atoms import to_ase
 
     _PLANE_TO_NORMAL = {"xy": [0, 0, 1], "xz": [0, 1, 0], "yz": [1, 0, 0]}
@@ -481,7 +484,6 @@ def View3DStructure(
 def compute_reference_chemical_potential(structure, engine, optimizer_settings):
     """Relax a bulk reference and return its energy per atom (eV/atom)."""
     from aiflow.core import Workflow, as_function_node
-    from aiflow_nodes.atomistic.calculator.ase import Relax
 
     @as_function_node("mu")
     def _energy_per_atom(calc_result):
@@ -521,6 +523,7 @@ def compute_defect_formation_energies(
     that reflect the thermodynamic cost of Nb incorporation.
     """
     from aiflow.core import Workflow, as_function_node
+
     from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
         AddElementCountColumns,
     )

@@ -4,15 +4,13 @@ Elementary ML nodes.
 This module contains nodes for for machine learning workflows using sk-learn models.
 """
 
-import pandas as pd
 import numpy as np
-
-from sklearn.model_selection import train_test_split
+import pandas as pd
+from aiflow.core import as_function_node
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-
-from aiflow.core import as_function_node
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 
 @as_function_node

@@ -1,4 +1,5 @@
 from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.calculator.data import OutputCalcStatic
 from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsStaticInput,

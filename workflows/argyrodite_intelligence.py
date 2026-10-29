@@ -23,11 +23,10 @@ import os
 import re
 import string
 from dataclasses import dataclass
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import pandas as pd
 import requests
-
 from aiflow.core import Workflow, as_function_node
 
 log = logging.getLogger(__name__)
@@ -74,6 +73,7 @@ def _call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
 
     if c.backend == "claude":
         import os as _os
+
         from anthropic import AnthropicFoundry
 
         client = AnthropicFoundry(
@@ -92,8 +92,8 @@ def _call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
 
 @as_function_node("models")
 def ListModels(
-    backend: Optional[Literal["openai_academic", "claude", "ollama"]] = "ollama",
-    index: Optional[int] = 0,
+    backend: Literal["openai_academic", "claude", "ollama"] | None = "ollama",
+    index: int | None = 0,
 ):
     """Select the LLM backend and model; output wires to all LLM-calling nodes."""
     if backend == "ollama":
@@ -106,7 +106,6 @@ def ListModels(
             model_name = _DEFAULT_CONFIG.model_name
     elif backend == "openai_academic":
         import keyring
-        from pyiron_ai.node_store import _openai_generate
 
         try:
             from openai import OpenAI
@@ -585,11 +584,11 @@ def _execute_epo_search(spec: dict, config: SearchConfigData) -> list:
 # Full-text fetching
 
 
-def _fetch_one_full_text(doc: dict, timeout_s: int = 10) -> Optional[str]:
+def _fetch_one_full_text(doc: dict, timeout_s: int = 10) -> str | None:
     """Try several open-access routes; return truncated plain text or None."""
     _MAX = 8000
 
-    def _get(url: str) -> Optional[str]:
+    def _get(url: str) -> str | None:
         try:
             r = requests.get(
                 url, timeout=timeout_s, headers={"Accept": "text/plain, text/html"}
@@ -677,7 +676,7 @@ def _normalize_formula(formula_raw: str) -> tuple:
         return formula_raw, {}, False
 
 
-def _to_mS_per_cm(value: float, unit_raw: str) -> Optional[float]:
+def _to_mS_per_cm(value: float, unit_raw: str) -> float | None:
     try:
         from pint import UnitRegistry
 
@@ -688,7 +687,7 @@ def _to_mS_per_cm(value: float, unit_raw: str) -> Optional[float]:
         return None
 
 
-def _to_ppm(value: float, unit_raw: str) -> Optional[float]:
+def _to_ppm(value: float, unit_raw: str) -> float | None:
     ul = unit_raw.lower().strip()
     if "ppm" in ul:
         return float(value)
@@ -728,9 +727,10 @@ def _validate_one_record(record: dict, criteria: TargetCriteriaData) -> tuple:
         if el in record.get("element_dict", {}):
             errors.append(f"prohibited_element:{el}")
 
-    if record.get("h2s_ppm") is not None:
-        if record.get("rh_percent") is None or record.get("exposure_min") is None:
-            errors.append("incomplete_moisture_data")
+    if record.get("h2s_ppm") is not None and (
+        record.get("rh_percent") is None or record.get("exposure_min") is None
+    ):
+        errors.append("incomplete_moisture_data")
 
     synth_t = record.get("synthesis_temperature_C")
     if synth_t is not None and not (0 < synth_t <= 1000):

@@ -1,9 +1,10 @@
-from typing import Literal, List
+from typing import Literal
+
 from aiflow.core import as_function_node
 
 
 @as_function_node
-def ListElements(category: Literal["light", "alkali", "3d"] = "light") -> List[str]:
+def ListElements(category: Literal["light", "alkali", "3d"] = "light") -> list[str]:
     """
     Return a list of element symbols for a given chemical‑group category.
 
@@ -22,7 +23,7 @@ def ListElements(category: Literal["light", "alkali", "3d"] = "light") -> List[s
         List containing the element symbols of the selected group.
     """
     # initialise the result variable – required so that a value is always returned
-    elements: List[str] = []
+    elements: list[str] = []
 
     if category == "light":
         elements = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne"]

@@ -1,18 +1,16 @@
-from typing import Optional
-
 import numpy as np
+from aiflow.core import (
+    as_function_node,
+    as_inp_dataclass_node,
+    as_out_dataclass_node,
+    group_node,
+)
+from aiflow.core.data_fields import DataArray, EmptyArrayField
 from ase import Atoms
 from phonopy.api_phonopy import Phonopy
 from structuretoolkit.common import atoms_to_phonopy, phonopy_to_atoms
 
 from aiflow_nodes.atomistic.engine.generic import OutputEngine
-from aiflow.core import (
-    as_function_node,
-    as_inp_dataclass_node,
-    group_node,
-    as_out_dataclass_node,
-)
-from aiflow.core.data_fields import DataArray, EmptyArrayField
 
 
 @as_function_node("phonopy")
@@ -26,11 +24,11 @@ class PhonopyParameters:
     is_plusminus: str | bool = "auto"
     is_diagonal: bool = True
     is_trigonal: bool = False
-    number_of_snapshots: Optional[int] = None
-    random_seed: Optional[int] = None
-    temperature: Optional[float] = None
-    cutoff_frequency: Optional[float] = None
-    max_distance: Optional[float] = None
+    number_of_snapshots: int | None = None
+    random_seed: int | None = None
+    temperature: float | None = None
+    cutoff_frequency: float | None = None
+    max_distance: float | None = None
 
 
 @as_function_node
@@ -52,6 +50,8 @@ def phonopy(
     GetThermalProperties__mesh="10",
 ):
 
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.calculator.ase import Static
     from aiflow_nodes.atomistic.property.phonons import (
         GenerateSupercells,
@@ -60,7 +60,6 @@ def phonopy(
         PhonopyObject,
     )
     from aiflow_nodes.controls import GetAttribute, SetAttribute, iterate
-    from aiflow.core import Workflow
 
     if phonopy_parameters is None:
         phonopy_parameters = PhonopyParameters()
@@ -94,7 +93,7 @@ def GetFreeEnergy(
     engine: OutputEngine,
     temperature: float = 300,
     mesh: int = 10,
-    parameters: Optional[PhonopyParameters] = None,
+    parameters: PhonopyParameters | None = None,
 ):
     """
     Calculate the free energy of a structure in the Harmonic approximation

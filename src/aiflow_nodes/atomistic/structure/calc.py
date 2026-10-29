@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from typing import Optional, Literal
+from typing import Literal
 
 import numpy as np
-from ase import Atoms
-
 from aiflow.core import as_function_node, group_node
+from ase import Atoms
 
 
 @as_function_node
-def Volume(structure: Optional[Atoms] = None, per_atom: bool = False) -> float:
+def Volume(structure: Atoms | None = None, per_atom: bool = False) -> float:
     volume = structure.get_volume()
     # if per_atom:
     volume = volume / structure.get_number_of_atoms()
@@ -17,7 +16,7 @@ def Volume(structure: Optional[Atoms] = None, per_atom: bool = False) -> float:
 
 
 @as_function_node
-def NumberOfAtoms(structure: Optional[Atoms] = None) -> int:
+def NumberOfAtoms(structure: Atoms | None = None) -> int:
     number_of_atoms = structure.get_number_of_atoms()
     return number_of_atoms
 
@@ -58,7 +57,7 @@ def EnergyPerFormulaUnit(
 
 @as_function_node
 def GetDistances(
-    structure: Optional[Atoms] = None,
+    structure: Atoms | None = None,
     num_neighbors: int = 12,
     flatten: bool = True,
 ) -> np.ndarray:
@@ -98,7 +97,7 @@ def DefectEnergyPerArea(
 
 @as_function_node
 def SplineDescriptor(
-    structure: Optional[Atoms] = None,
+    structure: Atoms | None = None,
     r_min: float = 2.5,
     r_max: float = 7,
     num_points: int = 51,
@@ -136,8 +135,8 @@ def SplineDescriptor(
 
 @as_function_node
 def LinearInterpolationDescriptor(
-    structure: Optional[Atoms] = None,
-    r_bins: Optional[np.ndarray] = None,
+    structure: Atoms | None = None,
+    r_bins: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     Interpolate a descriptor linearly over a specified range.
@@ -167,10 +166,10 @@ def LinearInterpolationDescriptor(
 
 @as_function_node
 def GetNeighbors(
-    structure: Optional[Atoms] = None,
+    structure: Atoms | None = None,
     num_neighbors: int = 12,
     tolerance: int = 2,
-    id_list: Optional[list] = None,
+    id_list: list | None = None,
     cutoff_radius: float = 10.0,
     width_buffer: float = 1.2,
     mode: str = "filled",
@@ -231,6 +230,8 @@ def FitDiffPotential(
     store: bool = True,
 ):
 
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.ml_potentials.fitting.linearfit import (
         ReadPickledDatasetAsDataframe,
     )
@@ -251,7 +252,6 @@ def FitDiffPotential(
         Subtract,
         Sum,
     )
-    from aiflow.core import Workflow
 
     wf = Workflow("assyst_linear_fit3")
 
@@ -344,6 +344,8 @@ def FitDiffPotential2(
     store: bool = True,
 ):
 
+    from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.ml_potentials.fitting.linearfit import (
         ReadPickledDatasetAsDataframe,
     )
@@ -361,7 +363,6 @@ def FitDiffPotential2(
         Subtract,
         Sum,
     )
-    from aiflow.core import Workflow
 
     wf = Workflow("assyst_linear_fit3")
 

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
 class OutputEngine:
-    calculator: Optional[callable] = field(default=None)
-    engine_id: Optional[int] = field(default=None)
+    calculator: callable | None = field(default=None)
+    engine_id: int | None = field(default=None)
     # parameters: Optional[wf_data_class] = field(
     #     default=None, metadata=wfMetaData(log_level=10)
     # )

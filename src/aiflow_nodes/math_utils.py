@@ -2,12 +2,9 @@
 For mathematical operations.
 """
 
-from typing import Optional
-
 import numpy as np
-
-from aiflow.core import as_function_node
 import scipy.sparse as sp
+from aiflow.core import as_function_node
 from scipy.sparse.linalg import eigsh
 
 
@@ -126,7 +123,7 @@ def Multiply(x: any, y: any):
 @as_function_node
 def Sum(
     x: list | np.ndarray,
-    axis: Optional[int] = None,
+    axis: int | None = None,
     keepdims: bool = False,
 ):
     """
@@ -295,7 +292,7 @@ def Mean(numbers: list | np.ndarray | float | int):
 
 
 @as_function_node
-def Array(data, dtype: Optional[str] = None):
+def Array(data, dtype: str | None = None):
     """
     Convert input data to a numpy array.
 
@@ -337,7 +334,7 @@ def WeightedHistogram(
     data,
     bins: int = 50,
     weighting: str = "linear",
-    bin_centers: Optional[np.ndarray] = None,
+    bin_centers: np.ndarray | None = None,
 ):
     """
     Compute a weighted histogram for a list of floats using linear, quadratic, or cubic weights
@@ -424,9 +421,7 @@ def LinearBin(data, bin_centers):
         i_left = int((x0 - x_min) / dx)
 
         # ensure i_left is within bounds
-        if i_left < 0:
-            continue
-        elif i_left >= steps - 1:
+        if i_left < 0 or i_left >= steps - 1:
             continue
 
         w = (x0 - bin_centers[i_left]) / dx

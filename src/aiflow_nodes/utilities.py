@@ -5,7 +5,7 @@ For number sequences use ``aiflow_nodes.math_utils`` (``Linspace``, ``Arange``,
 pickled dataframe use ``aiflow_nodes.dataframe.ReadDataFrame``.
 """
 
-from aiflow.core import as_function_node, PortList
+from aiflow.core import PortList, as_function_node
 
 
 @as_function_node("value")

@@ -1,7 +1,6 @@
 import ase.units as units
-
-from ase.atoms import Atoms
 from aiflow.core import as_function_node
+from ase.atoms import Atoms
 
 
 @as_function_node
@@ -24,7 +23,6 @@ def ConfigurePBC(
     ``slab_factor`` times the filled thickness.  Without this the slab
     correction is invalid and atoms touching the boundary are deleted by LAMMPS.
     """
-    import numpy as np
 
     structure = structure.copy()
     quasi_2d = charges["quasi_2d"]
@@ -79,6 +77,7 @@ def FixElectrodes(
     accepts, so the round-trip is stable.
     """
     import ast
+
     from ase.constraints import FixAtoms, FixedPlane
 
     try:
@@ -145,7 +144,6 @@ def build_water(n_mols: int = 10) -> Atoms:
 
     import numpy as np
     from ase import Atoms
-    from ase.units import mol
 
     density = 1.0e-24  # g/A^3
     mol_mass_water = 18.015  # g/mol

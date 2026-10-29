@@ -1,4 +1,5 @@
 from aiflow.core import Workflow
+
 from aiflow_nodes.atomistic.calculator.data import InputCalcMD, OutputCalcMD
 from aiflow_nodes.atomistic.diffusion import (
     AddInterstitialH,

@@ -1,13 +1,14 @@
 from aiflow.core import Workflow
-from aiflow_nodes.atomistic.diffusion import AddInterstitialH, PlotNEBPath, RunNEB
-from aiflow_nodes.atomistic.engine.ase import EMT
-from aiflow_nodes.atomistic.structure.build import Bulk
-from aiflow_nodes.atomistic.structure.view import Animate
+
 from aiflow_nodes.atomistic.calculator.ase import (
     GenericOptimizerSettings,
     Relax,
 )
+from aiflow_nodes.atomistic.diffusion import AddInterstitialH, PlotNEBPath, RunNEB
+from aiflow_nodes.atomistic.engine.ase import EMT
+from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.atomistic.structure.transform import Repeat
+from aiflow_nodes.atomistic.structure.view import Animate
 
 wf = Workflow("h_diffusion_EMT")
 

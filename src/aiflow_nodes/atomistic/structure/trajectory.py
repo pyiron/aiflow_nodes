@@ -1,7 +1,7 @@
-from typing import Literal, List
 from aiflow.core import as_function_node
-from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 from ase.atoms import Atoms
+
+from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
 
 
 @as_function_node

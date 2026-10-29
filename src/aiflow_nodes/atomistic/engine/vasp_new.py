@@ -2,24 +2,22 @@ from __future__ import annotations
 
 import hashlib
 import os
-import subprocess
-import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
+from aiflow.core import as_function_node, run_external
 from ase import Atoms
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.vasp.inputs import Incar, Kpoints
 from vaspparser.vasp.output import Output, parse_vasp_output
 from vaspparser.vasp.volumetric_data import VaspVolumetricData
 
-from aiflow.core import as_function_node, run_external
 from aiflow_nodes.atomistic.calculator.data import (
-    InputMDVASP,
+    AdditionalInputFlags,
     InputDipoleCorrection,
+    InputMDVASP,
     InputMinimizationVASP,
     InputSCF,
     InputVaspDOS,
@@ -28,7 +26,6 @@ from aiflow_nodes.atomistic.calculator.data import (
     OutputCalcMinimize,
     OutputCalcStatic,
     OutputVaspDOS,
-    AdditionalInputFlags,
 )
 
 # ── INCAR enum lookups ────────────────────────────────────────────────────────
@@ -134,40 +131,40 @@ class VaspInput:
     """
 
     scf: InputSCF
-    minimization: Optional[InputMinimizationVASP] = None
-    md: Optional[InputMDVASP] = None
-    dipole_correction: Optional[InputDipoleCorrection] = None
-    dos: Optional[InputVaspDOS] = None
-    output_files: Optional[InputVaspOutputFiles] = None
-    extra_incar: Optional[dict] = None
+    minimization: InputMinimizationVASP | None = None
+    md: InputMDVASP | None = None
+    dipole_correction: InputDipoleCorrection | None = None
+    dos: InputVaspDOS | None = None
+    output_files: InputVaspOutputFiles | None = None
+    extra_incar: dict | None = None
 
 
 @dataclass
 class VaspInputResources:
     structure: Atoms  # ASE Atoms — compatible with Bulk and other structure nodes
-    calc: Optional[VaspInput]
+    calc: VaspInput | None
     potcar_lib_path: str = field(
         default_factory=lambda: _default_potcar_lib_path
     )  # base path to POTCAR folders
-    working_directory: Optional[str] = None
-    potcar_symbols: Optional[list[str]] = None  # override default CSV symbol selection
-    extra_incar: Optional[dict] = None  # additional INCAR tags beyond VaspInput
+    working_directory: str | None = None
+    potcar_symbols: list[str] | None = None  # override default CSV symbol selection
+    extra_incar: dict | None = None  # additional INCAR tags beyond VaspInput
     # rendered file content, filled in by CreateVaspInputResources and written to
     # disk by RunVaspCalculation
-    poscar_content: Optional[str] = None
-    incar_content: Optional[str] = None
-    potcar_content: Optional[str] = None
-    kpoints_content: Optional[str] = None
-    plugin_content: Optional[str] = None
-    restart_content: Optional[dict] = None
+    poscar_content: str | None = None
+    incar_content: str | None = None
+    potcar_content: str | None = None
+    kpoints_content: str | None = None
+    plugin_content: str | None = None
+    restart_content: dict | None = None
 
 
 @dataclass
 class VaspPlugin:
     plugin_content: str = None
-    override_potcar: Optional[dict] = None
-    extra_incar: Optional[dict] = None
-    potcar_lib_path: Optional[str] = None
+    override_potcar: dict | None = None
+    extra_incar: dict | None = None
+    potcar_lib_path: str | None = None
 
 
 # ── Private helpers ───────────────────────────────────────────────────────────
@@ -415,7 +412,7 @@ _DOSCAR_ORBITALS = {
 }  # fmt: skip
 
 
-def read_doscar(filename: str) -> Optional[OutputVaspDOS]:
+def read_doscar(filename: str) -> OutputVaspDOS | None:
     """Read a ``DOSCAR`` into ``OutputVaspDOS``.
 
     ``vaspparser`` has no DOSCAR parser — it takes the DOS from the ``<dos>``
@@ -546,7 +543,7 @@ def _trajectory_from_output(output: dict, structure: Atoms) -> list[Atoms]:
     return trajectory
 
 
-def _final_magmoms(output: dict) -> Optional[np.ndarray]:
+def _final_magmoms(output: dict) -> np.ndarray | None:
     """Per-atom magnetic moments of the last ionic step, ``None`` if ISPIN = 1.
 
     Shape is ``(n_atoms,)`` for a collinear run and ``(n_atoms, 3)`` for a
@@ -559,7 +556,7 @@ def _final_magmoms(output: dict) -> Optional[np.ndarray]:
     return np.asarray(magmoms[-1], dtype=float)
 
 
-def _is_converged(output: dict, calc: Optional[VaspInput]) -> bool:
+def _is_converged(output: dict, calc: VaspInput | None) -> bool:
     """Electronic (and, for a relaxation, ionic) convergence of the last step.
 
     ``vaspparser`` reports no convergence flag of its own, so this applies the
@@ -736,7 +733,7 @@ def _generate_hash(io_bundle: VaspInputResources) -> str:
     return hashlib.sha256(hash_string.encode()).hexdigest()[:8]
 
 
-def _write_vasp_input_files(io_bundle: "VaspInputResources") -> None:
+def _write_vasp_input_files(io_bundle: VaspInputResources) -> None:
     """Dump the rendered file content onto disk in ``io_bundle.working_directory``."""
     workdir = io_bundle.working_directory
     os.makedirs(workdir, exist_ok=True)
@@ -767,7 +764,7 @@ def _write_vasp_input_files(io_bundle: "VaspInputResources") -> None:
 _RESTART_FILE_MODE = {"CONTCAR": "text", "WAVECAR": "binary", "CHGCAR": "text"}
 
 
-def _read_restart_file(workdir: str, name: str) -> Optional[str | bytes]:
+def _read_restart_file(workdir: str, name: str) -> str | bytes | None:
     """Read one restart file as text or bytes, ``None`` if it is not there.
 
     Files not listed in ``_RESTART_FILE_MODE`` default to binary, the safer
@@ -808,7 +805,7 @@ def _collect_restart_content(workdir: str, save_restart_files: tuple[str, ...]) 
     return restart_content
 
 
-def _safe_restart_content(restart_content: Optional[dict]) -> dict:
+def _safe_restart_content(restart_content: dict | None) -> dict:
     """Only ever restart from a payload that actually contains CONTCAR.
 
     Guards against a caller supplying WAVECAR/CHGCAR without the matching
@@ -832,12 +829,12 @@ def _safe_restart_content(restart_content: Optional[dict]) -> dict:
 @as_function_node
 def MergeVaspInput(
     scf: InputSCF,
-    minimization: Optional[InputMinimizationVASP] = None,
-    md: Optional[InputMDVASP] = None,
-    dipole_correction: Optional[InputDipoleCorrection] = None,
-    dos: Optional[InputVaspDOS] = None,
-    output_files: Optional[InputVaspOutputFiles] = None,
-    specific_inputs: Optional[AdditionalInputFlags] = None,
+    minimization: InputMinimizationVASP | None = None,
+    md: InputMDVASP | None = None,
+    dipole_correction: InputDipoleCorrection | None = None,
+    dos: InputVaspDOS | None = None,
+    output_files: InputVaspOutputFiles | None = None,
+    specific_inputs: AdditionalInputFlags | None = None,
 ) -> VaspInput:
     """Combine the required SCF settings with any optional add-ons.
 
@@ -864,10 +861,10 @@ def CreateVaspInputResources(
     structure: Atoms,
     calc: VaspInput,
     potcar_lib_path: str = _default_potcar_lib_path,
-    plugin_data: Optional[VaspPlugin] = None,
-    working_directory: Optional[str] = None,
-    potcar_symbols: Optional[list[str]] = None,
-    restart_content: Optional[dict] = None,
+    plugin_data: VaspPlugin | None = None,
+    working_directory: str | None = None,
+    potcar_symbols: list[str] | None = None,
+    restart_content: dict | None = None,
 ) -> VaspInputResources:
     """Resolve the working directory and render the VASP input file content.
 
@@ -960,7 +957,7 @@ def CreateVaspInputResources(
     )
     potcar_parts = []
     for p in potcar_paths:
-        with open(p, "r") as fd:
+        with open(p) as fd:
             potcar_parts.append(fd.read())
     io_bundle.potcar_content = "".join(potcar_parts)
 
@@ -1009,7 +1006,7 @@ def CreateVaspInputResources(
 def RunVaspCalculation(
     io_bundle: VaspInputResources,
     vasp_command: str = _default_vasp_command,
-    run_script_path: Optional[str] = None,
+    run_script_path: str | None = None,
     threads_per_core: int = 1,
     debug: bool = False,
 ):

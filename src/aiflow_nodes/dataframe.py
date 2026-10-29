@@ -6,7 +6,6 @@ This module provides functions to manipulate and analyze pandas DataFrames
 from typing import Literal
 
 import pandas as pd
-
 from aiflow.core import Node, as_function_node
 
 

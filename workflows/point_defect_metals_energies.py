@@ -1,4 +1,5 @@
 from aiflow.core import Workflow, group_node
+
 from aiflow_nodes.atomistic.thermodynamics.defect_phases import (
     AddDefectConcentrationColumns,
     AddElementCountColumns,
@@ -29,6 +30,7 @@ def CreateDefectStructures(
     into an energy/formation-energy pipeline like the one below.
     """
     from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.container_new import (
         AddPristine,
@@ -85,6 +87,7 @@ def CreateDefectStructures(
 @group_node("energy")
 def group_GRACE_StaticEnergy(structure):
     from aiflow.core import Workflow
+
     from aiflow_nodes.atomistic.calculator.ase import StaticEnergy
     from aiflow_nodes.atomistic.engine.ase import GRACE
 
