@@ -11,7 +11,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: psf/black@stable
+      - uses: prefix-dev/setup-pixi@v0.11.2
         with:
-          options: "--check --diff --line-length 88"
-          src: "./"
+          pixi-version: v0.83.0
+          environments: lint
+          locked: true
+          cache: true
+      - run: pixi run -e lint lint
+
+  tests:
+    needs: [black]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # aiflow is a private repository; pixi fetches it with git, so hand git a
+      # read-only token for that one URL.
+      - name: Grant read access to pyiron/aiflow
+        env:
+          TOKEN: ${{ secrets.AIFLOW_READ }}
+        run: >-
+          git config --global
+          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow".insteadOf
+          "https://github.com/pyiron/aiflow"
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          pixi-version: v0.83.0
+          environments: test
+          locked: true
+          cache: true
+      - name: Test
+        run: |
+          pixi run -e test test
+          pixi run -e test coverage xml --rcfile=.coveragerc
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
