@@ -159,3 +159,30 @@ DEP001 = ["pyiron_ai", "pyironflow", "qe_xml_parser"]
 DEP002 = ["aiflow_nodes"]
 # Only used by benchmark.py, which needs pyiron_ai anyway.
 DEP003 = ["markdown"]
+
+[tool.ruff]
+exclude = [
+    "docs",
+    "notebooks",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
+    "C4",  # flake8-comprehensions
+    "ERA", # eradicate
+    "PL",  # pylint
+]
+ignore = [
+    "E402",   # module-level import not at top of file
+    "E501",   # line length handled by formatter
+    "PLC0415",# import should be at top-level (pylint rule)
+    "PLR0913",# too many arguments
+    "PLR2004",# magic values in comparisons
+    "PLR0912",# too many branches
+]
