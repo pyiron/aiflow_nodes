@@ -1,0 +1,4 @@
+# Move package sources to src/aiflow_nodes and Workflows to workflows
+cac974dc2b8c7cb3c016f878b3af93d5332d8161
+# Rename package pyiron_nodes -> aiflow_nodes
+13676dc8dc8b0645f0dcaf2a0bf6229815d61974
