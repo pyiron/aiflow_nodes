@@ -57,7 +57,7 @@ window tried and why each was abandoned.
 Usage
 -----
     import sys
-    sys.path[:0] = ["pyiron_core/src", "/path/to/aiflow_nodes"]
+    sys.path[:0] = ["pyiron_core/src"]  # aiflow_nodes: pip install -e .
     exec(open("workflows/calphy_melt_auto_window.py").read())
     wf.run()
     print(wf.melting_temperature.outputs.T_melt.value,

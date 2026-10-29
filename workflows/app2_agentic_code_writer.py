@@ -19,7 +19,6 @@ and are flagged as such in the figure.
 import sys
 
 sys.path.insert(0, "pyiron_core/src")
-sys.path.insert(0, "/Users/jorgneugebauer/git_libs/aiflow_nodes")
 
 import io
 import contextlib

@@ -19,7 +19,6 @@ figure script.
 import sys
 
 # sys.path.insert(0, "pyiron_core/src")
-# sys.path.insert(0, "/Users/jorgneugebauer/git_libs/aiflow_nodes")
 
 import numpy as np
 import pandas as pd

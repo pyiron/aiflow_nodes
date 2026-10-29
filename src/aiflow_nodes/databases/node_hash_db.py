@@ -146,7 +146,7 @@ def FilterTable(
         db: InstanceDatabase connection.
         qualname: Exact match on qualname, e.g. ``"Bulk"``.
                   Empty string = no filter.
-        module: Exact match on module, e.g. ``"aiflow_nodes.atomistics"``.
+        module: Exact match on module, e.g. ``"aiflow_nodes.atomistic"``.
                 Empty string = no filter.
         user: Exact match on user.  Empty string = no filter.
         has_output: If True, keep only rows whose ``output_path`` is set.
