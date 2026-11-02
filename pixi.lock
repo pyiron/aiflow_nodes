@@ -16686,7 +16686,6 @@ packages:
   - assyst ; extra == 'assyst'
   - gpaw ; extra == 'assyst'
   - pyiron ; extra == 'pyiron'
-  - pyiron-atomistics ; extra == 'pyiron'
   - pyiron-base ; extra == 'pyiron'
   - pyiron-snippets ; extra == 'pyiron'
   - h5io-browser ; extra == 'database'

@@ -52,7 +52,7 @@ def SaveGraph(graph: Graph, path: str):
 
 @as_function_node
 def Display(graph: Graph):
-    from pyironflow.gui_utilities import GuiGraph
+    from aiflow.gui.gui_utilities import GuiGraph
 
     plot = GuiGraph(graph)
     return plot
@@ -72,7 +72,7 @@ def DisplayEdges(graph: Graph):
 
 # @as_function_node
 # def DisplayNodeData(graph: Graph):
-#     from pyironflow.gui_utilities import display_gui_data
+#     from aiflow.gui.gui_utilities import display_gui_data
 
 #     data = display_gui_data(graph)
 #     return data
@@ -88,7 +88,7 @@ def DisplayEdges(graph: Graph):
 
 @as_function_node
 def NodesToGui(graph: Graph, remove_none: bool | None = False):
-    from pyironflow.gui_utilities import _nodes_to_gui
+    from aiflow.gui.gui_utilities import _nodes_to_gui
 
     nodes = _nodes_to_gui(graph, remove_none=False)
     return nodes
@@ -96,7 +96,7 @@ def NodesToGui(graph: Graph, remove_none: bool | None = False):
 
 @as_function_node
 def EdgesToGui(graph: Graph):
-    from pyironflow.gui_utilities import _edges_to_gui
+    from aiflow.gui.gui_utilities import _edges_to_gui
 
     edges = _edges_to_gui(graph, remove_none=False)
     return edges
@@ -174,7 +174,7 @@ def ExpandNode(graph: Graph, node_label: str):
 @as_function_node
 def AnalyzeParents(graph: Graph):
     import pandas as pd
-    from pyironflow.gui_utilities import _nodes_to_gui
+    from aiflow.gui.gui_utilities import _nodes_to_gui
 
     # print(f"graph.nodes keys: {list(graph.nodes.keys())}")
     # for label, node in graph.nodes.items():
