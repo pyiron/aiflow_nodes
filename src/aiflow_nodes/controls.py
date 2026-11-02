@@ -57,7 +57,7 @@ def _storage_context(node):
 
     graph = getattr(node, "_graph", None)
     db = getattr(graph, "_db", None)
-    if db is None or not getattr(graph, "_recording_enabled", True):
+    if db is None or getattr(graph, "_recording_enabled", None) is False:
         return None, None
     storage_path = getattr(db, "storage_path", None)
     if storage_path is None:
