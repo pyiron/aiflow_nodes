@@ -28,13 +28,13 @@ import pytest
 from aiflow.ai.node_library import DEFAULT_EXCLUDE, NODE_DECORATORS, _decorator_name
 from aiflow.ai.workflow_assistant import WORKFLOW_GUIDE
 
-from aiflow_nodes.assistant_plugin import EXCLUDE, NODE_GUIDE, package_root
+from aiflow_nodes.assistant_plugin import NODE_GUIDE, package_root
 
 LIBRARY_ROOT = package_root()
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 #: What the scan skips: what the assistant's node index skips.
-SCAN_EXCLUDE = (*DEFAULT_EXCLUDE, *EXCLUDE)
+SCAN_EXCLUDE = DEFAULT_EXCLUDE
 
 
 #: Packages that belong to this project.  A ``ModuleNotFoundError`` naming one of
@@ -315,13 +315,7 @@ def _referenced_node_paths():
                 if name and name != "*":
                     yield source, f"{module}.{name}"
 
-    # The benchmark workflows wire up benchmark.py, which the scan excludes; both
-    # move to aiflow's evals.
-    py_sources = sorted(
-        path
-        for path in (REPO_ROOT / "workflows").glob("*.py")
-        if not path.name.startswith("workflow_agent_benchmark")
-    )
+    py_sources = sorted((REPO_ROOT / "workflows").glob("*.py"))
     doc_sources = [WORKFLOW_GUIDE, NODE_GUIDE]
     for path in py_sources + doc_sources:
         if not path.is_file():
