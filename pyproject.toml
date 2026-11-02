@@ -33,7 +33,7 @@ structure = ["phonopy", "pymatgen", "spglib", "structuretoolkit"]
 thermodynamics = ["calphy", "landau", "pyscal3", "seaborn"]
 ml = ["matgl", "pyace", "scikit-learn", "tensorpotential"]
 assyst = ["assyst", "gpaw"]
-pyiron = ["pyiron", "pyiron_atomistics", "pyiron_base", "pyiron_snippets"]
+pyiron = ["pyiron", "pyiron_base", "pyiron_snippets"]
 database = ["h5io_browser", "pyfileindex", "sqlalchemy"]
 viz = ["ipython", "nglview", "pygments", "seaborn"]
 all = [
@@ -152,9 +152,9 @@ lint = { features = ["lint"], no-default-feature = true }
 extend_exclude = [".*\\.ipynb"]
 
 [tool.deptry.per_rule_ignores]
-# Not declared: pyiron_ai (benchmark.py) and pyironflow (graph GUI helpers) are
-# separate, unpublished projects; qe_xml_parser (Quantum ESPRESSO) is not packaged.
-DEP001 = ["pyiron_ai", "pyironflow", "qe_xml_parser"]
+# Not declared: pyiron_ai (benchmark.py) is a separate, unpublished project;
+# qe_xml_parser (Quantum ESPRESSO) is not packaged.
+DEP001 = ["pyiron_ai", "qe_xml_parser"]
 # pixi installs the package itself into its environment.
 DEP002 = ["aiflow_nodes"]
 # Only used by benchmark.py, which needs pyiron_ai anyway.

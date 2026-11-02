@@ -381,84 +381,6 @@ def fcc_metals():
 
 
 @as_function_node("Executor")
-def SubgraphExecutorNode(
-    executor_type: str = "database",
-    working_directory: str = None,
-    data_directory: str = None,
-    **kwargs,
-):
-    """
-    Create a SubgraphExecutor for remote execution.
-
-    This executor enables running subgraphs on remote machines or HPC queues
-    using executorlib backends. Compatible with database queues, file systems,
-    and HPC schedulers.
-
-    Parameters
-    ----------
-    executor_type : str
-        Type of executorlib backend:
-        - "database": Database-backed queue (default, good for multi-machine)
-        - "singlenode": Local execution
-        - "filesystem": File-based queue (good for NFS/shared storage)
-        - "workqueue": Work Queue system
-        - "hsqs": HPC Simple Queue System (for SLURM/PBS)
-    working_directory : str, optional
-        Working directory for temporary files
-    data_directory : str, optional
-        Directory for shared storage (results across workers)
-    **kwargs
-        Additional executorlib configuration (e.g., database credentials)
-
-    Returns
-    -------
-    SubgraphExecutor
-        Configured executor instance
-
-    Examples
-    --------
-    >>> # Database queue (multi-machine sharing)
-    >>> wf.executor = SubgraphExecutorNode(executor_type="database")
-    >>> wf.calc = ExpensiveCalculation(remote_execute=True)
-    >>> results = wf.run()
-
-    >>> # File system queue (NFS/shared storage)
-    >>> wf.executor = SubgraphExecutorNode(
-    ...     executor_type="filesystem",
-    ...     data_directory="/shared/storage"
-    ... )
-
-    >>> # HPC queue (via SLURM)
-    >>> wf.executor = SubgraphExecutorNode(executor_type="hsqs")
-    >>>
-    >>> # On execution machines, start workers:
-    >>> # pyiron-worker --executor-type hsqs --data-dir /shared/storage
-    """
-    from aiflow.core.subgraph_executor import SubgraphExecutor
-
-    # Import path configuration
-    try:
-        from aiflow.core.config import paths
-
-        if working_directory is None:
-            working_directory = str(paths.WORKING_DIRECTORY)
-        if data_directory is None:
-            data_directory = str(paths.DATA_STORAGE)
-    except (ImportError, AttributeError):
-        # Fallback to defaults
-        pass
-
-    executor = SubgraphExecutor(
-        executor_type=executor_type,
-        working_directory=working_directory,
-        data_directory=data_directory,
-        **kwargs,
-    )
-
-    return executor
-
-
-@as_function_node("Executor")
 def ProcessPoolExecutorNode(max_workers: int = 4):
     """
     Create a ProcessPoolExecutor for remote workflow execution.
@@ -501,7 +423,7 @@ def ProcessPoolExecutorNode(max_workers: int = 4):
     - Entire graph serialized as JSON (no pickling of nodes/closures)
     - True process isolation for CPU-bound workloads
     - Compatible with standard executor interface
-    - For distributed multi-machine execution, use SubgraphExecutorNode instead
+    - For execution on a cluster, use SlurmExecutor or FluxClusterExecutor
     """
     from aiflow.core.remote_graph_executor import RemoteGraphExecutor
 

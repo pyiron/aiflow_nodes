@@ -253,7 +253,7 @@ def GetNode(db, node_id: int):
     """
     import aiflow.database
     import pandas as pd
-    from pyironflow.gui_utilities import GuiGraph
+    from aiflow.gui.gui_utilities import GuiGraph
     from sqlalchemy.orm import sessionmaker
 
     Session = sessionmaker(bind=db.engine)
