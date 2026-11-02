@@ -40,6 +40,10 @@ all = [
     "aiflow_nodes[lammps,vasp,structure,thermodynamics,ml,assyst,pyiron,database,viz]",
 ]
 
+# Lets the aiflow.ai workflow assistant compose workflows from these nodes.
+[project.entry-points."aiflow.node_libraries"]
+aiflow_nodes = "aiflow_nodes.assistant_plugin:library"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/aiflow_nodes"]
 
@@ -165,6 +169,12 @@ exclude = [
     "docs",
     "notebooks",
 ]
+
+[tool.ruff.format]
+# Ruff also formats the code blocks in Markdown.  Leave the guides as written:
+# src/aiflow_nodes/guides/node_guide.md is a prompt for the aiflow.ai
+# assistant, where the compact hand layout is deliberate.
+exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = [
