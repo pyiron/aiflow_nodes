@@ -27,7 +27,7 @@ from aiflow_nodes.atomistic.property.elastic import (  # noqa: E402
 )
 from aiflow_nodes.atomistic.structure.build import Bulk  # noqa: E402
 
-#: The benchmark's grading windows for fcc copper, in GPa.
+#: The grading windows of the copper variant in aiflow_evals' task suite, in GPa.
 CU_WINDOWS = {"C11": (140.0, 200.0), "C12": (90.0, 160.0), "C44": (55.0, 100.0)}
 
 

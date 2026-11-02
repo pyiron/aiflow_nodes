@@ -156,13 +156,10 @@ lint = { features = ["lint"], no-default-feature = true }
 extend_exclude = [".*\\.ipynb"]
 
 [tool.deptry.per_rule_ignores]
-# Not declared: pyiron_ai (benchmark.py) is a separate, unpublished project;
-# qe_xml_parser (Quantum ESPRESSO) is not packaged.
-DEP001 = ["pyiron_ai", "qe_xml_parser"]
+# Not declared: qe_xml_parser (Quantum ESPRESSO) is not packaged.
+DEP001 = ["qe_xml_parser"]
 # pixi installs the package itself into its environment.
 DEP002 = ["aiflow_nodes"]
-# Only used by benchmark.py, which needs pyiron_ai anyway.
-DEP003 = ["markdown"]
 
 [tool.ruff]
 exclude = [

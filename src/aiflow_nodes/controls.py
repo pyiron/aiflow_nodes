@@ -939,7 +939,7 @@ def IterToDataFrame(
           element of ``values`` a tuple with one entry per label, or a dict
           keyed by label (the keys must match).  Each label gets its own
           column.  For a full grid, wire a node that returns the cartesian
-          product (e.g. ``benchmark.BenchmarkGrid``), or type the tuples into
+          product (e.g. ``aiflow_evals.nodes.BenchmarkGrid``), or type the tuples into
           ``InputVector`` (``"[(0, 'a'), (1, 'b')]"``).
         – The swept ports belong to the sweep: they are set for every cell and
           restored afterwards, the canvas hides them on the template, and a

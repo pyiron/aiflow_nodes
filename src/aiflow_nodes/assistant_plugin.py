@@ -28,10 +28,6 @@ NODE_GUIDE = GUIDES_DIR / "node_guide.md"
 #: Shown in ``NODE_INDEX.md`` as the example import.
 EXAMPLE_IMPORT = f"from {PACKAGE}.atomistic.structure.build import Bulk"
 
-#: Parts of the package that are not nodes for a workflow to use: the benchmark
-#: harness's own nodes.
-EXCLUDE = ("benchmark.py",)
-
 DESCRIPTION = (
     "computational materials science: maths, DataFrames, plotting, control "
     "flow, atomistic structure building, interatomic potentials, DFT/MD "
@@ -66,5 +62,4 @@ def library(root: str | Path | None = None) -> NodeLibrary | None:
         description=DESCRIPTION,
         guide=NODE_GUIDE,
         example_import=EXAMPLE_IMPORT,
-        exclude=EXCLUDE,
     )

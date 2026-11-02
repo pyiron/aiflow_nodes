@@ -17,7 +17,6 @@ def test_the_plugin_describes_aiflow_nodes(tmp_path):
     assert library.name == "aiflow_nodes"
     assert library.root == root
     assert library.guide == plugin.NODE_GUIDE and plugin.NODE_GUIDE.is_file()
-    assert "benchmark.py" in library.exclude
 
 
 def test_without_aiflow_nodes_the_plugin_offers_nothing(monkeypatch):
