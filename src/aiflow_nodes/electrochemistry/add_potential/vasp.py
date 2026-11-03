@@ -46,10 +46,10 @@ class CEParameters:
 
 def _plugin_content(ce_params: CEParameters):
     """
-    Fill the vasp_plugin.py template with CCE parameters and write
-    it to the working directory.
+    Fill the plugin template with CCE parameters and return the content.
 
-    Must be called after WriteVaspInputSet has created the working directory.
+    The rendered content is written to the working directory by
+    CreateVaspInputResources.
 
     Parameters
     ----------
