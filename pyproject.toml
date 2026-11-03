@@ -151,9 +151,11 @@ test = "coverage run --rcfile=.coveragerc && coverage report --rcfile=.coverager
 
 [tool.pixi.feature.lint.dependencies]
 ruff = "==0.17.3"
+pre-commit = "*"
 
 [tool.pixi.feature.lint.tasks]
 lint = "ruff check . && ruff format --check --diff ."
+hooks = "pre-commit run --all-files --show-diff-on-failure"
 
 # deptry inspects the installed packages, so it runs in the full environment.
 [tool.pixi.feature.deptry.dependencies]
