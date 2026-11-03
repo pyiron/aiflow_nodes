@@ -69,6 +69,11 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64"]
 preview = ["pixi-build"]
 
+# The recipe's host requirements pin python to python_min (recipe/variants.yaml);
+# [tool.pixi.dev] installs them, so python_min must be this workspace's python.
+[tool.pixi.workspace.build-variants]
+python_min = ["3.12"]
+
 [tool.pixi.activation.env]
 # The conda-forge tensorflow build (pulled in by grace-tensorpotential) has an
 # executable-stack flag that glibc >= 2.41 refuses to load. Ignored by older glibc.
@@ -77,86 +82,43 @@ GLIBC_TUNABLES = "glibc.rtld.execstack=2"
 [tool.pixi.dependencies]
 python = "3.12.*"
 
-# The package's conda dependencies, declared once here. Workspaces that develop
-# aiflow_nodes (this one, and the aiflow_env bundle) pull them in through their
-# [dev] table and install the package itself as an editable PyPI dependency.
-# Everything that conda-forge provides comes from conda-forge; conda packages
-# take precedence over the same requirement in [project].
+# conda packaging: recipe/recipe.yaml mirrors [project] (one output per extra;
+# tools/check_conda_recipe.py keeps them in step).  This workspace, and others
+# that develop aiflow_nodes such as aiflow_env, take its conda dependencies from
+# the recipe through their [dev] table and install the package itself as an
+# editable PyPI dependency.  Exact versions live in pixi.lock.
 [tool.pixi.package.build.backend]
-name = "pixi-build-python"
+name = "pixi-build-rattler-build"
 version = "*"
 
-[tool.pixi.package.host-dependencies]
-hatchling = "*"
+[tool.pixi.package.build.config]
+recipe = "recipe/recipe.yaml"
 
-[tool.pixi.package.run-dependencies]
-# The conda side of [project]: the same requirements and bounds, plus what
-# only conda-forge provides (marked below).  Exact versions live in pixi.lock.
-ase = ">=3.26"
-cloudpickle = "*"
-executorlib = "*"
-# aiflow's, which is installed from PyPI (it has no conda package yet).
-h5py = "*"
-jinja2 = "*"
-matplotlib = "*"
-numpy = ">=2"  # calphy 1.7.2 uses numpy.trapezoid
-pandas = "*"
-pint = "*"
-pyyaml = "*"
-scipy = "*"
-tqdm = "*"
-# lammps; conda-only: the LAMMPS program (MPI build) and its potentials
-lammps = { version = "*", build = "*openmpi*" }
-iprpy-data = "*"
-lammpsparser = "*"
-pyiron_lammps = ">=0.5"
-# vasp / structure
-phonopy = "*"
-pymatgen = ">=2025"
-pymatgen-analysis-defects = "*"
-spglib = "*"
-structuretoolkit = "*"
-vaspparser = "*"
-# thermodynamics
-calphy = "*"
-landau = "*"
-pyscal3 = "*"
-seaborn = "*"
-# ml
-grace-tensorpotential = "*"
-matgl = "*"
-python-ace = "*"
-scikit-learn = "*"
-# assyst
-assyst = "*"
-# pyiron; conda-only: pyiron's resource files
-pyiron = "*"
-pyiron-data = "*"
-pyiron_atomistics = ">=0.8"
-pyiron_base = ">=0.15"
-pyiron_snippets = "*"
-# database
-h5io_browser = "*"
-pyfileindex = "*"
-sqlalchemy = "*"
-# viz
-ipython = "*"
-nglview = "*"
-pygments = "*"
-
-# conda-forge only has gpaw 26.7 for osx-arm64, which needs numpy >= 2.5.3 and
-# conflicts with pyiron_atomistics (numpy <= 2.3.5). gpaw is imported lazily,
-# so only the GPAW calculator nodes are unavailable on macOS.
-[tool.pixi.package.run-dependencies."if(host_platform == 'linux-64')"]
-gpaw = "*"
-
+# Every output of the recipe, so that none of them is built.  aiflow comes from
+# its repository as well: its conda dependencies through [dev] (its own
+# recipe), the package itself from PyPI below; keep the two revs equal.
+# TODO: move both to the merge commit of pyiron/aiflow's conda-build branch
+# (the first with recipe/recipe.yaml), and to a release once aiflow is published.
 [tool.pixi.dev]
-aiflow_nodes = { path = "." }
+aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "44187e9cf70c445993694d4a87ede2f20205bf68" }
+aiflow-nodes = { path = "." }
+aiflow-nodes-lammps = { path = "." }
+aiflow-nodes-vasp = { path = "." }
+aiflow-nodes-structure = { path = "." }
+aiflow-nodes-thermodynamics = { path = "." }
+aiflow-nodes-ml = { path = "." }
+aiflow-nodes-assyst = { path = "." }
+aiflow-nodes-pyiron = { path = "." }
+aiflow-nodes-database = { path = "." }
+aiflow-nodes-viz = { path = "." }
+
+[tool.pixi.target.linux-64.dev]
+aiflow-nodes-gpaw = { path = "." }
 
 [tool.pixi.pypi-dependencies]
 # Private repository: needs GitHub access to pyiron/aiflow (gh credential
 # helper or SSH locally, the AIFLOW_READ token in CI). Bump on purpose.
-aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "f36a6a8026c5a422cfda97a6733e74acb1050dc1" }
+aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "44187e9cf70c445993694d4a87ede2f20205bf68" }
 aiflow_nodes = { path = ".", editable = true }
 
 [tool.pixi.feature.test.dependencies]
@@ -185,6 +147,18 @@ deptry = "deptry src"
 default = { features = ["test", "lint", "deptry"], solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 lint = { features = ["lint"], no-default-feature = true }
+
+# Settings of tools/check_conda_recipe.py.
+[tool.check-conda-recipe]
+# No conda output: see recipe/recipe.yaml.
+ignore-extras = ["all"]
+# Recipe requirements without a PyPI counterpart in [project].
+conda-only = ["lammps", "iprpy-data", "pyiron-data"]
+
+[tool.check-conda-recipe.conda-to-pypi]
+# conda-forge's python-ace reports itself as `pyace`, which on PyPI is an
+# unrelated package.
+python-ace = "python-ace"
 
 [tool.deptry]
 # Notebooks under src/ are examples, not package code.

@@ -25,6 +25,29 @@ jobs:
       - name: Pre-commit hooks (notebook outputs, binaries, large files)
         run: pixi run -e lint hooks
 
+  # The conda recipe (recipe/recipe.yaml) must mirror pyproject.toml, and
+  # must build from the sdist.
+  conda-recipe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.11.2
+        with:
+          pixi-version: v0.83.0
+          run-install: false
+      - name: Recipe matches pyproject.toml
+        run: pixi exec --spec python=3.12 --spec pyyaml -- python tools/check_conda_recipe.py
+      # Not blocking yet: the packages need aiflow, which is not on conda-forge.
+      # Drop continue-on-error once it is.
+      - name: Build the conda packages
+        continue-on-error: true
+        timeout-minutes: 30
+        run: |
+          pixi exec --spec python=3.12 --spec python-build --spec hatchling -- \
+            python -m build --sdist --no-isolation
+          AIFLOW_NODES_SDIST=$(ls $PWD/dist/aiflow_nodes-*.tar.gz) \
+            pixi exec rattler-build build --recipe recipe/ --output-dir conda-build
+
   tests:
     needs: [lint]
     runs-on: ubuntu-latest

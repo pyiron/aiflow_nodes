@@ -34,6 +34,14 @@ repos:
 
   - repo: local
     hooks:
+      # recipe/recipe.yaml must mirror [project] in pyproject.toml.
+      - id: conda-recipe
+        name: conda recipe matches pyproject.toml
+        entry: python tools/check_conda_recipe.py
+        language: python
+        additional_dependencies: [pyyaml]
+        files: ^(pyproject\.toml|recipe/recipe\.yaml)$
+        pass_filenames: false
       - id: no-binary-files
         name: no binary files
         language: fail
