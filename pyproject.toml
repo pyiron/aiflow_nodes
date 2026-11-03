@@ -27,17 +27,30 @@ dependencies = [
 # Subpackages that need a heavier stack import it themselves; install the extra
 # that matches the nodes you use.
 [project.optional-dependencies]
-lammps = ["lammpsparser", "pyiron_lammps"]
-vasp = ["pymatgen", "vaspparser"]
-structure = ["phonopy", "pymatgen", "spglib", "structuretoolkit"]
+# On PyPI the lammps and gpaw extras bring only the Python side; the LAMMPS and
+# GPAW programs come from conda-forge (the conda outputs include them) or a
+# local build.
+lammps = ["lammpsparser", "pyiron_lammps>=0.5"]
+vasp = ["pymatgen>=2025", "vaspparser"]
+structure = [
+    "phonopy",
+    "pymatgen>=2025",
+    "pymatgen-analysis-defects",
+    "spglib",
+    "structuretoolkit",
+]
 thermodynamics = ["calphy", "landau", "pyscal3", "seaborn"]
-ml = ["matgl", "pyace", "scikit-learn", "tensorpotential"]
-assyst = ["assyst", "gpaw"]
-pyiron = ["pyiron", "pyiron_base", "pyiron_snippets"]
+# python-ace provides the `pyace` module; `pyace` on PyPI is an unrelated package.
+ml = ["matgl", "python-ace", "scikit-learn", "tensorpotential"]
+assyst = ["assyst"]
+# Separate from assyst: conda-forge's osx-arm64 gpaw needs a numpy that
+# pyiron_atomistics does not allow, so environments choose it per platform.
+gpaw = ["gpaw"]
+pyiron = ["pyiron", "pyiron_base>=0.15", "pyiron_snippets"]
 database = ["h5io_browser", "pyfileindex", "sqlalchemy"]
 viz = ["ipython", "nglview", "pygments", "seaborn"]
 all = [
-    "aiflow_nodes[lammps,vasp,structure,thermodynamics,ml,assyst,pyiron,database,viz]",
+    "aiflow_nodes[lammps,vasp,structure,thermodynamics,ml,assyst,gpaw,pyiron,database,viz]",
 ]
 
 # Lets the aiflow.ai workflow assistant compose workflows from these nodes.
@@ -56,6 +69,11 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64"]
 preview = ["pixi-build"]
 
+# The recipe's host requirements pin python to python_min (recipe/variants.yaml);
+# [tool.pixi.dev] installs them, so python_min must be this workspace's python.
+[tool.pixi.workspace.build-variants]
+python_min = ["3.12"]
+
 [tool.pixi.activation.env]
 # The conda-forge tensorflow build (pulled in by grace-tensorpotential) has an
 # executable-stack flag that glibc >= 2.41 refuses to load. Ignored by older glibc.
@@ -64,82 +82,43 @@ GLIBC_TUNABLES = "glibc.rtld.execstack=2"
 [tool.pixi.dependencies]
 python = "3.12.*"
 
-# The package's conda dependencies, declared once here. Workspaces that develop
-# aiflow_nodes (this one, and the aiflow_env bundle) pull them in through their
-# [dev] table and install the package itself as an editable PyPI dependency.
-# Everything that conda-forge provides comes from conda-forge; conda packages
-# take precedence over the same requirement in [project].
+# conda packaging: recipe/recipe.yaml mirrors [project] (one output per extra;
+# tools/check_conda_recipe.py keeps them in step).  This workspace, and others
+# that develop aiflow_nodes such as aiflow_env, take its conda dependencies from
+# the recipe through their [dev] table and install the package itself as an
+# editable PyPI dependency.  Exact versions live in pixi.lock.
 [tool.pixi.package.build.backend]
-name = "pixi-build-python"
+name = "pixi-build-rattler-build"
 version = "*"
 
-[tool.pixi.package.host-dependencies]
-hatchling = "*"
+[tool.pixi.package.build.config]
+recipe = "recipe/recipe.yaml"
 
-[tool.pixi.package.run-dependencies]
-ase = ">=3.26"
-cloudpickle = "==3.1.2"
-executorlib = "==1.9.2"
-h5py = "==3.15.1"
-jinja2 = "*"
-matplotlib = "==3.10.9"
-numpy = ">=2"  # calphy 1.7.2 uses numpy.trapezoid
-pandas = "==2.2.3"
-pint = "==0.25.2"
-pyyaml = "*"
-scipy = "==1.15.2"
-tqdm = "*"
-# lammps
-lammps = { version = "==2024.08.29", build = "*openmpi*" }
-lammpsparser = "==0.0.3"
-pyiron_lammps = ">=0.5"
-# vasp / structure
-phonopy = "==2.47.1"
-pymatgen = ">=2025"
-spglib = "*"
-structuretoolkit = "==0.0.42"
-vaspparser = "==0.0.3"
-# thermodynamics
-calphy = "==1.7.2"
-landau = "==1.7.0"
-pyscal3 = "*"
-seaborn = "==0.13.2"
-# ml
-grace-tensorpotential = "==0.5.5"
-matgl = "==2.0.6"
-python-ace = "==0.3.1"
-scikit-learn = "==1.6.1"
-# assyst
-assyst = "==0.13.0"
-# pyiron
-iprpy-data = "==2023.07.25"
-pyiron = "*"
-pyiron-data = "==0.0.30"
-pyiron_atomistics = ">=0.8"
-pyiron_base = ">=0.15"
-pyiron_snippets = "*"
-# database
-h5io_browser = "*"
-pyfileindex = "*"
-sqlalchemy = "==2.0.38"
-# viz
-ipython = "*"
-nglview = "*"
-pygments = "*"
-
-# conda-forge only has gpaw 26.7 for osx-arm64, which needs numpy >= 2.5.3 and
-# conflicts with pyiron_atomistics (numpy <= 2.3.5). gpaw is imported lazily,
-# so only the GPAW calculator nodes are unavailable on macOS.
-[tool.pixi.package.run-dependencies."if(host_platform == 'linux-64')"]
-gpaw = "*"
-
+# Every output of the recipe, so that none of them is built.  aiflow comes from
+# its repository as well: its conda dependencies through [dev] (its own
+# recipe), the package itself from PyPI below; keep the two revs equal.
+# TODO: move both to the merge commit of pyiron/aiflow's conda-packaging branch
+# (the first with recipe/recipe.yaml), and to a release once aiflow is published.
 [tool.pixi.dev]
-aiflow_nodes = { path = "." }
+aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "7523d0df35247a0ce8c90127513ceb69bb95f50e" }
+aiflow-nodes = { path = "." }
+aiflow-nodes-lammps = { path = "." }
+aiflow-nodes-vasp = { path = "." }
+aiflow-nodes-structure = { path = "." }
+aiflow-nodes-thermodynamics = { path = "." }
+aiflow-nodes-ml = { path = "." }
+aiflow-nodes-assyst = { path = "." }
+aiflow-nodes-pyiron = { path = "." }
+aiflow-nodes-database = { path = "." }
+aiflow-nodes-viz = { path = "." }
+
+[tool.pixi.target.linux-64.dev]
+aiflow-nodes-gpaw = { path = "." }
 
 [tool.pixi.pypi-dependencies]
 # Private repository: needs GitHub access to pyiron/aiflow (gh credential
 # helper or SSH locally, the AIFLOW_READ token in CI). Bump on purpose.
-aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "f36a6a8026c5a422cfda97a6733e74acb1050dc1" }
+aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "7523d0df35247a0ce8c90127513ceb69bb95f50e" }
 aiflow_nodes = { path = ".", editable = true }
 
 [tool.pixi.feature.test.dependencies]
@@ -169,9 +148,25 @@ default = { features = ["test", "lint", "deptry"], solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 lint = { features = ["lint"], no-default-feature = true }
 
+# Settings of tools/check_conda_recipe.py.
+[tool.check-conda-recipe]
+# No conda output: see recipe/recipe.yaml.
+ignore-extras = ["all"]
+# Recipe requirements without a PyPI counterpart in [project].
+conda-only = ["lammps", "iprpy-data", "pyiron-data"]
+
+[tool.check-conda-recipe.conda-to-pypi]
+# conda-forge's python-ace reports itself as `pyace`, which on PyPI is an
+# unrelated package.
+python-ace = "python-ace"
+
 [tool.deptry]
 # Notebooks under src/ are examples, not package code.
 extend_exclude = [".*\\.ipynb"]
+
+[tool.deptry.package_module_name_map]
+# conda-forge's python-ace installs its metadata as `pyace`.
+python-ace = "pyace"
 
 [tool.deptry.per_rule_ignores]
 # Not declared: qe_xml_parser (Quantum ESPRESSO) is not packaged.
