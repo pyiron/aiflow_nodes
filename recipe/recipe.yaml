@@ -1,0 +1,192 @@
+# Conda packaging of aiflow_nodes, one output per extra of pyproject.toml.
+#
+# pyproject.toml [project] is the source of truth for the requirements; this
+# recipe mirrors it, and tools/check_conda_recipe.py (pre-commit, CI) fails
+# when the two disagree.  Change a requirement in pyproject.toml first.  The
+# only additions here are what PyPI cannot express (`conda-only` in
+# [tool.check-conda-recipe]): the LAMMPS program and the potential and
+# resource data packages.
+#
+# There is no `-all` output: the stacks need not install together on every
+# platform (gpaw vs. pyiron_atomistics on osx-arm64), so environments pick the
+# outputs they need.
+#
+# The recipe serves two purposes:
+# - Locally, pixi reads it through [tool.pixi.package] in pyproject.toml, so
+#   pixi workspaces can take the conda dependencies from their [dev] table (the
+#   source is then the checkout, `..`, and nothing is built).
+# - It is the template for the conda-forge feedstock.  The copy there replaces
+#   `source` with the PyPI sdist (url + sha256); everything else stays.
+#
+# Build it from an sdist:
+#   python -m build --sdist
+#   AIFLOW_NODES_SDIST=$PWD/dist/aiflow_nodes-0.0.1.tar.gz rattler-build build --recipe recipe/
+context:
+  version: "0.0.1"
+
+recipe:
+  name: aiflow-nodes-split
+  version: ${{ version }}
+
+source:
+  path: ${{ env.get("AIFLOW_NODES_SDIST", default="..") }}
+
+build:
+  number: 0
+
+outputs:
+  - package:
+      name: aiflow-nodes
+    build:
+      noarch: python
+      script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+    requirements:
+      host:
+        - python ${{ python_min }}.*
+        - pip
+        - hatchling
+      run:
+        - python >=${{ python_min }}
+        - aiflow
+        - ase >=3.26
+        - cloudpickle
+        - executorlib
+        - jinja2
+        - matplotlib
+        - numpy >=2
+        - pandas
+        - pint
+        - pyyaml
+        - scipy
+        - tqdm
+    tests:
+      - python:
+          imports:
+            - aiflow_nodes
+          pip_check: true
+          python_version: ${{ python_min }}.*
+
+  - package:
+      name: aiflow-nodes-lammps
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - lammpsparser
+        - pyiron_lammps >=0.5
+        # conda-only: the LAMMPS program (MPI build) and its potentials.
+        - lammps * *mpi_openmpi*
+        - iprpy-data
+
+  - package:
+      name: aiflow-nodes-vasp
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - pymatgen >=2025
+        - vaspparser
+
+  - package:
+      name: aiflow-nodes-structure
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - phonopy
+        - pymatgen >=2025
+        - pymatgen-analysis-defects
+        - spglib
+        - structuretoolkit
+
+  - package:
+      name: aiflow-nodes-thermodynamics
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - calphy
+        - landau
+        - pyscal3
+        - seaborn
+
+  - package:
+      name: aiflow-nodes-ml
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - matgl
+        - python-ace
+        - scikit-learn
+        - grace-tensorpotential
+
+  - package:
+      name: aiflow-nodes-assyst
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - assyst
+
+  - package:
+      name: aiflow-nodes-gpaw
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - gpaw
+
+  - package:
+      name: aiflow-nodes-pyiron
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - pyiron
+        - pyiron_base >=0.15
+        - pyiron_snippets
+        # conda-only: pyiron's resource files.
+        - pyiron-data
+
+  - package:
+      name: aiflow-nodes-database
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - h5io_browser
+        - pyfileindex
+        - sqlalchemy
+
+  - package:
+      name: aiflow-nodes-viz
+    build:
+      noarch: generic
+    requirements:
+      run:
+        - ${{ pin_subpackage("aiflow-nodes", exact=True) }}
+        - ipython
+        - nglview
+        - pygments
+        - seaborn
+
+about:
+  homepage: https://github.com/pyiron/aiflow_nodes
+  repository: https://github.com/pyiron/aiflow_nodes
+  summary: Node library for pyiron/aiflow workflows
+  # TODO: aiflow_nodes has no license yet; conda-forge needs license and
+  # license_file (and pyproject.toml a license) before submission.
+
+extra:
+  recipe-maintainers:
+    - XzzX

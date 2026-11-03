@@ -309,7 +309,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ucx-1.22.0-h6cc3e34_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ukkonen-1.1.0-py312h80505a6_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/unicodedata2-18.0.0-py312h5cc1888_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/uv-0.13.6-h535ca38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/voro-0.4.6-h00ab1b0_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/wayland-1.26.0-hc1c935e_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/wcwidth-0.9.4-py311hd139983_0.conda
@@ -416,6 +415,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/h2-4.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io-0.2.5-pyhc455866_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io_browser-0.2.16-pyhdfbf58e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/hatch-jupyter-builder-0.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hatchling-1.33.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hpack-4.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/html5rdf-1.2.1-pyhd8ed1ab_1.conda
@@ -628,7 +628,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.2-pyh5ded981_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f36a6a8026c5a422cfda97a6733e74acb1050dc1#f36a6a8026c5a422cfda97a6733e74acb1050dc1
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=44187e9cf70c445993694d4a87ede2f20205bf68#44187e9cf70c445993694d4a87ede2f20205bf68
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/absl-py-2.5.1-pyh5ded981_0.conda
@@ -701,6 +701,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/h2-4.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io-0.2.5-pyhc455866_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io_browser-0.2.16-pyhdfbf58e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/hatch-jupyter-builder-0.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hatchling-1.33.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hpack-4.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/html5rdf-1.2.1-pyhd8ed1ab_1.conda
@@ -1164,7 +1165,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tornado-6.5.10-py312ha053593_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ukkonen-1.1.0-py312h0be465d_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/unicodedata2-18.0.0-py312ha053593_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.13.6-hbb8eed7_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/voro-0.4.6-h1995070_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/wcwidth-0.9.4-py311h8794d7f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/wget-1.25.0-h7ba78b2_1.conda
@@ -1179,7 +1179,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f36a6a8026c5a422cfda97a6733e74acb1050dc1#f36a6a8026c5a422cfda97a6733e74acb1050dc1
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=44187e9cf70c445993694d4a87ede2f20205bf68#44187e9cf70c445993694d4a87ede2f20205bf68
   lint:
     channels:
     - url: https://conda.anaconda.org/conda-forge/
@@ -1553,7 +1553,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ucc-1.8.0-h539fd1b_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ucx-1.22.0-h6cc3e34_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/unicodedata2-18.0.0-py312h5cc1888_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/uv-0.13.6-h535ca38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/voro-0.4.6-h00ab1b0_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/wayland-1.26.0-hc1c935e_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/wcwidth-0.9.4-py311hd139983_0.conda
@@ -1658,6 +1657,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/h2-4.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io-0.2.5-pyhc455866_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io_browser-0.2.16-pyhdfbf58e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/hatch-jupyter-builder-0.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hatchling-1.33.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hpack-4.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/html5rdf-1.2.1-pyhd8ed1ab_1.conda
@@ -1863,7 +1863,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.2-pyh5ded981_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f36a6a8026c5a422cfda97a6733e74acb1050dc1#f36a6a8026c5a422cfda97a6733e74acb1050dc1
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=44187e9cf70c445993694d4a87ede2f20205bf68#44187e9cf70c445993694d4a87ede2f20205bf68
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/absl-py-2.5.1-pyh5ded981_0.conda
@@ -1934,6 +1934,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/h2-4.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io-0.2.5-pyhc455866_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/h5io_browser-0.2.16-pyhdfbf58e_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/hatch-jupyter-builder-0.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hatchling-1.33.0-pyh5ded981_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/hpack-4.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/html5rdf-1.2.1-pyhd8ed1ab_1.conda
@@ -2387,7 +2388,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/torchdata-0.11.0-py312h40135ec_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/tornado-6.5.10-py312ha053593_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/unicodedata2-18.0.0-py312ha053593_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.13.6-hbb8eed7_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/voro-0.4.6-h1995070_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/wcwidth-0.9.4-py311h8794d7f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/wget-1.25.0-h7ba78b2_1.conda
@@ -2402,7 +2402,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f36a6a8026c5a422cfda97a6733e74acb1050dc1#f36a6a8026c5a422cfda97a6733e74acb1050dc1
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=44187e9cf70c445993694d4a87ede2f20205bf68#44187e9cf70c445993694d4a87ede2f20205bf68
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -7824,21 +7824,6 @@ packages:
   run_exports: {}
   size: 419998
   timestamp: 1789928085789
-- conda: https://conda.anaconda.org/conda-forge/linux-64/uv-0.13.6-h535ca38_0.conda
-  sha256: bf95a4a9f5bf9c462a2f8c1844f5d7ca201e1829d6b530c1b2d586e9a065743a
-  md5: b30bbbf08f32017f9bc857119b1636dc
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=15
-  - libstdcxx >=15
-  - zstd >=1.5.7,<1.6.0a0
-  constrains:
-  - __glibc >=2.17
-  license: Apache-2.0 OR MIT
-  purls: []
-  run_exports: {}
-  size: 14859953
-  timestamp: 1793087304431
 - conda: https://conda.anaconda.org/conda-forge/linux-64/voro-0.4.6-h00ab1b0_0.conda
   sha256: d902208b6d18afddec9f961227962c53aa6f85fc23d49c23bffe6c3595346968
   md5: 781691f0d209a1243515301656a5ed8f
@@ -9410,6 +9395,19 @@ packages:
   run_exports: {}
   size: 29344
   timestamp: 1785311917673
+- conda: https://conda.anaconda.org/conda-forge/noarch/hatch-jupyter-builder-0.10.0-pyhd8ed1ab_0.conda
+  sha256: 82acbc75b3c63219d7d55728c1d87e3d4833d91de6f8dd4d3ae3efd7ed077169
+  md5: e09ddc22cf6f3f4e64e2d8831d74ebee
+  depends:
+  - hatchling >=1.0
+  - python >=3.7
+  license: BSD-3-Clause
+  license_family: BSD
+  purls:
+  - pkg:pypi/hatch-jupyter-builder?source=compressed-mapping
+  run_exports: {}
+  size: 69591
+  timestamp: 1789750226863
 - conda: https://conda.anaconda.org/conda-forge/noarch/hatchling-1.33.0-pyh5ded981_0.conda
   sha256: c8d6e3b4fe83dbe1a78396bbb29bd6e982504f03c42994680d5d45f166a73d80
   md5: a1d32b260d637aeb2c237a47ee732944
@@ -17175,20 +17173,6 @@ packages:
   run_exports: {}
   size: 424961
   timestamp: 1789928075417
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/uv-0.13.6-hbb8eed7_0.conda
-  sha256: dc832fb27756a2e0ba7218f20e3d9fb00e8cd81d895bc6adf734afe005fa70bd
-  md5: ce4671d10dba0d044bfab0ac1892d976
-  depends:
-  - __osx >=11.0
-  - libcxx >=21
-  - zstd >=1.5.7,<1.6.0a0
-  constrains:
-  - __osx >=11.0
-  license: Apache-2.0 OR MIT
-  purls: []
-  run_exports: {}
-  size: 12520229
-  timestamp: 1793087357197
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/voro-0.4.6-h1995070_0.conda
   sha256: f7055285404d07ea02b542050ee5078ed19b2028da251f5f7e7a5f179f802ff3
   md5: be0aa663ad1c6e26cd3bcc033ae8ce86
@@ -17424,7 +17408,7 @@ packages:
   - seaborn ; extra == 'viz'
   - aiflow-nodes[lammps,vasp,structure,thermodynamics,ml,assyst,gpaw,pyiron,database,viz] ; extra == 'all'
   requires_python: '>=3.11'
-- pypi: git+https://github.com/pyiron/aiflow.git?rev=f36a6a8026c5a422cfda97a6733e74acb1050dc1#f36a6a8026c5a422cfda97a6733e74acb1050dc1
+- pypi: git+https://github.com/pyiron/aiflow.git?rev=44187e9cf70c445993694d4a87ede2f20205bf68#44187e9cf70c445993694d4a87ede2f20205bf68
   name: aiflow
   version: 0.1.0
   requires_dist:
@@ -17447,9 +17431,12 @@ packages:
   - ipywidgets ; extra == 'gui'
   - ipytree ; extra == 'gui'
   - pygments ; extra == 'gui'
-  - sim-atlas==0.0.17 ; extra == 'gui'
-  - sim-atlas-toolkit==0.0.17 ; extra == 'gui'
-  - aiflow[gui,mcp,sqlalchemy] ; extra == 'all'
+  - sim-atlas==0.0.19 ; extra == 'gui'
+  - sim-atlas-toolkit==0.0.19 ; extra == 'gui'
+  - pysqa ; extra == 'queue'
+  - aiflow[sqlalchemy] ; extra == 'postgresql'
+  - psycopg2-binary ; extra == 'postgresql'
+  - aiflow[gui,mcp,postgresql,queue,sqlalchemy] ; extra == 'all'
   - pytest ; extra == 'dev'
   - lxml ; extra == 'dev'
   - pre-commit ; extra == 'dev'

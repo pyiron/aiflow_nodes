@@ -1,0 +1,6 @@
+# Oldest Python the package supports (requires-python in pyproject.toml), for
+# conda-forge's noarch: python convention (`python ${{ python_min }}.*` in host).
+# pixi workspaces override it with their own Python in [workspace.build-variants],
+# because their [dev] table installs the host requirements too.
+python_min:
+  - "3.11"
