@@ -101,13 +101,17 @@ the ionic loop, and that is enforced when the INCAR is built.
 ### 2. `CreateVaspInputResources`
 
 ```
-Inputs:  structure, calc, potcar_lib_path, working_directory, potcar_symbols
+Inputs:  structure, calc, potcar_lib_path, plugin_data, working_directory,
+         potcar_symbols, restart_content
 Output:  io_bundle (VaspInputResources)
 ```
 
 Bundles the inputs into a `VaspInputResources` dataclass, then creates the
 working directory (falling back to a hash of the inputs when none is given) and
-writes the four VASP input files. The defaults for `potcar_lib_path` and
+writes the four VASP input files.
+`plugin_data` (from the electrochemistry setup nodes, see
+`electrochemistry/add_potential/CCE-electrode_overview.md`) adds extra INCAR
+tags, POTCAR overrides and a `vasp_plugin.py`. The defaults for `potcar_lib_path` and
 `vasp_command` are read from `~/.pyiron_vasp_config` at import time.
 
 **POSCAR** — the crystal structure.

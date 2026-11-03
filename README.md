@@ -9,6 +9,10 @@ Node library for pyiron/aiflow workflows.
 - `tutorial/` – tutorial material (not part of the package)
 - `tests/` – test suite
 
+Node-specific documentation sits next to the code, e.g.
+[VASP nodes](src/aiflow_nodes/atomistic/engine/vasp_new_overview.md) and
+[VASP electrochemistry (CCE)](src/aiflow_nodes/electrochemistry/add_potential/CCE-electrode_overview.md).
+
 ## Development
 
 Dependencies are managed with [pixi](https://pixi.sh) in `pyproject.toml`; the
