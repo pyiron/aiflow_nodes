@@ -1,3 +1,14 @@
+# Git hooks, managed by https://pre-commit.com
+#
+#   pixi run pre-commit install  # once per clone
+#   pixi run hooks               # what CI runs: all hooks, all files
+#
+# - ruff lints and formats the Python files and notebooks.
+# - nbstripout removes notebook outputs and execution counts; commit the
+#   stripped notebook (`git add` it again).
+# - Binary files and files over 500 kB are rejected. Data belongs elsewhere
+#   (e.g. Zenodo); a binary that must live here goes into the
+#   `no-binary-files` exclude list below.
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.17.3
@@ -7,3 +18,28 @@ repos:
         args: ["--fix"]
       - id: ruff-format
         name: ruff format
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout
+        args: ["--extra-keys", "metadata.kernelspec metadata.language_info.version"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+
+  - repo: local
+    hooks:
+      - id: no-binary-files
+        name: no binary files
+        language: fail
+        entry: >-
+          Binary files must not be committed; host the data elsewhere or add
+          the file to the exclude list in .pre-commit-config.yaml
+        types: [binary]
+        # Temporary: the training dataset is to be moved out of the repo.
+        exclude: ^src/aiflow_nodes/atomistic/ml_potentials/fitting/dataset\.pckl\.gzip$

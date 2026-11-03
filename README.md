@@ -23,7 +23,12 @@ pixi install          # default environment, with aiflow_nodes installed editabl
 pixi run test         # unit tests with coverage
 pixi run lint         # ruff check + ruff format --check
 pixi run deptry       # imports vs. declared dependencies
+pixi run hooks        # all pre-commit hooks on all files (as CI does)
+pixi run pre-commit install  # once per clone: run the hooks on every commit
 ```
+
+The hooks strip notebook outputs and reject binary files and files over
+500 kB; see `.pre-commit-config.yaml`.
 
 aiflow is not published yet. pixi installs it from the private
 `pyiron/aiflow` repository at the commit pinned in
