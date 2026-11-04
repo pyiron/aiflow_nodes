@@ -45,7 +45,9 @@ def plot_phase_diagram(
     fig : matplotlib.figure.Figure
         Figure object containing the plot.
     """
-    from landau.plot import cluster_phase, make_concave_poly, make_poly
+    from landau.calculate import get_transitions
+    from landau.plot import cluster_phase
+    from landau.poly import handle_poly_method
 
     df = df.query("stable").copy()
 
@@ -75,21 +77,13 @@ def plot_phase_diagram(
         )
         df = df.query("phase_unit >= 0")
 
-    # Polygon construction
-    if "refined" in df.columns and poly_method == "segments":
-        df.loc[:, "phase"] = df.phase_id
-        tdf = landau.plot.get_transitions(df)
-        tdf["phase_unit"] = tdf.phase.str.rsplit("_", n=1).map(lambda x: int(x[1]))
-        tdf["phase"] = tdf.phase.str.rsplit("_", n=1).map(lambda x: x[0])
-        polys = tdf.groupby(["phase", "phase_unit"]).apply(
-            make_poly, min_c_width=min_c_width
-        )
-    else:
-        polys = (
-            df.groupby(["phase", "phase_unit"])
-            .apply(make_concave_poly, alpha=alpha, min_c_width=min_c_width)
-            .dropna()
-        )
+    # Polygon construction.  The segments method needs refined phase
+    # boundaries; without them fall back to concave hulls, as before.
+    if poly_method == "segments" and "refined" not in df.columns:
+        poly_method = "concave"
+    polys = handle_poly_method(poly_method, min_c_width=min_c_width, alpha=alpha).apply(
+        df, variables=["c", "T"]
+    )
 
     # Draw polygons
     for phase, p in polys.items():
@@ -104,7 +98,7 @@ def plot_phase_diagram(
     # Tielines
     if tielines:
         if "refined" in df.columns:
-            tdf = landau.plot.get_transitions(df)
+            tdf = get_transitions(df)
 
             def plot_tie(dd):
                 Tmin = dd["T"].min()
