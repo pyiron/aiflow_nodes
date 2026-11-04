@@ -100,7 +100,7 @@ spglib = "*"
 structuretoolkit = "==0.0.42"
 vaspparser = "==0.0.3"
 # thermodynamics
-calphy = "==1.7.2"
+calphy = "==1.8.5"
 landau = "==1.16.0"
 pyscal3 = "*"
 seaborn = "==0.13.2"
