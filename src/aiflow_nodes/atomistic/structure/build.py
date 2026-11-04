@@ -376,15 +376,20 @@ def Surface(
             surface_type = surface_class
             break
 
+    if not isinstance(surface_type, types.FunctionType):
+        raise ValueError(
+            f"Unknown surface_type {surface_type!r}: expected the name of an "
+            f"ase.build surface function, such as 'fcc111'."
+        )
+
     size = [int(x) for x in size.split(" ")]
-    if isinstance(surface_type, types.FunctionType):
-        if center:
-            surface = surface_type(
-                symbol=element, size=size, vacuum=vacuum, orthogonal=orthogonal
-            )
-        else:
-            surface = surface_type(symbol=element, size=size, orthogonal=orthogonal)
-            z_max = np.max(surface.positions[:, 2])
-            surface.cell[2, 2] = z_max + vacuum
-        surface.pbc = pbc
+    if center:
+        surface = surface_type(
+            symbol=element, size=size, vacuum=vacuum, orthogonal=orthogonal
+        )
+    else:
+        surface = surface_type(symbol=element, size=size, orthogonal=orthogonal)
+        z_max = np.max(surface.positions[:, 2])
+        surface.cell[2, 2] = z_max + vacuum
+    surface.pbc = pbc
     return surface
