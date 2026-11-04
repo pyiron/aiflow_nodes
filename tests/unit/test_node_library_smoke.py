@@ -10,9 +10,14 @@ three aiflow workflows that ran in the first full benchmark failed this way:
 directory with a bare ``os.mkdir``.
 
 Nothing here executes a node.  What is checked is that every module holding a
-node imports, and that the deferred ``from X import Y`` statements inside node
-bodies still resolve — which is exactly where API drift hides, because a lazy
-import inside a function survives collection and only explodes mid-run.
+node imports, that node bodies read no undefined names, and that the node paths
+the workflows and guides refer to exist.
+
+Whether the deferred ``from X import Y`` statements inside node bodies still
+resolve — where API drift hides, because a lazy import inside a function
+survives collection and only explodes mid-run — is checked by pylint
+(``pixi run -e test pylint``, ``no-name-in-module``), which reads the installed
+packages instead of importing them.
 
 Modules whose third-party dependency is simply *not installed* are skipped; a
 dependency that *is* installed but no longer exposes the name is a failure.
@@ -90,39 +95,6 @@ def _node_sources():
                 yield module, item
 
 
-def _guarded(func: ast.AST) -> set[int]:
-    """``id()`` of every import statement wrapped in a ``try``.
-
-    A guarded import is a deliberate compatibility shim — ``M3GNet`` falls back
-    to matgl's old class name that way — so it must not be treated as drift.
-    """
-    out: set[int] = set()
-    for node in ast.walk(func):
-        if isinstance(node, ast.Try):
-            for branch in (node.body, *[h.body for h in node.handlers]):
-                for stmt in branch:
-                    for inner in ast.walk(stmt):
-                        if isinstance(inner, (ast.Import, ast.ImportFrom)):
-                            out.add(id(inner))
-    return out
-
-
-def _deferred_imports():
-    """``(module, imported_name)`` for unguarded ``from X import Y`` inside nodes."""
-    seen = set()
-    for _, func in _node_sources():
-        guarded = _guarded(func)
-        for node in ast.walk(func):
-            if not isinstance(node, ast.ImportFrom):
-                continue
-            if node.level or not node.module or id(node) in guarded:
-                continue
-            for alias in node.names:
-                if alias.name != "*" and (node.module, alias.name) not in seen:
-                    seen.add((node.module, alias.name))
-                    yield node.module, alias.name
-
-
 def _package_modules():
     """Every ``__init__.py`` in the library, as a dotted module path.
 
@@ -142,7 +114,6 @@ def _package_modules():
 
 NODE_MODULES = sorted({module for module, _ in _node_sources()})
 PACKAGE_MODULES = sorted(set(_package_modules()))
-DEFERRED_IMPORTS = sorted(set(_deferred_imports()))
 
 
 @pytest.mark.parametrize("module", NODE_MODULES)
@@ -163,28 +134,6 @@ def test_every_package_init_imports(module):
         # ``from aiflow_nodes.x import y`` where ``y.py`` does not exist raises
         # ImportError, not ModuleNotFoundError — that is always our own bug.
         pytest.fail(f"{module}: {exc}")
-
-
-@pytest.mark.parametrize("module,name", DEFERRED_IMPORTS, ids=lambda v: str(v))
-def test_deferred_imports_still_resolve(module, name):
-    """``from X import Y`` inside a node body must not be a lie."""
-    try:
-        imported = importlib.import_module(module)
-    except ModuleNotFoundError as exc:
-        _skip_unless_first_party(exc, f"from {module} import {name}")
-    except ImportError as exc:
-        pytest.skip(f"{module} unusable in this environment: {exc}")
-
-    if hasattr(imported, name):
-        return
-    try:  # ``from pkg import submodule``
-        importlib.import_module(f"{module}.{name}")
-    except ImportError:
-        pytest.fail(
-            f"`from {module} import {name}` — used inside a node — no longer "
-            f"resolves. The dependency is installed but has dropped or renamed "
-            f"the name; the node will fail at run time, not at import time."
-        )
 
 
 def _global_names(code, seen=None):
@@ -357,6 +306,5 @@ def test_every_referenced_node_path_resolves(source, dotted):
 def test_the_library_index_is_not_empty():
     """Guards the scan itself: a broken walk would make every test above vacuous."""
     assert len(NODE_MODULES) > 50
-    assert len(DEFERRED_IMPORTS) > 50
     assert len(PACKAGE_MODULES) > 10
     assert len(REFERENCED_NODE_PATHS) > 20

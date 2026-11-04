@@ -39,7 +39,7 @@ structure = [
     "spglib",
     "structuretoolkit",
 ]
-thermodynamics = ["calphy", "landau", "pyscal3", "seaborn"]
+thermodynamics = ["calphy", "landau>=1.5", "pyscal3", "seaborn"]
 # python-ace provides the `pyace` module; `pyace` on PyPI is an unrelated package.
 ml = ["matgl", "python-ace", "scikit-learn", "tensorpotential"]
 assyst = ["assyst"]
@@ -119,7 +119,7 @@ structuretoolkit = "*"
 vaspparser = "*"
 # thermodynamics
 calphy = "*"
-landau = "*"
+landau = ">=1.5"
 pyscal3 = "*"
 seaborn = "*"
 # ml
@@ -162,9 +162,12 @@ aiflow_nodes = { path = ".", editable = true }
 [tool.pixi.feature.test.dependencies]
 coverage = "*"
 pytest = ">=8"
+# pylint reads the installed packages, so it runs here, not in the lint env.
+pylint = ">=4.1,<5"
 
 [tool.pixi.feature.test.tasks]
 test = "coverage run --rcfile=.coveragerc && coverage report --rcfile=.coveragerc"
+pylint = "pylint src/aiflow_nodes"
 
 [tool.pixi.feature.lint.dependencies]
 ruff = "==0.17.3"
@@ -199,6 +202,33 @@ python-ace = "pyace"
 DEP001 = ["qe_xml_parser"]
 # pixi installs the package itself into its environment.
 DEP002 = ["aiflow_nodes"]
+
+# pylint runs only the checks that read the installed packages and that ruff
+# cannot do: imported names that no longer exist, unbound variables and calls
+# that do not match the signature.  The rest is either ruff's job or noise from
+# aiflow's dynamically built node classes (no-member, invalid-field-call).
+[tool.pylint.main]
+jobs = 0
+# Names pylint cannot see: pygments creates its lexers and formatters lazily,
+# and qe_xml_parser (Quantum ESPRESSO) is not packaged.
+ignored-modules = ["pygments.lexers", "pygments.formatters", "qe_xml_parser"]
+# Voronoi and Delaunay live in a compiled extension.
+extension-pkg-allow-list = ["scipy.spatial._qhull"]
+
+[tool.pylint."messages control"]
+disable = ["all"]
+enable = [
+    "import-error",                    # E0401
+    "no-name-in-module",               # E0611
+    "used-before-assignment",          # E0601
+    "undefined-variable",              # E0602
+    "possibly-used-before-assignment", # E0606
+    "no-value-for-parameter",          # E1120
+    "unexpected-keyword-arg",          # E1123
+]
+
+[tool.pylint.reports]
+score = false
 
 [tool.ruff]
 exclude = [

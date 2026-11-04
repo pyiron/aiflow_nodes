@@ -45,6 +45,10 @@ jobs:
           environments: test
           locked: true
           cache: true
+      # Imported names that no longer exist, unbound variables, calls that do
+      # not match the signature; reads the installed packages, so not in lint.
+      - name: Pylint
+        run: pixi run -e test pylint
       - name: Test
         run: |
           pixi run -e test test
