@@ -36,6 +36,9 @@ def OptimizeMeasurements(
 ):
     import numpy as np
 
+    if max_iterations < 1:
+        raise ValueError(f"max_iterations must be at least 1, got {max_iterations}")
+
     data = experiment.run()
     mae = []
     for i in range(max_iterations):

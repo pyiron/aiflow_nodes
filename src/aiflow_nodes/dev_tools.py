@@ -282,6 +282,8 @@ def parse_input_kwargs(input_kwargs, expected_type):
             f"Expected to get input that was None, a dict, or {expected_type}, but got"
             f"{input_kwargs}"
         )
+    else:
+        calculator_input = input_kwargs
 
     parsed_kwargs = vars(calculator_input)
     if isinstance(input_kwargs, dict):

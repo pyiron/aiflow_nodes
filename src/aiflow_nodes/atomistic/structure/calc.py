@@ -118,11 +118,12 @@ def SplineDescriptor(
     else:
         r_bins = np.linspace(r_min, r_max, num_points)
 
-        distances = GetDistances()._func(
+        distances = GetDistances().func(
             structure=structure, num_neighbors=num_points, flatten=True
         )
 
-        descriptor, deriv_descriptor, r_bins = BSpline()._func(
+        # pylint reads BSpline() as a call of the decorated function; it builds a node.
+        descriptor, deriv_descriptor, r_bins = BSpline().func(  # pylint: disable=no-value-for-parameter
             x0_vals=distances,
             x_min=r_bins[0],
             x_max=r_bins[-1],
@@ -155,11 +156,12 @@ def LinearInterpolationDescriptor(
             r_bins = np.linspace(2.5, 7, 51)  # Default range if not provided
 
         num_points = r_bins.size
-        distances = GetDistances()._func(
+        distances = GetDistances().func(
             structure=structure, num_neighbors=num_points, flatten=True
         )
 
-        counts, _ = LinearBin()._func(data=distances, bin_centers=r_bins)
+        # pylint reads LinearBin() as a call of the decorated function; it builds a node.
+        counts, _ = LinearBin().func(data=distances, bin_centers=r_bins)  # pylint: disable=no-value-for-parameter
 
     return counts
 

@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass, field
 
 import numpy as np
 import pandas as pd
-from aiflow.core import Workflow, as_function_node
+from aiflow.core import as_function_node
 
 
 @as_function_node
@@ -453,60 +453,6 @@ def _calc_rmse(array_1, array_2, rmse_in_milli: bool = True):
         return rmse * 1000
     else:
         return rmse
-
-
-def make_linearfit(
-    workflow_name: str,
-    delete_existing_savefiles=False,
-    file_path: str = "mgca.pckl.tgz",
-    compression: str | None = None,
-    training_frac: float | int = 0.5,
-    number_of_functions_per_element: int | None = 10,
-    rcut: float | int = 6.0,
-):
-
-    wf = Workflow(workflow_name, delete_existing_savefiles=delete_existing_savefiles)
-    if wf.has_saved_content():
-        return wf
-
-    # Workflow connections
-    wf.load_dataset = ReadPickledDatasetAsDataframe(
-        file_path=file_path, compression=compression
-    )
-    wf.split_dataset = SplitTrainingAndTesting(
-        data_df=wf.load_dataset.outputs.df, training_frac=training_frac
-    )
-    wf.parameterize_potential = ParameterizePotentialConfig(
-        number_of_functions_per_element=number_of_functions_per_element, rcut=rcut
-    )
-    wf.run_linear_fit = RunLinearFit(
-        potential_config=wf.parameterize_potential,
-        df_train=wf.split_dataset.outputs.df_training,
-        df_test=wf.split_dataset.outputs.df_testing,
-        verbose=False,
-    )
-    wf.save_potential = SavePotential(basis=wf.run_linear_fit.outputs.basis)
-    wf.predict_energies_forces = PredictEnergiesAndForces(
-        basis=wf.save_potential.outputs.basis,
-        df_train=wf.split_dataset.outputs.df_training,
-        df_test=wf.split_dataset.outputs.df_testing,
-    )
-
-    # Input mapping
-    wf.inputs_map = {
-        "run_linear_fit__verbose": "verbose",
-        "save_potential__filename": "filename",
-        "parameterize_potential__number_of_functions_per_element": "number_of_functions_per_element",
-        "parameterize_potential__rcut": "rcut",
-    }
-
-    # Output maping
-    wf.outputs_map = {
-        "save_potential__yace_file_path": "yace_file_path",
-        "predict_energies_forces__data_dict": "data_dict",
-    }
-
-    return wf
 
 
 ########################## PLOTTING NODES ##########################
