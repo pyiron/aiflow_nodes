@@ -379,9 +379,7 @@ def GetHashesByUpstreamQualname(db, qualname: str = "", contains: str = ""):
             node, _ = aiflow.database.restore_node_from_database(
                 db=db, node_hash=node_hash
             )
-            if not restore_node_outputs(
-                node, storage_path=db.storage_path, node_hash=node_hash
-            ):
+            if not restore_node_outputs(node, storage_path=db.storage_path):
                 continue
         except Exception as exc:
             print(f"GetHashesByUpstreamQualname: skipping {node_hash[:16]}… — {exc}")
@@ -427,9 +425,7 @@ def GetStoredOutput(db, index: int = 0):
 
     node, _ = aiflow.database.restore_node_from_database(db=db, node_hash=node_hash)
 
-    success = restore_node_outputs(
-        node, storage_path=db.storage_path, node_hash=node_hash
-    )
+    success = restore_node_outputs(node, storage_path=db.storage_path)
 
     if not success:
         result = (
