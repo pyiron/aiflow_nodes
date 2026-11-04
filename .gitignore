@@ -28,3 +28,7 @@ build/
 
 # pixi environments
 .pixi/
+
+# Personal notes for coding agents (see AGENTS.md)
+CLAUDE.local.md
+AGENTS.local.md
