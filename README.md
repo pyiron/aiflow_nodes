@@ -39,6 +39,14 @@ aiflow is not published yet. pixi installs it from the private
 Without pixi, `pip install -e ".[all]"` works once aiflow is installed; some
 dependencies (e.g. the LAMMPS binary) only come from conda-forge.
 
+`[project]` in `pyproject.toml` declares the requirements: the core in
+`dependencies`, each node family's stack in an extra (`lammps`, `vasp`,
+`structure`, `thermodynamics`, `ml`, `assyst`, `gpaw`, `pyiron`, `database`,
+`viz`). `[tool.pixi.package.run-dependencies]` is their conda side, with the
+same bounds, plus what only conda-forge provides; exact versions live in
+`pixi.lock`. From PyPI, the `lammps` and `gpaw` extras install the Python side
+only; the LAMMPS and GPAW programs come from conda-forge or a local build.
+
 To hide mechanical commits (file moves, renames) from `git blame`:
 
 ```bash

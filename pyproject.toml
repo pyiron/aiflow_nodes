@@ -27,17 +27,30 @@ dependencies = [
 # Subpackages that need a heavier stack import it themselves; install the extra
 # that matches the nodes you use.
 [project.optional-dependencies]
-lammps = ["lammpsparser", "pyiron_lammps"]
-vasp = ["pymatgen", "vaspparser"]
-structure = ["phonopy", "pymatgen", "spglib", "structuretoolkit"]
+# On PyPI the lammps and gpaw extras bring only the Python side; the LAMMPS and
+# GPAW programs come from conda-forge (the conda outputs include them) or a
+# local build.
+lammps = ["lammpsparser", "pyiron_lammps>=0.5"]
+vasp = ["pymatgen>=2025", "vaspparser"]
+structure = [
+    "phonopy",
+    "pymatgen>=2025",
+    "pymatgen-analysis-defects",
+    "spglib",
+    "structuretoolkit",
+]
 thermodynamics = ["calphy", "landau", "pyscal3", "seaborn"]
-ml = ["matgl", "pyace", "scikit-learn", "tensorpotential"]
-assyst = ["assyst", "gpaw"]
-pyiron = ["pyiron", "pyiron_base", "pyiron_snippets"]
+# python-ace provides the `pyace` module; `pyace` on PyPI is an unrelated package.
+ml = ["matgl", "python-ace", "scikit-learn", "tensorpotential"]
+assyst = ["assyst"]
+# Separate from assyst: conda-forge's osx-arm64 gpaw needs a numpy that
+# pyiron_atomistics does not allow, so environments choose it per platform.
+gpaw = ["gpaw"]
+pyiron = ["pyiron", "pyiron_base>=0.15", "pyiron_snippets"]
 database = ["h5io_browser", "pyfileindex", "sqlalchemy"]
 viz = ["ipython", "nglview", "pygments", "seaborn"]
 all = [
-    "aiflow_nodes[lammps,vasp,structure,thermodynamics,ml,assyst,pyiron,database,viz]",
+    "aiflow_nodes[lammps,vasp,structure,thermodynamics,ml,assyst,gpaw,pyiron,database,viz]",
 ]
 
 # Lets the aiflow.ai workflow assistant compose workflows from these nodes.
@@ -77,51 +90,55 @@ version = "*"
 hatchling = "*"
 
 [tool.pixi.package.run-dependencies]
+# The conda side of [project]: the same requirements and bounds, plus what
+# only conda-forge provides (marked below).  Exact versions live in pixi.lock.
 ase = ">=3.26"
-cloudpickle = "==3.1.2"
-executorlib = "==1.9.2"
-h5py = "==3.15.1"
+cloudpickle = "*"
+executorlib = "*"
+# aiflow's, which is installed from PyPI (it has no conda package yet).
+h5py = "*"
 jinja2 = "*"
-matplotlib = "==3.10.9"
+matplotlib = "*"
 numpy = ">=2"  # calphy 1.7.2 uses numpy.trapezoid
-pandas = "==2.2.3"
-pint = "==0.25.2"
+pandas = "*"
+pint = "*"
 pyyaml = "*"
-scipy = "==1.15.2"
+scipy = "*"
 tqdm = "*"
-# lammps
-lammps = { version = "==2024.08.29", build = "*openmpi*" }
-lammpsparser = "==0.0.3"
+# lammps; conda-only: the LAMMPS program (MPI build) and its potentials
+lammps = { version = "*", build = "*openmpi*" }
+iprpy-data = "*"
+lammpsparser = "*"
 pyiron_lammps = ">=0.5"
 # vasp / structure
-phonopy = "==2.47.1"
+phonopy = "*"
 pymatgen = ">=2025"
+pymatgen-analysis-defects = "*"
 spglib = "*"
-structuretoolkit = "==0.0.42"
-vaspparser = "==0.0.3"
+structuretoolkit = "*"
+vaspparser = "*"
 # thermodynamics
-calphy = "==1.7.2"
-landau = "==1.7.0"
+calphy = "*"
+landau = "*"
 pyscal3 = "*"
-seaborn = "==0.13.2"
+seaborn = "*"
 # ml
-grace-tensorpotential = "==0.5.5"
-matgl = "==2.0.6"
-python-ace = "==0.3.1"
-scikit-learn = "==1.6.1"
+grace-tensorpotential = "*"
+matgl = "*"
+python-ace = "*"
+scikit-learn = "*"
 # assyst
-assyst = "==0.13.0"
-# pyiron
-iprpy-data = "==2023.07.25"
+assyst = "*"
+# pyiron; conda-only: pyiron's resource files
 pyiron = "*"
-pyiron-data = "==0.0.30"
+pyiron-data = "*"
 pyiron_atomistics = ">=0.8"
 pyiron_base = ">=0.15"
 pyiron_snippets = "*"
 # database
 h5io_browser = "*"
 pyfileindex = "*"
-sqlalchemy = "==2.0.38"
+sqlalchemy = "*"
 # viz
 ipython = "*"
 nglview = "*"
@@ -172,6 +189,10 @@ lint = { features = ["lint"], no-default-feature = true }
 [tool.deptry]
 # Notebooks under src/ are examples, not package code.
 extend_exclude = [".*\\.ipynb"]
+
+[tool.deptry.package_module_name_map]
+# conda-forge's python-ace installs its metadata as `pyace`.
+python-ace = "pyace"
 
 [tool.deptry.per_rule_ignores]
 # Not declared: qe_xml_parser (Quantum ESPRESSO) is not packaged.
