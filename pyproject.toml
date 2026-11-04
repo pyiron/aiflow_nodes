@@ -110,7 +110,7 @@ matgl = "==2.0.6"
 python-ace = "==0.3.1"
 scikit-learn = "==1.6.1"
 # assyst
-assyst = "==0.13.0"
+assyst = "==0.16.0"
 # pyiron
 iprpy-data = "==2023.07.25"
 pyiron = "*"
