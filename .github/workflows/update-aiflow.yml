@@ -15,8 +15,13 @@ permissions:
   contents: read
   issues: write
 
+# A later run supersedes an earlier one; both would push the same PR branch.
+concurrency:
+  group: update-aiflow
+  cancel-in-progress: true
+
 env:
-  AIFLOW_URL: https://github.com/pyiron/aiflow
+  AIFLOW_URL: https://github.com/pyiron/aiflow.git
 
 jobs:
   update:
@@ -24,14 +29,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # aiflow is a private repository; pixi fetches it with git, so hand git a
-      # read-only token for that one URL.
+      # read-only token for that one URL.  The full URL (with .git) keeps the
+      # prefix match off https://github.com/pyiron/aiflow_nodes.
       - name: Grant read access to pyiron/aiflow
         env:
           TOKEN: ${{ secrets.AIFLOW_READ }}
         run: >-
           git config --global
-          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow".insteadOf
-          "https://github.com/pyiron/aiflow"
+          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow.git".insteadOf
+          "$AIFLOW_URL"
       - name: Resolve the aiflow commit
         id: rev
         env:
@@ -45,7 +51,7 @@ jobs:
             # An annotated tag lists its commit as refs/tags/<tag>^{}, sorted last.
             [ -n "$new" ] || new=$(git ls-remote "$AIFLOW_URL" "refs/tags/$REV" "refs/tags/$REV^{}" | sort -k2 | tail -n1 | cut -f1)
           fi
-          if [ -z "$old" ] || [ -z "$new" ]; then
+          if [[ ! $old =~ ^[0-9a-f]{40}$ || ! $new =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::Could not resolve the current pin ('$old') or '$REV' ('$new')."
             exit 1
           fi
@@ -79,28 +85,36 @@ jobs:
         if: ${{ !cancelled() && steps.lock.outcome == 'success' }}
         run: pixi run -e test test
 
-      - name: Open or update the PR
+      - name: Compose the PR
+        id: pr
         if: steps.rev.outputs.current != 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
           REV: ${{ inputs.rev }}
           OLD: ${{ steps.rev.outputs.old }}
           NEW: ${{ steps.rev.outputs.new }}
         run: |
+          issue=$(gh issue list --label aiflow-update --state open --json number --jq '.[0].number')
+          delimiter=$(openssl rand -hex 16)
           {
-            echo "TITLE=Update aiflow to ${NEW:0:7}"
-            echo "BODY<<EOF"
+            echo "title=Update aiflow to ${NEW:0:7}"
+            echo "body<<$delimiter"
             echo "Bumps the aiflow pin from \`${OLD:0:7}\` to \`${NEW:0:7}\` (requested: \`$REV\`)."
             echo
-            echo "Changes: $AIFLOW_URL/compare/$OLD...$NEW"
+            echo "Changes: ${AIFLOW_URL%.git}/compare/$OLD...$NEW"
             echo
             echo "pylint and the test suite passed in $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID."
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-      - uses: actions/create-github-app-token@v2
+            if [ -n "$issue" ]; then
+              echo
+              echo "Closes #$issue"
+            fi
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+      - uses: actions/create-github-app-token@v3
         if: steps.rev.outputs.current != 'true'
         id: app-token
         with:
-          app-id: ${{ vars.AIFLOW_UPDATER_APP_ID }}
+          client-id: ${{ vars.AIFLOW_UPDATER_CLIENT_ID }}
           private-key: ${{ secrets.AIFLOW_UPDATER_PRIVATE_KEY }}
       # Pushed and opened with the app's token, not GITHUB_TOKEN, so that the
       # Pipeline workflow runs on the PR.
@@ -113,9 +127,9 @@ jobs:
           add-paths: |
             pyproject.toml
             pixi.lock
-          commit-message: ${{ env.TITLE }}
-          title: ${{ env.TITLE }}
-          body: ${{ env.BODY }}
+          commit-message: ${{ steps.pr.outputs.title }}
+          title: ${{ steps.pr.outputs.title }}
+          body: ${{ steps.pr.outputs.body }}
 
       - name: Report the failure in an issue
         if: >-
@@ -138,7 +152,7 @@ jobs:
           | pylint | $PYLINT |
           | tests | $TEST |
 
-          Changes since the pin: $AIFLOW_URL/compare/$OLD...$NEW
+          Changes since the pin: ${AIFLOW_URL%.git}/compare/$OLD...$NEW
           Log: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           gh label create aiflow-update --color d93f0b --force \
             --description "aiflow_nodes is incompatible with a newer aiflow"

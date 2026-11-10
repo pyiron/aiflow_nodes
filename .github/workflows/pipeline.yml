@@ -31,14 +31,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # aiflow is a private repository; pixi fetches it with git, so hand git a
-      # read-only token for that one URL.
+      # read-only token for that one URL.  The full URL (with .git) keeps the
+      # prefix match off https://github.com/pyiron/aiflow_nodes.
       - name: Grant read access to pyiron/aiflow
         env:
           TOKEN: ${{ secrets.AIFLOW_READ }}
         run: >-
           git config --global
-          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow".insteadOf
-          "https://github.com/pyiron/aiflow"
+          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow.git".insteadOf
+          "https://github.com/pyiron/aiflow.git"
       - uses: prefix-dev/setup-pixi@v0.11.2
         with:
           pixi-version: v0.83.0
