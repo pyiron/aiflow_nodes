@@ -1,7 +1,6 @@
-import subprocess
 import sys
 import unittest
-from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 from ase.build import bulk
@@ -1221,52 +1220,27 @@ class TestSiteFinderPrimitiveRepeat(unittest.TestCase):
             GetDelaunayInterstitialSites._original_func(make_atoms(), repeat=(2, 2, 2))
 
 
-class TestOptionalDependencyFlagsFallback(unittest.TestCase):
+class TestVoronoiPymatgenMissingDependency(unittest.TestCase):
     """
-    STRUCTURETOOLKIT_AVAILABLE and PYMATGEN_ANALYSIS_DEFECTS_AVAILABLE are
-    each set at import time based on whether their respective package is
-    importable, checked independently since either can be present or
-    absent regardless of the other. Both packages are installed in this
-    environment, so the False branch of each is only reachable by
-    actually blocking that specific import -- done here in a subprocess
-    to avoid corrupting the main test process's already-imported
-    container_new module.
+    GetVoronoiInterstitialSitesPymatgen imports structuretoolkit and
+    pymatgen-analysis-defects when it runs, and reports each one separately
+    when it is missing. Both are installed here, so the import is blocked by
+    putting None into sys.modules.
     """
 
-    def _check_flag_false_when_blocked(self, blocked_import_name, flag_name):
-        src_dir = str(Path(__file__).resolve().parents[3] / "src")
-        script = (
-            "import builtins\n"
-            "real_import = builtins.__import__\n"
-            "def fake_import(name, *a, **k):\n"
-            f"    if name == {blocked_import_name!r}:\n"
-            "        raise ImportError('blocked for test')\n"
-            "    return real_import(name, *a, **k)\n"
-            "builtins.__import__ = fake_import\n"
-            "from aiflow_nodes.atomistic.structure import container_new\n"
-            f"assert getattr(container_new, {flag_name!r}) is False, "
-            f"getattr(container_new, {flag_name!r})\n"
-            "print('OK')\n"
-        )
-        result = subprocess.run(
-            [sys.executable, "-c", script],
-            capture_output=True,
-            text=True,
-            cwd=src_dir,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, msg=result.stderr)
-        self.assertIn("OK", result.stdout)
+    def _assert_reports_missing(self, blocked_module, package):
+        with (
+            patch.dict(sys.modules, {blocked_module: None}),
+            self.assertRaisesRegex(ImportError, package),
+        ):
+            GetVoronoiInterstitialSitesPymatgen._original_func(bulk("Al", cubic=True))
 
-    def test_structuretoolkit_available_false_when_import_fails(self):
-        self._check_flag_false_when_blocked(
-            "structuretoolkit.common", "STRUCTURETOOLKIT_AVAILABLE"
-        )
+    def test_reports_missing_structuretoolkit(self):
+        self._assert_reports_missing("structuretoolkit.common", "structuretoolkit")
 
-    def test_pymatgen_analysis_defects_available_false_when_import_fails(self):
-        self._check_flag_false_when_blocked(
-            "pymatgen.analysis.defects.generators",
-            "PYMATGEN_ANALYSIS_DEFECTS_AVAILABLE",
+    def test_reports_missing_pymatgen_analysis_defects(self):
+        self._assert_reports_missing(
+            "pymatgen.analysis.defects.generators", "pymatgen-analysis-defects"
         )
 
 

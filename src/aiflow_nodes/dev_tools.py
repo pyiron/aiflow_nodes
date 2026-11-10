@@ -5,8 +5,6 @@ from __future__ import annotations
 import pathlib
 from dataclasses import dataclass
 
-from pyiron_base.storage.hdfio import ProjectHDFio
-
 
 class VarType:
     def __init__(
@@ -163,6 +161,8 @@ class DataStore:
         self._project = MiniProject(path)
 
     def get_hdf(self, path, label):
+        from pyiron_base.storage.hdfio import ProjectHDFio
+
         p = pathlib.Path(path, label)
         p = p.resolve()
 

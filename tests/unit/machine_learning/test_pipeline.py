@@ -240,11 +240,11 @@ class TestChooseBestModel(unittest.TestCase):
 
         with (
             patch(
-                "aiflow_nodes.machine_learning.pipeline.r2_score",
+                "sklearn.metrics.r2_score",
                 side_effect=[0.9, 0.9],
             ),
             patch(
-                "aiflow_nodes.machine_learning.pipeline.mean_squared_error",
+                "sklearn.metrics.mean_squared_error",
                 side_effect=[1.0, 4.0],
             ),
         ):

@@ -20,16 +20,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from aiflow.core import as_function_node
-from sklearn.metrics import (
-    accuracy_score,
-    confusion_matrix,
-    f1_score,
-    mean_absolute_error,
-    mean_squared_error,
-    precision_score,
-    r2_score,
-    recall_score,
-)
 
 # =============================================================================
 # UTILITY FUNCTIONS
@@ -164,6 +154,7 @@ def ValidateRegressionModels(
         - metric: Metric used for ranking
         - all_metrics_df: DataFrame with all computed metrics per model
     """
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
     # Validate inputs
     models = validate_models_dict(models)
@@ -296,6 +287,13 @@ def ValidateClassificationModels(
         - all_metrics_df: DataFrame with all computed metrics per model
         - confusion_matrices: Dictionary of confusion matrices for each model
     """
+    from sklearn.metrics import (
+        accuracy_score,
+        confusion_matrix,
+        f1_score,
+        precision_score,
+        recall_score,
+    )
 
     # Validate inputs
     models = validate_models_dict(models)
@@ -496,6 +494,15 @@ def GenerateDetailedValidationReport(
         - summary_df: Summary of best model for each metric
         - best_overall_model: Top model by primary metric
     """
+    from sklearn.metrics import (
+        accuracy_score,
+        f1_score,
+        mean_absolute_error,
+        mean_squared_error,
+        precision_score,
+        r2_score,
+        recall_score,
+    )
 
     # Validate inputs
     models = validate_models_dict(models)
@@ -647,6 +654,15 @@ def CompareModelPair(
     Returns:
         Dictionary containing detailed comparison metrics and winner
     """
+    from sklearn.metrics import (
+        accuracy_score,
+        f1_score,
+        mean_absolute_error,
+        mean_squared_error,
+        precision_score,
+        r2_score,
+        recall_score,
+    )
 
     # Validate inputs
     X_test, y_test = validate_data(X_test, y_test)

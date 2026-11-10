@@ -77,9 +77,9 @@ Interstitial site-finding: GetVoronoiInterstitialSites and
 GetDelaunayInterstitialSites find candidate interstitial positions using
 scipy (Voronoi vertices or Delaunay circumcenters, respectively).
 GetVoronoiInterstitialSitesPymatgen finds them via pymatgen's
-symmetry-aware VoronoiInterstitialGenerator, gated behind two
-independent optional-dependency flags: STRUCTURETOOLKIT_AVAILABLE and
-PYMATGEN_ANALYSIS_DEFECTS_AVAILABLE. _wrap_frac, _frac_equiv, _deduplicate_frac, and
+symmetry-aware VoronoiInterstitialGenerator; it imports its two
+optional dependencies, structuretoolkit and pymatgen-analysis-defects,
+when it runs. _wrap_frac, _frac_equiv, _deduplicate_frac, and
 _extract_defect_frac_coords are private helpers used only by that
 function. _periodic_image_points and
 _filter_cluster_tile_interstitial_candidates are shared by the two scipy
@@ -100,27 +100,6 @@ from ase import Atoms
 if TYPE_CHECKING:
     import numpy as np
     import pandas as pd
-
-# Optional dependencies for GetVoronoiInterstitialSitesPymatgen. structuretoolkit
-# and pymatgen-analysis-defects are independent packages -- either can be
-# present or absent regardless of the other, so each is checked and reported
-# separately rather than folded into one combined flag.
-try:
-    from structuretoolkit.common import ase_to_pymatgen
-
-    STRUCTURETOOLKIT_AVAILABLE = True
-except ImportError:
-    STRUCTURETOOLKIT_AVAILABLE = False
-
-try:
-    from pymatgen.analysis.defects.generators import VoronoiInterstitialGenerator
-    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-
-    PYMATGEN_ANALYSIS_DEFECTS_AVAILABLE = True
-except ImportError:
-    PYMATGEN_ANALYSIS_DEFECTS_AVAILABLE = False
-    SpacegroupAnalyzer = None
-    VoronoiInterstitialGenerator = None
 
 
 # ============================================================================
@@ -3212,17 +3191,25 @@ def GetVoronoiInterstitialSitesPymatgen(
     """
     import numpy as np
 
-    if not STRUCTURETOOLKIT_AVAILABLE:
+    # structuretoolkit and pymatgen-analysis-defects are independent packages:
+    # either can be missing regardless of the other, so each is reported
+    # separately.
+    try:
+        from structuretoolkit.common import ase_to_pymatgen
+    except ImportError as e:
         raise ImportError(
             "Voronoi interstitial site finding (pymatgen-based) requires "
             "structuretoolkit. Install it with: pip install structuretoolkit"
-        )
-    if not PYMATGEN_ANALYSIS_DEFECTS_AVAILABLE:
+        ) from e
+    try:
+        from pymatgen.analysis.defects.generators import VoronoiInterstitialGenerator
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+    except ImportError as e:
         raise ImportError(
             "Voronoi interstitial site finding (pymatgen-based) requires the "
             "pymatgen-analysis-defects package. Install it with: "
             "pip install pymatgen-analysis-defects"
-        )
+        ) from e
 
     if (primitive_atoms is None) != (repeat is None):
         raise ValueError(

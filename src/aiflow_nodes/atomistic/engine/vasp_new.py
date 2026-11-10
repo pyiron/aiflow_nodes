@@ -4,13 +4,12 @@ import hashlib
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 from aiflow.core import as_function_node, run_external
 from ase import Atoms
-from pymatgen.io.ase import AseAtomsAdaptor
-from pymatgen.io.vasp.inputs import Incar, Kpoints
 from vaspparser.vasp.output import Output, parse_vasp_output
 from vaspparser.vasp.volumetric_data import VaspVolumetricData
 
@@ -27,6 +26,9 @@ from aiflow_nodes.atomistic.calculator.data import (
     OutputCalcStatic,
     OutputVaspDOS,
 )
+
+if TYPE_CHECKING:
+    from pymatgen.io.vasp.inputs import Incar
 
 # ── INCAR enum lookups ────────────────────────────────────────────────────────
 
@@ -241,6 +243,8 @@ def _build_incar(
         if an MD input is given without a ``structure``, or if an ``NpT`` MD run
         has no ``pressure``.
     """
+    from pymatgen.io.vasp.inputs import Incar
+
     if calc.minimization is not None and calc.md is not None:
         raise ValueError(
             "minimization and md are mutually exclusive — both control IBRION/NSW. "
@@ -910,6 +914,9 @@ def CreateVaspInputResources(
     ValueError
         If ``scf.kpoints`` is not three integers.
     """
+
+    from pymatgen.io.ase import AseAtomsAdaptor
+    from pymatgen.io.vasp.inputs import Kpoints
 
     restart_content = _safe_restart_content(restart_content)
 
