@@ -1,4 +1,4 @@
-import sys
+import builtins
 import unittest
 from unittest.mock import patch
 
@@ -1225,22 +1225,32 @@ class TestVoronoiPymatgenMissingDependency(unittest.TestCase):
     GetVoronoiInterstitialSitesPymatgen imports structuretoolkit and
     pymatgen-analysis-defects when it runs, and reports each one separately
     when it is missing. Both are installed here, so the import is blocked by
-    putting None into sys.modules.
+    patching ``__import__``, which leaves ``sys.modules`` untouched.
     """
 
-    def _assert_reports_missing(self, blocked_module, package):
+    def _assert_reports_missing(self, blocked_module, message):
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name == blocked_module:
+                raise ImportError(f"blocked for test: {name}")
+            return real_import(name, *args, **kwargs)
+
         with (
-            patch.dict(sys.modules, {blocked_module: None}),
-            self.assertRaisesRegex(ImportError, package),
+            patch("builtins.__import__", fake_import),
+            self.assertRaisesRegex(ImportError, message),
         ):
             GetVoronoiInterstitialSitesPymatgen._original_func(bulk("Al", cubic=True))
 
     def test_reports_missing_structuretoolkit(self):
-        self._assert_reports_missing("structuretoolkit.common", "structuretoolkit")
+        self._assert_reports_missing(
+            "structuretoolkit.common", "requires structuretoolkit"
+        )
 
     def test_reports_missing_pymatgen_analysis_defects(self):
         self._assert_reports_missing(
-            "pymatgen.analysis.defects.generators", "pymatgen-analysis-defects"
+            "pymatgen.analysis.defects.generators",
+            "requires the pymatgen-analysis-defects",
         )
 
 

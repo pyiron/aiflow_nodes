@@ -2,9 +2,7 @@ from typing import Literal
 from warnings import warn
 
 import landau
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 from aiflow.core import Workflow, as_function_node, group_node
 
 
@@ -45,6 +43,8 @@ def plot_phase_diagram(
     fig : matplotlib.figure.Figure
         Figure object containing the plot.
     """
+    import matplotlib.pyplot as plt
+    import seaborn as sns
     from landau.calculate import get_transitions
     from landau.plot import cluster_phase
     from landau.poly import handle_poly_method

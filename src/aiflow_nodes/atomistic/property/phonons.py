@@ -8,13 +8,14 @@ from aiflow.core import (
 from aiflow.core.data_fields import DataArray, EmptyArrayField
 from ase import Atoms
 from phonopy.api_phonopy import Phonopy
-from structuretoolkit.common import atoms_to_phonopy, phonopy_to_atoms
 
 from aiflow_nodes.atomistic.engine.generic import OutputEngine
 
 
 @as_function_node("phonopy")
 def PhonopyObject(structure):
+    from structuretoolkit.common import atoms_to_phonopy
+
     return Phonopy(unitcell=atoms_to_phonopy(structure))
 
 
@@ -34,6 +35,8 @@ class PhonopyParameters:
 @as_function_node
 def GenerateSupercells(phonopy: Phonopy, parameters: PhonopyParameters) -> list[Atoms]:
     from dataclasses import asdict
+
+    from structuretoolkit.common import phonopy_to_atoms
 
     parameters = PhonopyParameters() if parameters is None else parameters
     phonopy.generate_displacements(**asdict(parameters))
@@ -100,6 +103,8 @@ def GetFreeEnergy(
     at a given temperature using phonopy.
     """
     from dataclasses import asdict
+
+    from structuretoolkit.common import atoms_to_phonopy, phonopy_to_atoms
 
     print(f"Calculating free energy at {temperature} K")
 
