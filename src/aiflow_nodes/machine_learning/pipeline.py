@@ -7,10 +7,6 @@ This module contains nodes for for machine learning workflows using sk-learn mod
 import numpy as np
 import pandas as pd
 from aiflow.core import as_function_node
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
 
 
 @as_function_node
@@ -26,6 +22,7 @@ def MLDataSplitter(
     Splits dataframe into train, validation, and test sets. This node prevents data leakage when connected correctly.
     using ONLY numeric feature columns.
     """
+    from sklearn.model_selection import train_test_split
 
     # -----------------------------
     # Validate fractions
@@ -84,6 +81,9 @@ def TrainRegressor(X_train: pd.DataFrame, y_train: pd.DataFrame, r_type: str = N
     """
     trains a regressor
     """
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.linear_model import LinearRegression
+
     if r_type == "linear":
         reg = LinearRegression().fit(X_train, y_train)
     elif r_type == "tree":
@@ -108,6 +108,7 @@ def EvaluateRegressionModel(model, X_test, y_test):
         MSE
         MAE
     """
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
     # Predictions
     y_pred = model.predict(X_test)
@@ -138,6 +139,7 @@ def ChooseBestModel(model_1, model_2, X_validation, y_validation):
         best_model
         comparison_results
     """
+    from sklearn.metrics import mean_squared_error, r2_score
 
     # -----------------------------
     # Predictions

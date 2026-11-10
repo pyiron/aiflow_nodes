@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from aiflow.core import Node, as_function_node
@@ -126,6 +125,8 @@ def PlotEVCurve(
     Returns:
         fig (matplotlib.figure.Figure): The finished figure.
     """
+    import matplotlib.pyplot as plt
+
     fig, ax = plt.subplots(figsize=(5.2, 3.6), dpi=140)
     ax.plot(
         ev_curve_df["volume"],

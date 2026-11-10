@@ -15,7 +15,6 @@ from ase.geometry import find_mic
 # %%
 # sys.path.append("/cmmc/ptmp/pchilaka/Packages/pymatgen-analysis-defects")
 # from pymatgen.analysis.defects.generators import VoronoiInterstitialGenerator
-from structuretoolkit.common import ase_to_pymatgen
 
 # %% [markdown]
 # # Functions
@@ -465,6 +464,7 @@ def voronoi_interstitial_positions_from_row(row, element):
             "Voronoi interstitial generation requires the pymatgen defects add-on: "
             "pip install pymatgen-analysis-defects"
         ) from exc
+    from structuretoolkit.common import ase_to_pymatgen
 
     at = row["atoms"]
     pmg = ase_to_pymatgen(at)
