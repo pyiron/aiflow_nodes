@@ -156,7 +156,7 @@ aiflow_nodes = { path = "." }
 [tool.pixi.pypi-dependencies]
 # Private repository: needs GitHub access to pyiron/aiflow (gh credential
 # helper or SSH locally, the AIFLOW_READ token in CI). Bump on purpose.
-aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "f36a6a8026c5a422cfda97a6733e74acb1050dc1" }
+aiflow = { git = "https://github.com/pyiron/aiflow.git", rev = "1b8d2377f30b68e9967df6e225b813b2e544b310" }
 aiflow_nodes = { path = ".", editable = true }
 
 [tool.pixi.feature.test.dependencies]
