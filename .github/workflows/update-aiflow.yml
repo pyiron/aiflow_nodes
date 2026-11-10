@@ -27,7 +27,11 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      # Persisted credentials send GITHUB_TOKEN to every github.com URL used
+      # inside the checkout, which overrides the aiflow token below.
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       # aiflow is a private repository; pixi fetches it with git, so hand git a
       # read-only token for that one URL.  The full URL (with .git) keeps the
       # prefix match off https://github.com/pyiron/aiflow_nodes.
