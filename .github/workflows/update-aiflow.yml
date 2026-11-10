@@ -1,0 +1,166 @@
+# Checks aiflow_nodes against a newer aiflow commit.  If the checks pass, it
+# opens (or updates) a PR that bumps the pin; if not, it opens (or comments on)
+# an issue labelled `aiflow-update`.
+name: Update aiflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      rev:
+        description: aiflow branch, tag or full commit SHA
+        required: true
+        default: main
+
+permissions:
+  contents: read
+  issues: write
+
+# A later run supersedes an earlier one; both would push the same PR branch.
+concurrency:
+  group: update-aiflow
+  cancel-in-progress: true
+
+env:
+  AIFLOW_URL: https://github.com/pyiron/aiflow.git
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # aiflow is a private repository; pixi fetches it with git, so hand git a
+      # read-only token for that one URL.  The full URL (with .git) keeps the
+      # prefix match off https://github.com/pyiron/aiflow_nodes.
+      - name: Grant read access to pyiron/aiflow
+        env:
+          TOKEN: ${{ secrets.AIFLOW_READ }}
+        run: >-
+          git config --global
+          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow.git".insteadOf
+          "$AIFLOW_URL"
+      - name: Resolve the aiflow commit
+        id: rev
+        env:
+          REV: ${{ inputs.rev }}
+        run: |
+          old=$(sed -nE 's/^aiflow = \{ git = "[^"]+", rev = "([0-9a-f]{40})".*/\1/p' pyproject.toml)
+          if [[ $REV =~ ^[0-9a-f]{40}$ ]]; then
+            new=$REV
+          else
+            new=$(git ls-remote "$AIFLOW_URL" "refs/heads/$REV" | cut -f1)
+            # An annotated tag lists its commit as refs/tags/<tag>^{}, sorted last.
+            [ -n "$new" ] || new=$(git ls-remote "$AIFLOW_URL" "refs/tags/$REV" "refs/tags/$REV^{}" | sort -k2 | tail -n1 | cut -f1)
+          fi
+          if [[ ! $old =~ ^[0-9a-f]{40}$ || ! $new =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Could not resolve the current pin ('$old') or '$REV' ('$new')."
+            exit 1
+          fi
+          echo "old=$old" >> "$GITHUB_OUTPUT"
+          echo "new=$new" >> "$GITHUB_OUTPUT"
+          if [ "$old" = "$new" ]; then
+            echo "::notice::aiflow is already pinned to $new."
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: prefix-dev/setup-pixi@v0.11.3
+        if: steps.rev.outputs.current != 'true'
+        with:
+          pixi-version: v0.83.0
+          run-install: false
+      - name: Pin the new commit and update pixi.lock
+        id: lock
+        if: steps.rev.outputs.current != 'true'
+        env:
+          NEW: ${{ steps.rev.outputs.new }}
+        run: |
+          sed -i -E "/^aiflow = /s/rev = \"[0-9a-f]{40}\"/rev = \"$NEW\"/" pyproject.toml
+          pixi lock
+      # pylint and the tests both run once the lock succeeded, so a failure
+      # report names every check that broke.
+      - name: Pylint
+        id: pylint
+        if: ${{ !cancelled() && steps.lock.outcome == 'success' }}
+        run: pixi run -e test pylint
+      - name: Test
+        id: test
+        if: ${{ !cancelled() && steps.lock.outcome == 'success' }}
+        run: pixi run -e test test
+
+      - name: Compose the PR
+        id: pr
+        if: steps.rev.outputs.current != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REV: ${{ inputs.rev }}
+          OLD: ${{ steps.rev.outputs.old }}
+          NEW: ${{ steps.rev.outputs.new }}
+        run: |
+          issue=$(gh issue list --label aiflow-update --state open --json number --jq '.[0].number')
+          delimiter=$(openssl rand -hex 16)
+          {
+            echo "title=Update aiflow to ${NEW:0:7}"
+            echo "body<<$delimiter"
+            echo "Bumps the aiflow pin from \`${OLD:0:7}\` to \`${NEW:0:7}\` (requested: \`$REV\`)."
+            echo
+            echo "Changes: ${AIFLOW_URL%.git}/compare/$OLD...$NEW"
+            echo
+            echo "pylint and the test suite passed in $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID."
+            if [ -n "$issue" ]; then
+              echo
+              echo "Closes #$issue"
+            fi
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+      - uses: actions/create-github-app-token@v3
+        if: steps.rev.outputs.current != 'true'
+        id: app-token
+        with:
+          client-id: ${{ vars.AIFLOW_UPDATER_CLIENT_ID }}
+          private-key: ${{ secrets.AIFLOW_UPDATER_PRIVATE_KEY }}
+      # Pushed and opened with the app's token, not GITHUB_TOKEN, so that the
+      # Pipeline workflow runs on the PR.
+      - uses: peter-evans/create-pull-request@v8
+        if: steps.rev.outputs.current != 'true'
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: update-aiflow
+          delete-branch: true
+          add-paths: |
+            pyproject.toml
+            pixi.lock
+          commit-message: ${{ steps.pr.outputs.title }}
+          title: ${{ steps.pr.outputs.title }}
+          body: ${{ steps.pr.outputs.body }}
+
+      - name: Report the failure in an issue
+        if: >-
+          failure() && (steps.lock.outcome == 'failure'
+          || steps.pylint.outcome == 'failure' || steps.test.outcome == 'failure')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REV: ${{ inputs.rev }}
+          OLD: ${{ steps.rev.outputs.old }}
+          NEW: ${{ steps.rev.outputs.new }}
+          LOCK: ${{ steps.lock.outcome }}
+          PYLINT: ${{ steps.pylint.outcome }}
+          TEST: ${{ steps.test.outcome }}
+        run: |
+          body="aiflow_nodes does not work with aiflow \`${NEW:0:7}\` (requested: \`$REV\`).
+
+          | Check | Outcome |
+          |---|---|
+          | \`pixi lock\` | $LOCK |
+          | pylint | $PYLINT |
+          | tests | $TEST |
+
+          Changes since the pin: ${AIFLOW_URL%.git}/compare/$OLD...$NEW
+          Log: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh label create aiflow-update --color d93f0b --force \
+            --description "aiflow_nodes is incompatible with a newer aiflow"
+          issue=$(gh issue list --label aiflow-update --state open --json number --jq '.[0].number')
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body "$body"
+          else
+            gh issue create --label aiflow-update --body "$body" \
+              --title "aiflow_nodes does not work with the latest aiflow"
+          fi
+          echo "::warning::aiflow_nodes does not work with aiflow ${NEW:0:7}; see the aiflow-update issue."

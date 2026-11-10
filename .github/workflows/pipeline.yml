@@ -10,15 +10,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi@v0.11.2
+      - uses: actions/checkout@v7
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.83.0
           environments: lint
           locked: true
           cache: true
       - run: pixi run -e lint lint
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -29,17 +29,18 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # aiflow is a private repository; pixi fetches it with git, so hand git a
-      # read-only token for that one URL.
+      # read-only token for that one URL.  The full URL (with .git) keeps the
+      # prefix match off https://github.com/pyiron/aiflow_nodes.
       - name: Grant read access to pyiron/aiflow
         env:
           TOKEN: ${{ secrets.AIFLOW_READ }}
         run: >-
           git config --global
-          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow".insteadOf
-          "https://github.com/pyiron/aiflow"
-      - uses: prefix-dev/setup-pixi@v0.11.2
+          url."https://x-access-token:${TOKEN}@github.com/pyiron/aiflow.git".insteadOf
+          "https://github.com/pyiron/aiflow.git"
+      - uses: prefix-dev/setup-pixi@v0.11.3
         with:
           pixi-version: v0.83.0
           environments: test
@@ -54,6 +55,6 @@ jobs:
           pixi run -e test test
           pixi run -e test coverage xml --rcfile=.coveragerc
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
