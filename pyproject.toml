@@ -46,7 +46,7 @@ assyst = ["assyst"]
 # Separate from assyst: conda-forge's osx-arm64 gpaw needs a numpy that
 # pyiron_atomistics does not allow, so environments choose it per platform.
 gpaw = ["gpaw"]
-pyiron = ["pyiron", "pyiron_base>=0.15", "pyiron_snippets"]
+pyiron = ["pyiron_snippets"]
 database = ["h5io_browser", "pyfileindex", "sqlalchemy"]
 viz = ["ipython", "nglview", "pygments", "seaborn"]
 all = [
@@ -129,11 +129,7 @@ python-ace = "*"
 scikit-learn = "*"
 # assyst
 assyst = "*"
-# pyiron; conda-only: pyiron's resource files
-pyiron = "*"
-pyiron-data = "*"
-pyiron_atomistics = ">=0.8"
-pyiron_base = ">=0.15"
+# pyiron
 pyiron_snippets = "*"
 # database
 h5io_browser = "*"

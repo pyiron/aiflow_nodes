@@ -20,7 +20,6 @@ HEAVY = (
     "matplotlib.pyplot",
     "phonopy",
     "pymatgen",
-    "pyiron_base",
     "seaborn",
     "sklearn",
     "structuretoolkit",
