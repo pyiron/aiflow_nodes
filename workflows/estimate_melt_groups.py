@@ -34,27 +34,27 @@ def FindMeltingTemp(temperatures: list, mean_energies: list) -> float:
 def GetT(
     name,
     index,
-    structure,
-    potential,
-    calc_dataclass,
     attr,
+    n_ionic_steps,
     cubic=False,
     temperature=300,
-    n_ionic_steps=10000,
     pressure=None,
     repeat_scalar=1,
     working_directory=".",
 ):
-    from aiflow.core import Workflow
-
     from aiflow_nodes.atomistic.calculator.data import InputCalcMD
     from aiflow_nodes.atomistic.engine.lammps import (
+        CreateLammpsMDInput,
+        CreateLammpsStructure,
         ListPotentials,
+        ParseLammpsOutput,
+        RunLammpsCalculation,
     )
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.transform import FixSpecies, Repeat
     from aiflow_nodes.controls import GetAttribute, pick_element
     from aiflow_nodes.math_utils import Mean
+    from aiflow.core import Workflow
 
     inner_wf = Workflow("GetT")
     inner_wf.Bulk = Bulk(name=name, cubic=cubic)
@@ -65,32 +65,40 @@ def GetT(
     inner_wf.ListPotentials = ListPotentials(structure=inner_wf.Bulk)
     inner_wf.FixSpecies = FixSpecies(structure=inner_wf.Repeat)
     inner_wf.potential = pick_element(lst=inner_wf.ListPotentials, index=index)
-    inner_wf.Lammps = Lammps(  # noqa: F821  TODO: Lammps node was removed from engine.lammps
+    inner_wf.lammps_structure = CreateLammpsStructure(
         structure=inner_wf.FixSpecies,
         potential=inner_wf.potential,
-        calc_dataclass=inner_wf.md_params,
         working_directory=working_directory,
     )
-    inner_wf.energies = GetAttribute(obj=inner_wf.Lammps, attr=attr)
+    inner_wf.lammps_input = CreateLammpsMDInput(
+        io_bundle=inner_wf.lammps_structure, calc_dataclass=inner_wf.md_params
+    )
+    inner_wf.lammps_run = RunLammpsCalculation(
+        io_bundle=inner_wf.lammps_input, debug=False, executor=None
+    )
+    inner_wf.parsed_output = ParseLammpsOutput(
+        io_bundle=inner_wf.lammps_run.outputs.io_bundle
+    )
+    inner_wf.energies = GetAttribute(obj=inner_wf.parsed_output, attr=attr)
     inner_wf.mean_energy = Mean(numbers=inner_wf.energies)
-    return inner_wf.mean_energy
+    return inner_wf.mean_energy.outputs.mean
 
 
 wf = Workflow("estimate_melt_groups")
+wf.storage_enabled = True
 
 wf.GetT = GetT(
     name="Al",
-    cubic=True,
-    temperature=400,
-    n_ionic_steps=3000,
-    pressure=500,
-    repeat_scalar=4,
     index=0,
-    working_directory="./melt_sweep",
     attr="energies_pot",
+    cubic=True,
+    temperature=400.0,
+    pressure=0.0,
+    repeat_scalar=4,
+    working_directory="./melt_sweep",
 )
 
-wf.temperatures = Linspace(x_min=200.0, x_max=2000.0, num_points=10)
+wf.temperatures = Linspace(x_min=100.0, x_max=800.0, num_points=21)
 
 wf.temperature_sweep = IterToDataFrame(
     node=wf.GetT,
