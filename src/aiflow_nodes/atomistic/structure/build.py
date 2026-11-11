@@ -102,12 +102,10 @@ def HighIndexSurface(
 
     Returns
     -------
-    ``ase.atoms.Atoms`` instance representing the high‑index slab (converted to a
-    pyiron structure before returning).
+    ``ase.atoms.Atoms`` instance representing the high‑index slab.
     """
     import numpy as np
     from ase.build import bulk, surface
-    from pyiron import ase_to_pyiron
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
     from structuretoolkit.build.surface import get_high_index_surface_info
     from structuretoolkit.common.pymatgen import ase_to_pymatgen, pymatgen_to_ase
@@ -133,7 +131,7 @@ def HighIndexSurface(
     )
     slab.positions[:, 2] = slab.positions[:, 2] - np.min(slab.positions[:, 2])
     slab.set_pbc(True)
-    return ase_to_pyiron(slab)
+    return slab
 
 
 @group_node("structure")
