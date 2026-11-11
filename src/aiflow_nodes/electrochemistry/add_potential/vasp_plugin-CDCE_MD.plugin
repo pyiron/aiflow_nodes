@@ -13,9 +13,7 @@ unit_change = 2 * RYTOEV * AUTOA
 phi0 = {phi0}
 
 Q_pos = {Q_pos}
-Q0 = (
-    0  # Initial charge, when restarting change this to charge of second last ionic step
-)
+Q0 = {Q0}  # Initial charge, when restarting change this to charge of second last ionic step
 rQ_list = [Q_pos]
 Q_list = [Q0]
 
