@@ -16,6 +16,10 @@ from aiflow_nodes.atomistic.engine.vasp_new import (
     read_potcar_config,
 )
 
+_THIS_DIR = Path(__file__).resolve().parent
+_default_cce_plugin_path = str(_THIS_DIR / "vasp_plugin-CCE.plugin")
+_default_cdce_plugin_path = str(_THIS_DIR / "vasp_plugin-CDCE_MD.plugin")
+
 _potcar_config = read_potcar_config(Path.home() / ".pyiron_vasp_config")
 _default_potcar_lib_path: str = _potcar_config.get("default_POTCAR_path", "")
 
@@ -102,15 +106,11 @@ def CCESetup(
     electrode: Atoms,
     calc: VaspInput,
     potcar_lib_path: str = _default_potcar_lib_path,
-    path_to_plugin: str = "aiflow_nodes/electrochemistry/add_potential/vasp_plugin-CCE.plugin",
+    path_to_plugin: str = _default_cce_plugin_path,
     potential: float = 0.0,
     Q0: float = 0.0,
     grid_position_frac: float = 0.85,
     grid_roll_frac: float = 0.1,
-    temperature: float = 300.0,
-    n_steps: int = 500,
-    potim: float = 0.5,
-    langevin_gamma: float = 5.0,
     tau: float = 50.0,
 ):
     """Build the Ne-CCE thermopotentiostat plugin setup for a VASP MD calculation.
@@ -301,17 +301,13 @@ def CDCESetup(
     electrode: Atoms,
     calc: VaspInput,
     potcar_lib_path: str = _default_potcar_lib_path,
-    path_to_plugin: str = "aiflow_nodes/electrochemistry/add_potential/vasp_plugin-CDCE_MD.plugin",
+    path_to_plugin: str = _default_cdce_plugin_path,
     potential: float = 0.0,
     Q0: float = 0.0,
     grid_position_frac: float = 0.85,
     grid_roll_frac: float = 0.1,
     pos_right_wall: float = 0.75,  # for now this is in fractional coordinates
     width_wall: float = 6.5,
-    temperature: float = 300.0,
-    n_steps: int = 500,
-    potim: float = 0.5,
-    langevin_gamma: float = 5.0,
     tau: float = 50.0,
 ):
     """Build the CDCE (charged-dielectric counter-charge) plugin setup for a VASP MD run.
@@ -424,6 +420,7 @@ def CDCESetup(
     )
 
     Q_pos = np.array([ax * 0.5, ay * 0.5, az * pos_right_wall - 2.0])
+    pos_right_wall_abs = az * pos_right_wall
 
     d_electrode = float(
         Q_pos[2] - float(np.max(structure[electrode_indices].positions[:, 2]))
@@ -447,7 +444,7 @@ def CDCESetup(
         grid_position_frac=grid_position_frac,
         grid_roll_frac=grid_roll_frac,
         width_wall=width_wall,
-        pos_right_wall=pos_right_wall,
+        pos_right_wall=pos_right_wall_abs,
         ax=ax,
         ay=ay,
         az=az,
