@@ -194,8 +194,6 @@ extend_exclude = [".*\\.ipynb"]
 python-ace = "pyace"
 
 [tool.deptry.per_rule_ignores]
-# Not declared: qe_xml_parser (Quantum ESPRESSO) is not packaged.
-DEP001 = ["qe_xml_parser"]
 # pixi installs the package itself into its environment.
 DEP002 = ["aiflow_nodes"]
 
@@ -205,9 +203,8 @@ DEP002 = ["aiflow_nodes"]
 # aiflow's dynamically built node classes (no-member, invalid-field-call).
 [tool.pylint.main]
 jobs = 0
-# Names pylint cannot see: pygments creates its lexers and formatters lazily,
-# and qe_xml_parser (Quantum ESPRESSO) is not packaged.
-ignored-modules = ["pygments.lexers", "pygments.formatters", "qe_xml_parser"]
+# Names pylint cannot see: pygments creates its lexers and formatters lazily.
+ignored-modules = ["pygments.lexers", "pygments.formatters"]
 # Voronoi and Delaunay live in a compiled extension.
 extension-pkg-allow-list = ["scipy.spatial._qhull"]
 

@@ -229,7 +229,6 @@ def FitDiffPotential(
     r_max: float = 7,
     num_points: int = 51,
     max_row_index: int = -1,
-    store: bool = True,
 ):
 
     from aiflow.core import Workflow
@@ -301,7 +300,6 @@ def FitDiffPotential(
     wf.DesignMatrix = ApplyFunctionToSeriesNew(
         series=wf.GetStructures,
         function=wf.LinearInterpolationDescriptor,
-        store=store,
     )
 
     wf.DiffEnergy = Subtract(x=wf.GetEnergy, y=wf.GetRefEnergy)
@@ -310,7 +308,7 @@ def FitDiffPotential(
 
     wf.Sum = Sum(x=wf.DesignMatrix, axis=0)
 
-    wf.Coeff = DotProduct(a=wf.PseudoInverse, b=wf.DiffEnergy, store=store)
+    wf.Coeff = DotProduct(a=wf.PseudoInverse, b=wf.DiffEnergy)
     wf.DiffEnergyPerAtom = Divide(wf.DiffEnergy, wf.NumberOfAtoms)
     wf.FitEnergyDiff = DotProduct(a=wf.DesignMatrix, b=wf.Coeff)
     wf.FitEnergyDiffPerAtom = Divide(wf.FitEnergyDiff, wf.NumberOfAtoms)
@@ -343,7 +341,6 @@ def FitDiffPotential2(
     num_points: int = 51,
     degree: int = 3,
     max_row_index: int = -1,
-    store: bool = True,
 ):
 
     from aiflow.core import Workflow
@@ -412,7 +409,6 @@ def FitDiffPotential2(
     wf.DesignMatrix = ApplyFunctionToSeriesNew(
         series=wf.GetStructures,
         function=wf.Descriptor,
-        store=store,
     )
 
     wf.DiffEnergy = Subtract(x=wf.GetEnergy, y=wf.GetRefEnergy)
@@ -421,7 +417,7 @@ def FitDiffPotential2(
 
     wf.Sum = Sum(x=wf.DesignMatrix, axis=0)
 
-    wf.Coeff = DotProduct(a=wf.PseudoInverse, b=wf.DiffEnergy, store=store)
+    wf.Coeff = DotProduct(a=wf.PseudoInverse, b=wf.DiffEnergy)
     wf.DiffEnergyPerAtom = Divide(wf.DiffEnergy, wf.NumberOfAtoms)
     wf.FitEnergyDiff = DotProduct(a=wf.DesignMatrix, b=wf.Coeff)
     wf.FitEnergyDiffPerAtom = Divide(wf.FitEnergyDiff, wf.NumberOfAtoms)
