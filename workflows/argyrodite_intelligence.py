@@ -52,7 +52,7 @@ def _call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
     c = cfg if cfg is not None else _DEFAULT_CONFIG
 
     if c.backend == "ollama":
-        from pyiron_ai.node_store import _ollama_generate
+        from aiflow.ai.llm_settings import _ollama_generate
 
         return _ollama_generate(
             model=c.model_name, prompt=prompt, max_tokens=max_tokens
@@ -60,7 +60,7 @@ def _call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
 
     if c.backend == "openai_academic":
         import keyring
-        from pyiron_ai.node_store import _openai_generate
+        from aiflow.ai.llm_settings import _openai_generate
 
         content, _ = _openai_generate(
             model=c.model_name,
@@ -71,28 +71,12 @@ def _call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
         )
         return content
 
-    if c.backend == "claude":
-        import os as _os
-
-        from anthropic import AnthropicFoundry
-
-        client = AnthropicFoundry(
-            api_key=_os.environ["ANTHROPIC_FOUNDRY_API_KEY"],
-            resource=_os.environ["ANTHROPIC_FOUNDRY_RESOURCE"],
-        )
-        response = client.messages.create(
-            model=c.model_name,
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.content[0].text
-
     raise ValueError(f"Unknown LLM backend: {c.backend!r}")
 
 
 @as_function_node("models")
 def ListModels(
-    backend: Literal["openai_academic", "claude", "ollama"] | None = "ollama",
+    backend: Literal["openai_academic", "ollama"] | None = "ollama",
     index: int | None = 0,
 ):
     """Select the LLM backend and model; output wires to all LLM-calling nodes."""
@@ -106,20 +90,18 @@ def ListModels(
             model_name = _DEFAULT_CONFIG.model_name
     elif backend == "openai_academic":
         import keyring
+        from aiflow.ai.llm_settings import _list_available_models
 
         try:
-            from openai import OpenAI
-
-            client = OpenAI(
+            names = _list_available_models(
                 api_key=keyring.get_password("openai", "api_key"),
-                base_url=_OPENAI_API_BASE,
+                api_base=_OPENAI_API_BASE,
             )
-            names = [m.id for m in client.models.list()]
             model_name = names[index] if names else "openai-gpt-oss-120b"
         except Exception:
             model_name = "openai-gpt-oss-120b"
     else:
-        model_name = "claude-opus-5-20251101"
+        raise ValueError(f"Unknown LLM backend: {backend!r}")
 
     models = LLMConfig(backend=backend, model_name=model_name)
     return models
