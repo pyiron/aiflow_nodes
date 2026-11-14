@@ -213,14 +213,12 @@ def GetChemicalSpecies(structure: Atoms):
 
 
 @group_node(
-    [
-        "coefficients",
-        "design_matrix",
-        "r_bins",
-        "diff_energy_per_atom",
-        "fit_diff_energy_per_atom",
-        "number_of_atoms",
-    ]
+    "coefficients",
+    "design_matrix",
+    "r_bins",
+    "diff_energy_per_atom",
+    "fit_diff_energy_per_atom",
+    "number_of_atoms",
 )
 def FitDiffPotential(
     file_path_0: str = "ASSYST/Al_LDA.pckl.gz",
@@ -324,14 +322,12 @@ def FitDiffPotential(
 
 
 @group_node(
-    [
-        "coefficients",
-        "design_matrix",
-        "r_bins",
-        "diff_energy_per_atom",
-        "fit_diff_energy_per_atom",
-        "number_of_atoms",
-    ]
+    "coefficients",
+    "design_matrix",
+    "r_bins",
+    "diff_energy_per_atom",
+    "fit_diff_energy_per_atom",
+    "number_of_atoms",
 )
 def FitDiffPotential2(
     file_path_0: str = "ASSYST/Al_LDA.pckl.gz",
