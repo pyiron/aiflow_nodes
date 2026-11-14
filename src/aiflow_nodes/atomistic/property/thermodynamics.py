@@ -14,6 +14,7 @@ def GetChemicalPotential(
     from aiflow_nodes.atomistic.calculator.output import GetEnergyLast
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.calc import NumberOfAtoms
+    from aiflow_nodes.math_utils import Divide
 
     wf = Workflow("GetChemicalPotential")
     wf.bulk = Bulk(name=element)
@@ -21,4 +22,6 @@ def GetChemicalPotential(
     wf.n_atoms = NumberOfAtoms(structure=wf.bulk)
     wf.energy = GetEnergyLast(calculator=wf.minimize)
 
-    return wf.energy / wf.n_atoms
+    wf.chemical_potential = Divide(x=wf.energy, y=wf.n_atoms)
+
+    return wf.chemical_potential
