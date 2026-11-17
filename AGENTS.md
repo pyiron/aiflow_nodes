@@ -40,7 +40,7 @@ One distribution, `aiflow_nodes` (`src/aiflow_nodes/`):
 | `atomistic/` | Structures (`structure/`), engines (`engine/`: LAMMPS with Jinja templates, VASP, QE, ASE), calculators, properties (bulk, elastic, phonons, defects, calphy, …), ML potentials, assyst, thermodynamics |
 | `electrochemistry/` | Electrode/electrolyte setup, VASP CCE plugins, analysis |
 | `math_utils.py`, `utilities.py`, `dataframe.py`, `plotting.py`, `controls.py`, `executors.py` | General-purpose nodes |
-| `databases/`, `experiment/`, `machine_learning/`, `scipy_nodes/`, `thermodynamics/`, `graphs/` | Smaller node families |
+| `databases/`, `experiment/`, `machine_learning/`, `scipy_nodes/`, `thermodynamics/` | Smaller node families |
 | `assistant_plugin.py` | Registers the library with the `aiflow.ai` assistant (`aiflow.node_libraries` entry point) |
 | `guides/node_guide.md` | The library's guide for the assistant |
 
