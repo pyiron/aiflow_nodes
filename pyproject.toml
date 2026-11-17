@@ -188,6 +188,9 @@ lint = { features = ["lint"], no-default-feature = true }
 [tool.pytest.ini_options]
 # A misspelt marker is an error, not a silently ignored new marker.
 addopts = ["--strict-markers"]
+# Test this checkout's sources, also from a git worktree, whose environment's
+# editable install points at another checkout.
+pythonpath = ["src"]
 markers = [
     "slow: too slow for the pre-push hook, which skips it; CI runs it",
 ]
