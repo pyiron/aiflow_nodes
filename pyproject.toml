@@ -166,7 +166,7 @@ test = "coverage run --rcfile=.coveragerc && coverage report --rcfile=.coverager
 pylint = "pylint src/aiflow_nodes"
 
 [tool.pixi.feature.lint.dependencies]
-ruff = "==0.17.3"
+ruff = "==0.17.5"
 pre-commit = "*"
 
 [tool.pixi.feature.lint.tasks]
