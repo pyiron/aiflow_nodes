@@ -1,41 +1,50 @@
 # Git hooks, managed by https://pre-commit.com
 #
-#   pixi run pre-commit install  # once per clone
-#   pixi run pre-commit install --hook-type pre-push  # optional: tests on push
-#   pixi run hooks               # what CI runs: all hooks, all files
+#   pixi run pre-commit install  # once per clone: installs the hooks below
+#   pixi run hooks               # what CI runs: the commit hooks, all files
+#   git commit --no-verify       # skip the commit hooks for one commit
+#   git push --no-verify         # skip the tests for one push
 #
+# On commit:
 # - ruff lints and formats the Python files and notebooks.
 # - nbstripout removes notebook outputs and execution counts; commit the
 #   stripped notebook (`git add` it again).
 # - Binary files and files over 500 kB are rejected. Data belongs elsewhere
 #   (e.g. Zenodo); a binary that must live here goes into the
 #   `no-binary-files` exclude list below.
-# - On push (if installed), the test suite runs in the `test` environment on
-#   the working tree, not only on what is pushed. CI's `pixi run hooks` does
-#   not run it.
-default_stages: [pre-commit]
+#
+# On push, the tests run in the `test` environment, minus those marked `slow`;
+# CI still runs all of them. They run on the working tree, not only on what is
+# pushed.
+default_install_hook_types: [pre-commit, pre-push]
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.17.5
     hooks:
-      - id: ruff
+      - id: ruff-check
         name: ruff lint
         args: ["--fix"]
+        stages: [pre-commit]
       - id: ruff-format
         name: ruff format
+        stages: [pre-commit]
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.1
     hooks:
       - id: nbstripout
         args: ["--extra-keys", "metadata.kernelspec metadata.language_info.version"]
+        stages: [pre-commit]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=500"]
+        stages: [pre-commit]
       - id: check-merge-conflict
+        stages: [pre-commit]
 
   - repo: local
     hooks:
@@ -46,13 +55,14 @@ repos:
           Binary files must not be committed; host the data elsewhere or add
           the file to the exclude list in .pre-commit-config.yaml
         types: [binary]
+        stages: [pre-commit]
         # Temporary: the training dataset is to be moved out of the repo.
         exclude: ^src/aiflow_nodes/atomistic/ml_potentials/fitting/dataset\.pckl\.gzip$
 
-      - id: pytest
-        name: pytest
+      - id: tests
+        name: tests (not slow)
         language: system
-        entry: pixi run -e test python -m pytest tests -q -x
+        entry: pixi run -e test python -m pytest tests -q -x -m "not slow"
         pass_filenames: false
         always_run: true
         stages: [pre-push]
