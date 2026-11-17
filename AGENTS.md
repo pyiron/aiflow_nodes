@@ -119,6 +119,32 @@ aiflow is not on PyPI; pixi installs it from the private `pyiron/aiflow`
 repository at the commit pinned in `[tool.pixi.pypi-dependencies]`.  Bump
 `rev` only on purpose.
 
+### Git worktrees
+
+Independent work (an agent's task, a second branch) goes into a git worktree
+off `origin/main`: in the `aiflow_env` workspace into its gitignored
+`worktrees/` folder, otherwise next to the clone.
+
+```bash
+git fetch origin
+git worktree add -b <branch> ../worktrees/aiflow_nodes-<branch> origin/main
+git -C ../worktrees/aiflow_nodes-<branch> branch --unset-upstream  # a bare `git push` must not reach main
+```
+
+- **Don't create an environment in it.**  A plain `pixi run` there installs
+  this repository's environment again, from the worktree's `pyproject.toml`.
+  Use an existing one through its manifest:
+  `pixi run --manifest-path <clone>/pyproject.toml -e test python -m pytest …`,
+  or the workspace's `pixi run --manifest-path <aiflow_env>/pixi.toml …`.
+- **pytest tests the worktree's code** (`pythonpath = ["src"]`); everything
+  else imports the clone the environment's editable install points at.  Run
+  scripts, workflows, pylint and the `aiflow_nodes.__file__` check above with
+  `PYTHONPATH=src`, and add aiflow's worktree when the work spans both
+  repositories: `PYTHONPATH=src:../aiflow-<branch>/src`.
+- **Gitignored files are missing**, the local environment note among them:
+  copy `CLAUDE.local.md` / `AGENTS.local.md` from the clone.
+- Remove the worktree (`git worktree remove`) once its PR is merged.
+
 ## Tasks
 
 ```bash
