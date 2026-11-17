@@ -27,6 +27,9 @@ pixi run hooks        # all pre-commit hooks on all files (as CI does)
 pixi run pre-commit install  # once per clone: lint on commit, tests on push
 ```
 
+The tests on push run in the active environment, so push from a `pixi shell`
+(here, or in the aiflow_env workspace when you develop aiflow too).
+
 The hooks strip notebook outputs and reject binary files and files over
 500 kB; see `.pre-commit-config.yaml`.
 

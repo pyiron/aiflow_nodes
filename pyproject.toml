@@ -186,6 +186,8 @@ test = { features = ["test"], solve-group = "default" }
 lint = { features = ["lint"], no-default-feature = true }
 
 [tool.pytest.ini_options]
+# A misspelt marker is an error, not a silently ignored new marker.
+addopts = ["--strict-markers"]
 markers = [
     "slow: too slow for the pre-push hook, which skips it; CI runs it",
 ]

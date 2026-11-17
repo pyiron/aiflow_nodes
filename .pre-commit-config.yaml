@@ -13,9 +13,10 @@
 #   (e.g. Zenodo); a binary that must live here goes into the
 #   `no-binary-files` exclude list below.
 #
-# On push, the tests run in the `test` environment, minus those marked `slow`;
-# CI still runs all of them. They run on the working tree, not only on what is
-# pushed.
+# On push, the tests run, minus those marked `slow`; CI still runs all of them.
+# They run on the working tree, not only on what is pushed, and in the active
+# environment, so push from the one you develop in: `pixi shell` here, or in
+# the aiflow_env workspace when you develop aiflow and aiflow_nodes together.
 default_install_hook_types: [pre-commit, pre-push]
 
 repos:
@@ -62,7 +63,13 @@ repos:
       - id: tests
         name: tests (not slow)
         language: system
-        entry: pixi run -e test python -m pytest tests -q -x -m "not slow"
+        entry: >-
+          bash -c '
+          if [ -z "$VIRTUAL_ENV$PIXI_PROJECT_ROOT" ] && [ "${CONDA_DEFAULT_ENV:-base}" = base ]; then
+          echo "No environment is active: run pixi shell (here or in the aiflow_env workspace) and push again, or push with --no-verify." >&2;
+          exit 1;
+          fi;
+          exec python -m pytest tests -q -x -m "not slow"'
         pass_filenames: false
         always_run: true
         stages: [pre-push]

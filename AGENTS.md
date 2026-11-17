@@ -166,7 +166,11 @@ update `pixi.lock`.  Exact versions live in the lock file only.  Run
   Zenodo).
 - `pixi run pre-commit install` also installs a pre-push hook that runs the
   tests not marked `slow` (`-m "not slow"`); CI runs all of them.  Mark a test
-  `@pytest.mark.slow` when it makes pushing noticeably slower.
+  `@pytest.mark.slow` when it makes pushing noticeably slower.  Markers must be
+  registered in `[tool.pytest.ini_options]` (`--strict-markers`).  The hook
+  uses the active environment and refuses to run without one; from an agent's
+  non-activated shell, push with `pixi run git push` (or the aiflow_env
+  workspace's `pixi run`).
 
 ## Branches and commits
 
