@@ -79,7 +79,7 @@ def compute_entropy(gibbs_energy, temperature):
 
 
 @as_function_node
-def compute_cp(enthalpy, temperature, label: str = "cp"):
+def compute_cp(enthalpy, temperature, data_label: str = "cp"):
     delta_T = np.gradient(temperature)
     delta_H = np.gradient(enthalpy)
     cp = delta_H / delta_T / kB_meV
@@ -99,7 +99,6 @@ def compute_cp_from_G(data: GibbsData, degree: int = 4):
     wf.enthalpy = compute_enthalpy(
         wf.fit.outputs.fit, wf.fit.outputs.temperatures, wf.entropy
     )
-    print(data, type(data))
     wf.cp = compute_cp(wf.enthalpy, wf.fit.outputs.temperatures)
 
     return wf.cp
@@ -162,16 +161,16 @@ def DataPlotCp(
 
 
 @as_function_node
-def LoadGibbsData(file_name: str, label: str = "", range: slice = None):
+def LoadGibbsData(file_name: str, data_label: str = "", range: slice = None):
     import pylab as plb
 
     data = plb.loadtxt(file_name)
 
     out = GibbsData.pure_dataclass()
-    if label == "":
+    if data_label == "":
         out.label = file_name.split("/")[-1]
     else:
-        out.label = label
+        out.label = data_label
     out.temperature.value = data.T[0]
     out.gibbs_energy.value = data.T[1]
     return out

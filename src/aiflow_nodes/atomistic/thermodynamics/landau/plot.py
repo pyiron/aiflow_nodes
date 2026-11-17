@@ -293,7 +293,9 @@ def ComputPhaseDiagram(
     import aiflow_nodes as pn
 
     wf = Workflow("PhaseDiagram")
-    wf.read_data = pn.dataframe.ReadDataFrame(filename=filename, compression="gzip")
+    wf.read_data = pn.dataframe.ReadPickleDataFrame(
+        filename=filename, compression="gzip"
+    )
     wf.phases_from_df = pn.atomistic.thermodynamics.landau.phases.PhasesFromDataFrame(
         dataframe=wf.read_data
     )

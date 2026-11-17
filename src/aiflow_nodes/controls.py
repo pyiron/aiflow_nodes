@@ -1130,10 +1130,10 @@ def pick_element(lst: list | np.ndarray, index: int) -> any:
 
 
 @as_function_node
-def ExtractList(out_list: list, label: str, flatten: bool = True):
+def ExtractList(out_list: list, data_label: str, flatten: bool = True):
     import numpy as np
 
-    collect = np.array([out.__getattribute__(label) for out in out_list])
+    collect = np.array([out.__getattribute__(data_label) for out in out_list])
     if flatten:
         collect = collect.flatten()
     return collect

@@ -27,12 +27,12 @@ def _write_input(input_dict, working_directory="."):
 
 
 def _collect_output(working_directory="."):
-    from qe_xml_parser.parsers import parse_pw
+    from ase.io import read
 
-    output = parse_pw(os.path.join(working_directory, "pwscf.xml"))
+    atoms = read(os.path.join(working_directory, "output.pwo"), format="espresso-out")
     return {
-        "energy": output["energy"],
-        "volume": output["ase_structure"].get_volume(),
+        "energy": atoms.get_potential_energy(),
+        "volume": atoms.get_volume(),
     }
 
 
