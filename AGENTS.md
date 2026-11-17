@@ -164,6 +164,8 @@ update `pixi.lock`.  Exact versions live in the lock file only.  Run
 - The pre-commit hooks strip notebook outputs (re-`git add` the notebook) and
   reject binary files and files over 500 kB.  Data belongs elsewhere (e.g.
   Zenodo).
+- An optional pre-push hook runs the test suite
+  (`pixi run pre-commit install --hook-type pre-push`).
 
 ## Branches and commits
 

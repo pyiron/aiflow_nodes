@@ -1,6 +1,7 @@
 # Git hooks, managed by https://pre-commit.com
 #
 #   pixi run pre-commit install  # once per clone
+#   pixi run pre-commit install --hook-type pre-push  # optional: tests on push
 #   pixi run hooks               # what CI runs: all hooks, all files
 #
 # - ruff lints and formats the Python files and notebooks.
@@ -9,6 +10,10 @@
 # - Binary files and files over 500 kB are rejected. Data belongs elsewhere
 #   (e.g. Zenodo); a binary that must live here goes into the
 #   `no-binary-files` exclude list below.
+# - On push (if installed), the test suite runs in the `test` environment on
+#   the working tree, not only on what is pushed. CI's `pixi run hooks` does
+#   not run it.
+default_stages: [pre-commit]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.17.5
@@ -43,3 +48,11 @@ repos:
         types: [binary]
         # Temporary: the training dataset is to be moved out of the repo.
         exclude: ^src/aiflow_nodes/atomistic/ml_potentials/fitting/dataset\.pckl\.gzip$
+
+      - id: pytest
+        name: pytest
+        language: system
+        entry: pixi run -e test python -m pytest tests -q -x
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

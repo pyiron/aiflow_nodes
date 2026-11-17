@@ -25,6 +25,7 @@ pixi run lint         # ruff check + ruff format --check
 pixi run deptry       # imports vs. declared dependencies
 pixi run hooks        # all pre-commit hooks on all files (as CI does)
 pixi run pre-commit install  # once per clone: run the hooks on every commit
+pixi run pre-commit install --hook-type pre-push  # optional: run the tests on every push
 ```
 
 The hooks strip notebook outputs and reject binary files and files over
