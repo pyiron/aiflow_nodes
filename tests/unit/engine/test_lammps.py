@@ -15,6 +15,7 @@ from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsStaticInput,
     CreateLammpsStructure,
     LammpsIOBundle,
+    LammpsStageAverages,
     ListPotentials,
     ParseLammpsOutput,
     RunLammpsCalculation,
@@ -570,6 +571,169 @@ class TestRunLammpsCalculationDebug(unittest.TestCase):
                 io_bundle=bundle, debug=True
             )
             self.assertEqual(output, tmpdir)
+
+
+class TestTemperatureSchedule(unittest.TestCase):
+    """A ladder of constant-temperature NPT stages in one LAMMPS run."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._tmp = tempfile.TemporaryDirectory()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._tmp.cleanup()
+
+    def _bundle(self, subdir, pressure=0.0, **md_kwargs):
+        io_bundle = CreateLammpsStructure._original_func(
+            structure=bulk("Al", cubic=True),
+            potential=AL_POTENTIAL,
+            working_directory=self._tmp.name + "/" + subdir,
+            resource_path=RESOURCE_PATH,
+        )
+        return CreateLammpsMDInput._original_func(
+            io_bundle=io_bundle,
+            calc_dataclass=InputCalcMD._original_dataclass(
+                temperature=600.0, pressure=pressure, n_ionic_steps=50, n_print=10
+            ),
+            **md_kwargs,
+        )
+
+    def test_one_npt_stage_per_temperature(self):
+        bundle = self._bundle(
+            "ladder", temperature_schedule=[600.0, 400.0], flexible_cell=True
+        )
+        lines = bundle.lammps_input_string.splitlines()
+        fixes = [ln for ln in lines if ln.startswith("fix ensemble")]
+
+        self.assertEqual(len(fixes), 2)
+        self.assertIn("npt temp 600.0 600.0", fixes[0])
+        self.assertIn("npt temp 400.0 400.0", fixes[1])
+        for fix in fixes:
+            self.assertIn(" xy ", fix)
+            self.assertNotIn(" iso ", fix)
+        self.assertEqual(sum(ln.strip() == "run 50" for ln in lines), 2)
+        # Velocities are drawn once; later stages carry them over.
+        self.assertEqual(sum(ln.startswith("velocity") for ln in lines), 1)
+        # Each stage's fix comes before its own run.
+        runs = [i for i, ln in enumerate(lines) if ln.strip() == "run 50"]
+        fix_idx = [i for i, ln in enumerate(lines) if ln.startswith("fix ensemble")]
+        self.assertLess(fix_idx[0], runs[0])
+        self.assertLess(runs[0], fix_idx[1])
+        self.assertLess(fix_idx[1], runs[1])
+        self.assertEqual(bundle.temperature_schedule, [600.0, 400.0])
+        self.assertEqual(bundle.md_stage_steps, 50)
+
+    def test_the_tilt_terms_get_a_triclinic_box(self):
+        text = self._bundle(
+            "tri", temperature_schedule=[600.0], flexible_cell=True
+        ).lammps_input_string
+        lines = text.splitlines()
+        tri = lines.index("change_box all triclinic")
+        # LAMMPS refuses to convert the box once a dump exists.
+        first_dump = next(i for i, ln in enumerate(lines) if ln.startswith("dump"))
+        self.assertLess(tri, first_dump)
+
+    def test_without_flexible_cell_the_barostat_stays_iso(self):
+        text = self._bundle(
+            "iso", temperature_schedule=[600.0, 400.0]
+        ).lammps_input_string
+        self.assertNotIn("change_box", text)
+        self.assertEqual(text.count(" iso "), 2)
+
+    def test_stages_must_end_on_a_dump_frame(self):
+        io_bundle = CreateLammpsStructure._original_func(
+            structure=bulk("Al", cubic=True),
+            potential=AL_POTENTIAL,
+            working_directory=self._tmp.name + "/odd",
+            resource_path=RESOURCE_PATH,
+        )
+        with self.assertRaises(ValueError):
+            CreateLammpsMDInput._original_func(
+                io_bundle=io_bundle,
+                calc_dataclass=InputCalcMD._original_dataclass(
+                    pressure=0.0, n_ionic_steps=50, n_print=20
+                ),
+                temperature_schedule=[600.0, 400.0],
+            )
+
+    def test_flexible_cell_needs_a_pressure(self):
+        with self.assertRaises(ValueError):
+            self._bundle(
+                "nopress",
+                pressure=None,
+                temperature_schedule=[600.0],
+                flexible_cell=True,
+            )
+
+    def test_no_schedule_leaves_the_input_unchanged(self):
+        text = self._bundle("plain").lammps_input_string
+        self.assertEqual(text.count("fix ensemble"), 1)
+        self.assertNotIn("change_box", text)
+
+
+class TestLammpsStageAverages(unittest.TestCase):
+    """Three stages of 10 steps, dumped every 5: frames at 0, 5, ..., 30."""
+
+    @classmethod
+    def setUpClass(cls):
+        import numpy as np
+
+        from aiflow_nodes.atomistic.calculator.data import OutputCalcMD
+
+        structure = bulk("Al", cubic=True)  # 4 atoms
+        n = len(structure)
+        cls.bundle = LammpsIOBundle(
+            structure=structure,
+            potential=AL_POTENTIAL,
+            temperature_schedule=[600.0, 400.0, 200.0],
+            md_stage_steps=10,
+        )
+        a = 4.0
+        cube = np.eye(3) * a
+        sheared = np.array(
+            [[a, 0.0, 0.0], [a * np.tan(np.radians(10)), a, 0], [0, 0, a]]
+        )
+        out = OutputCalcMD.pure_dataclass()
+        # Thermo-log arrays repeat each stage boundary (every `run` prints its
+        # first step again); the dump arrays (cells, positions) do not.
+        out.steps = np.array([0, 5, 10, 10, 15, 20, 20, 25, 30])
+        out.energies_pot = np.array([0.0, 99, -4, -4, 99, -8, -8, 99, -12])
+        out.volumes = np.array([64.0, 0, 64, 64, 0, 64, 64, 0, 64])
+        out.temperatures = np.array([0.0, 0, 610, 610, 0, 390, 390, 0, 205])
+        out.cells = np.array([cube] * 6 + [sheared])
+        out.positions = np.array([structure.positions + i for i in range(7)])
+        cls.df, cls.structures = LammpsStageAverages._original_func(
+            io_bundle=cls.bundle,
+            md_output=out,
+            branches=["cooling", "cooling", "cooling"],
+            discard_fraction=0.5,
+        )
+        cls.n = n
+
+    def test_one_row_per_stage(self):
+        self.assertEqual(list(self.df["stage"]), [0, 1, 2])
+        self.assertEqual(list(self.df["T_target_K"]), [600.0, 400.0, 200.0])
+        self.assertEqual(list(self.df["branch"]), ["cooling"] * 3)
+
+    def test_the_first_half_of_each_stage_is_discarded(self):
+        self.assertEqual(
+            list(self.df["epot_eV_per_atom"]), [-4.0 / 4, -8.0 / 4, -12.0 / 4]
+        )
+        self.assertEqual(list(self.df["T_mean_K"]), [610.0, 390.0, 205.0])
+        self.assertEqual(list(self.df["volume_A3_per_atom"]), [16.0, 16.0, 16.0])
+
+    def test_angle_deviation_from_the_cell(self):
+        dev = list(self.df["max_angle_deviation_deg"])
+        self.assertAlmostEqual(dev[0], 0.0)
+        self.assertAlmostEqual(dev[2], 10.0, places=6)
+
+    def test_last_frame_of_each_stage(self):
+        self.assertEqual(len(self.structures), 3)
+        self.assertTrue(
+            (self.structures[2].positions == self.bundle.structure.positions + 6).all()
+        )
+        self.assertAlmostEqual(self.structures[2].cell.cellpar()[5], 80.0)
 
 
 if __name__ == "__main__":

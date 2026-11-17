@@ -12,7 +12,9 @@ from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsMinimizeInput,
     CreateLammpsStaticInput,
     CreateLammpsStructure,
+    GetPotential,
     LammpsIOBundle,
+    LammpsStageAverages,
     ParseLammpsOutput,
     RunLammpsCalculation,
 )
@@ -265,6 +267,73 @@ class TestRunLammpsError(unittest.TestCase):
         )
         with self.assertRaises(RuntimeError):
             RunLammpsCalculation._original_func(io_bundle=bundle, debug=False)
+
+
+class TestLammpsTemperatureLadder(unittest.TestCase):
+    """B2 NiTi through two NPT stages with a fully flexible cell."""
+
+    @classmethod
+    def setUpClass(cls):
+        from ase import Atoms
+
+        cls._tmp = tempfile.TemporaryDirectory()
+        structure = Atoms(
+            ["Ni", "Ti"],
+            scaled_positions=[[0, 0, 0], [0.5, 0.5, 0.5]],
+            cell=[3.01] * 3,
+            pbc=True,
+        ).repeat(3)
+        wf = Workflow("test_ladder")
+        wf.potential = GetPotential(
+            structure=structure,
+            resource_path=RESOURCE_PATH,
+            name_filter="2015--Ko-W-S--Ni-Ti",
+        )
+        wf.structure = CreateLammpsStructure(
+            structure=structure,
+            potential=wf.potential.outputs.potential_name,
+            working_directory=os.path.join(cls._tmp.name, "ladder"),
+            resource_path=RESOURCE_PATH,
+        )
+        wf.md_params = InputCalcMD(
+            temperature=600.0, pressure=0.0, n_ionic_steps=200, n_print=20
+        )
+        wf.md_input = CreateLammpsMDInput(
+            io_bundle=wf.structure,
+            calc_dataclass=wf.md_params,
+            temperature_schedule=[600.0, 300.0],
+            flexible_cell=True,
+        )
+        wf.run_lammps = RunLammpsCalculation(io_bundle=wf.md_input)
+        wf.md_output = ParseLammpsOutput(io_bundle=wf.run_lammps.outputs.io_bundle)
+        wf.stages = LammpsStageAverages(
+            io_bundle=wf.run_lammps.outputs.io_bundle,
+            md_output=wf.md_output,
+            branches=["cooling", "cooling"],
+        )
+        wf.run()
+        cls.df = wf.stages.outputs.df.value
+        cls.structures = wf.stages.outputs.stage_structures.value
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._tmp.cleanup()
+
+    def test_one_row_per_stage(self):
+        self.assertEqual(list(self.df["T_target_K"]), [600.0, 300.0])
+
+    def test_values_are_physical(self):
+        # B2 NiTi at a = 3.01 Å has 13.6 Å^3/atom; the MEAM cohesive energy is ~5 eV.
+        for v in self.df["volume_A3_per_atom"]:
+            self.assertAlmostEqual(v, 13.7, delta=0.5)
+        for e in self.df["epot_eV_per_atom"]:
+            self.assertAlmostEqual(e, -5.0, delta=0.3)
+
+    def test_the_cell_shears(self):
+        # Under the full barostat the cell picks up tilt that an iso run cannot.
+        self.assertGreater(self.df["max_angle_deviation_deg"].max(), 0.0)
+        self.assertEqual(len(self.structures), 2)
+        self.assertEqual(len(self.structures[-1]), 54)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,11 @@ class LammpsIOBundle:
     resource_path: str | None = None
     has_bonds: bool = True
     has_electrode_force: bool = False
+    # Set by CreateLammpsMDInput when it runs a temperature ladder: the target
+    # temperature and the length in steps of each stage, so that the trajectory
+    # can be split back into stages (LammpsStageAverages).
+    temperature_schedule: list[float] | None = None
+    md_stage_steps: int | None = None
 
 
 def _has_potential_files(filenames) -> bool:
@@ -440,11 +445,21 @@ def CreateLammpsMDInput(
     piston_species: str | None = None,
     piston_pressure: float = 1.0,
     piston_damping: float = 0.0,
+    temperature_schedule: list[float] | None = None,
+    flexible_cell: bool = False,
 ):
     """Build the LAMMPS input for an MD run.
 
     Parameters
     ----------
+    temperature_schedule:
+        Target temperatures of consecutive stages, each ``n_ionic_steps`` long and
+        run back to back in one script; ``None`` runs a single stage at
+        ``calc_dataclass.temperature``.  Velocities are drawn once, at the start.
+    flexible_cell:
+        Couple all six cell components to ``calc_dataclass.pressure`` (``x y z xy
+        xz yz`` barostat on a triclinic box) instead of ``iso``.  Needed when the
+        cell shape itself changes, as in a martensitic transformation.
     piston_species:
         Chemical symbol of an electrode to run as a constant-pressure piston, or
         ``None`` for a fixed-volume run.  The species must be free in z — see
@@ -470,6 +485,8 @@ def CreateLammpsMDInput(
     io_bundle.write_restart_filename = write_restart_filename
 
     calc_kwargs = asdict(calc_dataclass)
+    if flexible_cell and calc_kwargs.get("pressure") is None:
+        raise ValueError("flexible_cell needs calc_dataclass.pressure to be set")
 
     os.makedirs(io_bundle.working_directory, exist_ok=True)
     potential_lst, potential_replace, _ = _get_potential(
@@ -498,6 +515,10 @@ def CreateLammpsMDInput(
             lmp_str_lst.append(potential_replace["dimension"])
         else:
             lmp_str_lst.append(line)
+    if flexible_cell:
+        # The tilt terms of the barostat need a triclinic box, and LAMMPS only
+        # converts one before any dump is defined.
+        lmp_str_lst.append("change_box all triclinic")
 
     # Strip bond/angle coefficient lines when the structure has no bonds.
     if not io_bundle.has_bonds:
@@ -542,7 +563,23 @@ def CreateLammpsMDInput(
         calc_kwargs["initial_temperature"] = 0.0
 
     calc_kwargs["units"] = io_bundle.units
-    lmp_str_lst += calc_md(**calc_kwargs)
+    if temperature_schedule is not None and n_ionic_steps % calc_kwargs["n_print"]:
+        # Otherwise the thermo log gains a row at each stage end that the dump
+        # lacks, and LammpsStageAverages cannot pair them up.
+        raise ValueError("n_ionic_steps must be a multiple of n_print")
+    if flexible_cell:
+        pressure = calc_kwargs["pressure"]
+        calc_kwargs["pressure"] = [pressure, pressure, pressure, 0.0, 0.0, 0.0]
+    # Later stages keep the velocities of the one before (initial_temperature=0
+    # makes calc_md skip `velocity create`); redefining `fix ensemble` with the
+    # same style replaces it.
+    stage_lines = [
+        calc_md(**calc_kwargs | {"temperature": t})
+        if i == 0
+        else calc_md(**calc_kwargs | {"temperature": t, "initial_temperature": 0.0})
+        for i, t in enumerate(temperature_schedule or [calc_kwargs["temperature"]])
+    ]
+    lmp_str_lst += stage_lines[0]
 
     lmp_str_lst += [
         k + " " + v
@@ -617,6 +654,11 @@ def CreateLammpsMDInput(
         lmp_str_lst += ["reset_timestep 0"]
 
     lmp_str_lst += [f"run {n_ionic_steps} "]
+    for lines in stage_lines[1:]:
+        lmp_str_lst += lines + [f"run {n_ionic_steps} "]
+    if temperature_schedule is not None:
+        io_bundle.temperature_schedule = [float(t) for t in temperature_schedule]
+        io_bundle.md_stage_steps = n_ionic_steps
 
     if read_restart_file:
         shutil.copyfile(
@@ -1002,6 +1044,76 @@ def ParseLammpsOutput(
         raise ValueError(f"Unknown io_bundle.mode: {io_bundle.mode!r}")
 
     return out
+
+
+@as_function_node
+def LammpsStageAverages(
+    io_bundle: LammpsIOBundle,
+    md_output,
+    branches: list[str] | None = None,
+    discard_fraction: float = 0.5,
+):
+    """Per-stage averages of a temperature-ladder run (``CreateLammpsMDInput``
+    with ``temperature_schedule``).
+
+    The first ``discard_fraction`` of each stage's frames is dropped as
+    equilibration.  ``df`` has one row per stage: ``stage, T_target_K, T_mean_K,
+    epot_eV_per_atom, volume_A3_per_atom, max_angle_deviation_deg`` (the largest
+    deviation of the averaged cell's angles from 90°), plus ``branch`` when
+    ``branches`` labels the stages.  ``stage_structures`` holds the last frame
+    of every stage.
+    """
+    import numpy as np
+    from ase.geometry import cell_to_cellpar
+
+    temperatures = io_bundle.temperature_schedule
+    if temperatures is None:
+        raise ValueError(
+            "io_bundle has no temperature_schedule — build the input with "
+            "CreateLammpsMDInput(temperature_schedule=...)."
+        )
+    n_atoms = len(io_bundle.structure)
+    # Every `run` prints its first step again, so the thermo log (steps,
+    # energies, volumes, temperatures) repeats each stage boundary; the dump
+    # (cells, positions) does not.  Dropping the repeats lines the two up.
+    steps, first = np.unique(np.asarray(md_output.steps), return_index=True)
+    energies_pot = np.asarray(md_output.energies_pot)[first]
+    volumes = np.asarray(md_output.volumes)[first]
+    temperatures_md = np.asarray(md_output.temperatures)[first]
+    cells = np.asarray(md_output.cells)
+    if len(cells) != len(steps):
+        raise ValueError(
+            f"{len(steps)} thermo steps but {len(cells)} dump frames; "
+            "n_ionic_steps must be a multiple of n_print."
+        )
+    # Steps run on across stages, so stage i covers (i*n, (i+1)*n]; the frame at
+    # step 0 is the starting configuration and belongs to none.
+    stage_of_frame = (steps - 1) // io_bundle.md_stage_steps
+
+    rows, stage_structures = [], []
+    for stage, t_target in enumerate(temperatures):
+        frames = np.flatnonzero((stage_of_frame == stage) & (steps > 0))
+        kept = frames[min(int(len(frames) * discard_fraction), len(frames) - 1) :]
+        angles = cell_to_cellpar(cells[kept].mean(axis=0))[3:]
+        rows.append(
+            {
+                "stage": stage,
+                "T_target_K": float(t_target),
+                "T_mean_K": float(np.mean(temperatures_md[kept])),
+                "epot_eV_per_atom": float(np.mean(energies_pot[kept]) / n_atoms),
+                "volume_A3_per_atom": float(np.mean(volumes[kept]) / n_atoms),
+                "max_angle_deviation_deg": float(np.max(np.abs(angles - 90.0))),
+            }
+        )
+        last = io_bundle.structure.copy()
+        last.set_cell(cells[frames[-1]], scale_atoms=False)
+        last.set_positions(md_output.positions[frames[-1]])
+        stage_structures.append(last)
+
+    df = pd.DataFrame(rows)
+    if branches is not None:
+        df["branch"] = list(branches)
+    return df, stage_structures
 
 
 @as_function_node
