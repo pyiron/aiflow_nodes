@@ -19,17 +19,15 @@ don't have to be hardcoded.
 pyiron_vasp_resources = /path/to/vasp/potentials
 default_POTCAR_set    = potpawPBE
 default_functional    = PBE
-vasp_command          = module load vasp; mpiexec -n 1 vasp_std
 ```
 
 - `pyiron_vasp_resources` — base directory containing the POTCAR library
 - `default_POTCAR_set` — which POTCAR set to use; `potpawPBE` → resolved to `potpaw_PBE/`
 - `default_functional` — selects which CSV lookup table to use (PBE or LDA)
-- `vasp_command` — the full shell command to launch VASP on your cluster
 
 `read_potcar_config()` reads this file at module import time and stores the resolved
-values in module-level constants (`_default_potcar_lib_path`, `_default_functional`,
-`_default_vasp_command`). If the file is absent these fall back to empty strings /
+values in module-level constants (`_default_potcar_lib_path`, `_default_functional`).
+If the file is absent these fall back to empty strings /
 safe defaults and the user must supply them explicitly as node parameters.
 
 ---
@@ -111,8 +109,8 @@ working directory (falling back to a hash of the inputs when none is given) and
 writes the four VASP input files.
 `plugin_data` (from the electrochemistry setup nodes, see
 `electrochemistry/add_potential/CCE-electrode_overview.md`) adds extra INCAR
-tags, POTCAR overrides and a `vasp_plugin.py`. The defaults for `potcar_lib_path` and
-`vasp_command` are read from `~/.pyiron_vasp_config` at import time.
+tags, POTCAR overrides and a `vasp_plugin.py`. The default for `potcar_lib_path` is
+read from `~/.pyiron_vasp_config` at import time.
 
 **POSCAR** — the crystal structure.
 ASE `Atoms` is first converted to a pymatgen `Structure` via `AseAtomsAdaptor`,
@@ -147,7 +145,7 @@ Gamma-centred mesh via pymatgen's `Kpoints.gamma_automatic()`.
 ### 3. `RunVaspCalculation`
 
 ```
-Inputs:  io_bundle, vasp_command, run_script_path, threads_per_core, debug
+Inputs:  io_bundle, vasp_version, executable, threads_per_core, mpi_launcher, debug
 Outputs: io_bundle, stdout
 ```
 
@@ -155,11 +153,17 @@ Runs VASP as a subprocess using `subprocess.run` with `shell=True`. This is
 **blocking** — `wf.run()` will not return until VASP finishes. The call inherits
 the current environment (`os.environ.copy()`) and runs in `working_directory`.
 
-`vasp_command` defaults to whatever is in `~/.pyiron_vasp_config`. On a cluster this
-typically needs to load environment modules before calling `mpiexec`, e.g.:
+The node builds the launch command from its ports. With `vasp_version="6.4.0"`,
+`executable="vasp_std"`, `threads_per_core=4` and `mpi_launcher="mpiexec"` it runs
 ```
-module load vasp; module load intel/19.1.0 impi/2019.6; mpiexec -n 4 vasp_std
+. $MODULESHOME/init/sh && module purge && module load vasp/6.4.0 && mpiexec -n 4 vasp_std
 ```
+`module` is a shell function that only interactive login shells define, so the
+node sources the Environment Modules init script itself. An empty `vasp_version`
+loads the site's default `vasp` module. Without `$MODULESHOME` (no module system)
+it runs `mpiexec -n 4 vasp_std` and the executable must be on `PATH`. Use
+`executable="vasp_gam"` / `"vasp_ncl"` for Gamma-only / non-collinear runs and
+`mpi_launcher="srun"` inside a Slurm job.
 
 If VASP exits with a non-zero return code, stderr and stdout are written to
 `error.msg` in the working directory and a `RuntimeError` is raised.
