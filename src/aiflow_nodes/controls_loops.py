@@ -7,7 +7,8 @@ outputs are carried back into body inputs (`carry`). An optional schedule
 returns `proceed`). The existing `controls.while_loop` is left unchanged.
 
 Inputs of the body are of three kinds:
-- carried: set from the previous iteration's outputs (`carry="out -> in"`);
+- carried: set from the previous iteration's outputs (`carry="out -> in"`, or
+  `carry="auto"`: every output with the same name as an input);
 - fed: set from `feed[i]` (`feed_input`);
 - static: everything else, set by the workflow as usual. aiflow resolves wired
   static inputs before the node reaches the loop.
@@ -39,6 +40,35 @@ def _pairs(text, name: str) -> list[tuple[str, str]]:
             raise ValueError(f"{name}: {item!r} is not of the form 'source -> target'")
         pairs.append((a, b))
     return pairs
+
+
+def _carry_pairs(text, body_out, body_in, fed: str = "") -> list[tuple[str, str]]:
+    """`carry` as (body output, body input) pairs.
+
+    The word "auto" (alone, or among explicit pairs: "auto, E -> E_prev")
+    carries every body output whose name is also a body input, except the fed
+    input `fed`, which the schedule sets. An explicit pair into the same input
+    wins over the name match. "auto" matching nothing raises, so a misnamed
+    port can't silently leave the loop without a carry.
+    """
+    items = [s.strip() for s in str(text or "").split(",") if s.strip()]
+    auto = any(s.lower() == "auto" for s in items)
+    explicit = _pairs(", ".join(s for s in items if s.lower() != "auto"), "carry")
+    if not auto:
+        return explicit
+    taken = {target for _, target in explicit}
+    matched = [
+        (name, name)
+        for name in body_out
+        if name in body_in and name != fed and name not in taken
+    ]
+    if not matched and not explicit:
+        raise ValueError(
+            f"carry='auto': no body output has the name of a body input "
+            f"(outputs: {list(body_out)}; inputs: {list(body_in)}). Rename the "
+            f"ports, or give the pairs: 'out -> in'"
+        )
+    return matched + explicit
 
 
 def _names(text) -> list[str]:
@@ -169,7 +199,10 @@ def WhileLoop(
        up ("schedule_end", a normal end), or `max_iterations` is reached (an
        error with `on_max="raise"`, else "max_iterations");
     5. otherwise `carry` writes body outputs into body inputs, e.g.
-       "x -> x, K -> K_prev".
+       "x -> x, K -> K_prev". `carry="auto"` carries every body output that
+       has the name of a body input (the fed input excepted), so a body whose
+       ports are named alike needs no pairs; "auto, K -> K_prev" adds renames.
+       Empty (the default): nothing is carried.
 
     What the condition gets: each condition input whose name matches a value
     (after renaming with `condition_map`, "body_name -> condition_input") is
@@ -231,7 +264,9 @@ def WhileLoop(
 
     body_in = _ports(body.inputs)
     body_out_labels = list(_ports(body.outputs))
-    carry = _pairs(carry, "carry")
+    carry = _carry_pairs(
+        carry, body_out_labels, body_in, feed_input if feed is not None else ""
+    )
     for out_label, in_label in carry:
         if out_label not in body_out_labels:
             raise ValueError(
