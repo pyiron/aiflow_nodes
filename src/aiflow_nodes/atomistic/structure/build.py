@@ -384,3 +384,114 @@ def Surface(
         surface.cell[2, 2] = z_max + vacuum
     surface.pbc = pbc
     return surface
+
+
+# Cell vectors per Miller family for FCCOrientedCell. The requested direction is
+# always the *third* cell vector (the surface normal), so cell axis 0 is always
+# in-plane. ASE's FaceCenteredCubic reduces each direction to its lattice period,
+# e.g. [1,1,-2] gives a*sqrt(6)/2 per repeat, [1,1,1] gives a*sqrt(3).
+_FCC_DIRECTIONS = {
+    "001": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    "110": [[-1, 1, 0], [0, 0, 1], [1, 1, 0]],
+    "111": [[1, -1, 0], [1, 1, -2], [1, 1, 1]],
+}
+
+
+def _miller_family(miller_indices: str) -> str:
+    digits = tuple(int(c) for c in str(miller_indices).replace(",", "").strip())
+    if digits in {(0, 0, 1), (1, 0, 0), (0, 1, 0)}:
+        return "001"
+    if digits in {(0, 1, 1), (1, 1, 0), (1, 0, 1)}:
+        return "110"
+    if digits == (1, 1, 1):
+        return "111"
+    raise ValueError(
+        f"Unsupported miller_indices {miller_indices!r}; "
+        "supported families: 001/100/010, 011/110/101, 111."
+    )
+
+
+@as_function_node("structure")
+def FCCOrientedCell(
+    element: str,
+    lattice_constant: float,
+    miller_indices: str = "111",
+    supercell: str = "6,6,6",
+) -> Atoms:
+    """Orthogonal FCC supercell with `miller_indices` along cell axis 2 (z).
+
+    `miller_indices` is a digit string ("100", "110", "111", ...); members of a
+    family give the same cell. `supercell` is "nx,ny,nz" repeats of the oriented
+    cell. Same construction as the FromRaven notebooks' `Struct_gen` (ASE
+    `FaceCenteredCubic`), returned as plain ASE Atoms.
+    """
+    from ase.lattice.cubic import FaceCenteredCubic
+
+    size = tuple(int(n) for n in str(supercell).split(","))
+    structure = FaceCenteredCubic(
+        directions=_FCC_DIRECTIONS[_miller_family(miller_indices)],
+        latticeconstant=float(lattice_constant),
+        size=size,
+        symbol=element,
+        pbc=(1, 1, 1),
+    )
+    return structure
+
+
+_CUBIC_BUILDERS = {
+    "bcc": "BodyCenteredCubic",
+    "fcc": "FaceCenteredCubic",
+    "sc": "SimpleCubic",
+    "diamond": "Diamond",
+}
+
+
+def _ints(text, n=3, name="value") -> list:
+    values = [
+        int(v)
+        for v in str(text).replace("[", "").replace("]", "").split(",")
+        if v.strip()
+    ]
+    if len(values) != n:
+        raise ValueError(f"{name} needs {n} comma-separated integers, got {text!r}")
+    return values
+
+
+@as_function_node("structure")
+def OrientedCubicCell(
+    element: str,
+    lattice_constant: float,
+    crystalstructure: Literal["bcc", "fcc", "sc", "diamond"] = "bcc",
+    x: str = "1, -1, 0",
+    y: str = "1, 1, 0",
+    z: str = "0, 0, 1",
+    size: str = "1, 1, 1",
+):
+    """Orthogonal periodic cubic cell whose cell axes 0, 1, 2 lie along the
+    lattice directions `x`, `y`, `z` (comma-separated Miller indices).
+
+    The three directions must be mutually orthogonal and right-handed
+    (x . (y cross z) > 0). Each cell edge is the lattice period along its
+    direction (ASE `ase.lattice.cubic`), and `size` is "nx, ny, nz" repeats.
+    Generalises FCCOrientedCell (fixed fcc families, z only) to any cubic
+    lattice and all three axes.
+    """
+    import ase.lattice.cubic as cubic
+    import numpy as np
+
+    dirs = [_ints(x, 3, "x"), _ints(y, 3, "y"), _ints(z, 3, "z")]
+    v = np.array(dirs, float)
+    for i, j in ((0, 1), (0, 2), (1, 2)):
+        if abs(np.dot(v[i], v[j])) > 1e-12:
+            raise ValueError(f"axes {dirs[i]} and {dirs[j]} are not orthogonal")
+    if np.dot(v[0], np.cross(v[1], v[2])) <= 0:
+        raise ValueError(f"axes {dirs} are not right-handed (x . (y x z) <= 0)")
+    builder = getattr(cubic, _CUBIC_BUILDERS[crystalstructure])
+    structure = builder(
+        directions=dirs,
+        size=tuple(_ints(size, 3, "size")),
+        symbol=str(element),
+        latticeconstant=float(lattice_constant),
+        pbc=(1, 1, 1),
+    )
+    return structure

@@ -1,0 +1,3 @@
+{% for id, group, style, args in entries %}
+compute {{ id }} {{ group }} {{ style }}{{ " " ~ args if args else "" }}
+{% endfor %}

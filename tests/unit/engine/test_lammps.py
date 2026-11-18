@@ -17,6 +17,7 @@ from aiflow_nodes.atomistic.engine.lammps import (
     LammpsIOBundle,
     ListPotentials,
     ParseLammpsOutput,
+    RunLammpsBase,
     RunLammpsCalculation,
     extract_charges_from_lammps_potential,
     write_lammps_data_full,
@@ -570,6 +571,55 @@ class TestRunLammpsCalculationDebug(unittest.TestCase):
                 io_bundle=bundle, debug=True
             )
             self.assertEqual(output, tmpdir)
+
+
+class TestRunLammpsBaseDebug(unittest.TestCase):
+    """RunLammpsBase writes its files (debug=True: nothing is run)."""
+
+    def _bundle(self, tmpdir, potential, potential_string=""):
+        return LammpsIOBundle(
+            structure=bulk("Al", cubic=True),
+            potential=potential,
+            working_directory=tmpdir,
+            lammps_input_string="# test",
+            lammps_structure_string="# test",
+            lammps_potential_string=potential_string,
+        )
+
+    def test_writes_potential_inp_for_dataframe_potential(self):
+        potential = pd.DataFrame(
+            {
+                "Name": ["Dummy--Al"],
+                "Filename": [[]],
+                "Model": ["Custom"],
+                "Species": [["Al"]],
+                "Config": [["pair_style lj/cut 5.0\n", "pair_coeff * * 0.1 2.5\n"]],
+            }
+        )
+        text = "pair_style lj/cut 5.0\npair_coeff * * 0.1 2.5\n"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _, output = RunLammpsBase._original_func(
+                io_bundle=self._bundle(tmpdir, potential, text), debug=True
+            )
+            self.assertEqual(output, tmpdir)
+            with open(os.path.join(tmpdir, "potential.inp")) as f:
+                self.assertEqual(f.read(), text)
+
+    def test_no_potential_inp_for_named_potential(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            RunLammpsBase._original_func(
+                io_bundle=self._bundle(tmpdir, AL_POTENTIAL), debug=True
+            )
+            self.assertFalse(os.path.exists(os.path.join(tmpdir, "potential.inp")))
+
+    def test_has_no_executor_parameter(self):
+        # an `executor` parameter would stop aiflow from treating `executor` as
+        # its reserved port, and the run would happen in-process (see CLAUDE.md)
+        import inspect
+
+        self.assertNotIn(
+            "executor", inspect.signature(RunLammpsBase._original_func).parameters
+        )
 
 
 if __name__ == "__main__":
