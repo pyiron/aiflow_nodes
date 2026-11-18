@@ -14,6 +14,7 @@ from aiflow_nodes.atomistic.engine.lammps_input import (
     AssembleLammpsInput,
     LammpsDump,
     LammpsEnsemble,
+    LammpsFix,
     LammpsInit,
     LammpsMinimize,
     LammpsPotential,
@@ -95,8 +96,15 @@ class TestLammpsInit(unittest.TestCase):
         bundle = _bundle()
         bundle.structure.pbc = [True, True, False]
         block = LammpsInit._original_func(io_bundle=bundle)
-        self.assertIn("dimension 2", block)
+        self.assertIn("dimension 3", block)
         self.assertIn("boundary p p f", block)
+
+    def test_dimension_3_for_cylinder_pbc(self):
+        bundle = _bundle()
+        bundle.structure.pbc = [False, False, True]
+        block = LammpsInit._original_func(io_bundle=bundle)
+        self.assertIn("dimension 3", block)
+        self.assertIn("boundary f f p", block)
 
 
 class TestLammpsPotential(unittest.TestCase):
@@ -233,7 +241,8 @@ class TestLammpsMinimize(unittest.TestCase):
         )
         expected_relax = 0.0 * conversions["pressure"]
         self.assertIn(f"fix ensemble all box/relax iso {expected_relax}", block)
-        self.assertIn("unfix ensemble", block)
+        # the unfix is placed by AssembleLammpsInput, not in the block
+        self.assertNotIn("unfix ensemble", block)
 
     def test_pressure_zero_inherited_from_dataclass(self):
         block = LammpsMinimize._original_func(
@@ -265,6 +274,41 @@ class TestLammpsMinimize(unittest.TestCase):
     def test_md_dataclass_pressure_does_not_leak_into_minimize(self):
         block = LammpsMinimize._original_func(io_bundle=_bundle(_md(pressure=5.0)))
         self.assertNotIn("box/relax", block)
+
+    def test_pressure_string_single_value_is_iso(self):
+        block = LammpsMinimize._original_func(io_bundle=_bundle(), pressure="2.0")
+        expected = 2.0 * LAMMPS_UNIT_CONVERSIONS["metal"]["pressure"]
+        self.assertIn(f"fix ensemble all box/relax iso {expected}", block)
+
+    def test_pressure_string_components(self):
+        """Poisson relaxation: x, y relax, z fixed (None)."""
+        block = LammpsMinimize._original_func(
+            io_bundle=_bundle(), pressure="0.0, 0.0, None"
+        )
+        self.assertIn("fix ensemble all box/relax x 0.0 y 0.0 couple none\n", block)
+        self.assertNotIn("unfix ensemble", block)
+
+    def test_pressure_list_inherited_from_dataclass(self):
+        block = LammpsMinimize._original_func(
+            io_bundle=_bundle(_minimize(pressure=[None, 0.0, 0.0]))
+        )
+        self.assertIn("fix ensemble all box/relax y 0.0 z 0.0 couple none", block)
+
+    def test_pressure_string_none_means_fixed_cell(self):
+        block = LammpsMinimize._original_func(io_bundle=_bundle(), pressure="None")
+        self.assertNotIn("box/relax", block)
+
+    def test_pressure_all_components_none_raises(self):
+        with self.assertRaises(ValueError):
+            LammpsMinimize._original_func(
+                io_bundle=_bundle(), pressure="None, None, None"
+            )
+
+    def test_pressure_too_many_components_raises(self):
+        with self.assertRaises(ValueError):
+            LammpsMinimize._original_func(
+                io_bundle=_bundle(), pressure="0, 0, 0, 0, 0, 0, 0"
+            )
 
 
 class TestLammpsEnsemble(unittest.TestCase):
@@ -535,6 +579,157 @@ class TestAssembleLammpsInputMultiStage(unittest.TestCase):
             AssembleLammpsInput._original_func(
                 io_bundle=bundle, calculation=ensemble2, calculation_fix_ids=fix_ids2
             )
+
+
+class TestLammpsFix(unittest.TestCase):
+    def test_default_is_xy_setforce(self):
+        fix, fix_ids = LammpsFix._original_func(io_bundle=_bundle())
+        self.assertEqual(fix, "fix constraintxy all setforce 0.0 0.0 NULL\n")
+        self.assertEqual(fix_ids, ["constraintxy"])
+
+    def test_custom_fix(self):
+        fix, fix_ids = LammpsFix._original_func(
+            io_bundle=_bundle(), fix_id="mom", style="momentum", args="1 linear 1 1 1"
+        )
+        self.assertEqual(fix, "fix mom all momentum 1 linear 1 1 1\n")
+        self.assertEqual(fix_ids, ["mom"])
+
+    def test_empty_args(self):
+        fix, _ = LammpsFix._original_func(
+            io_bundle=_bundle(), fix_id="e2d", style="enforce2d", args=""
+        )
+        self.assertEqual(fix, "fix e2d all enforce2d\n")
+
+    def test_bad_words_raise(self):
+        for bad in ({"fix_id": ""}, {"group": "all top"}, {"style": ""}):
+            with self.assertRaises(ValueError):
+                LammpsFix._original_func(io_bundle=_bundle(), **bad)
+
+
+class TestAssembleLammpsInputFix(unittest.TestCase):
+    def setUp(self):
+        self.bundle = _bundle()
+        self.fix, self.fix_ids = LammpsFix._original_func(io_bundle=self.bundle)
+
+    def test_minimize_unfixes_right_after_minimize(self):
+        minimize = LammpsMinimize._original_func(
+            io_bundle=self.bundle, e_tol=0.0, f_tol=1e-9
+        )
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle,
+            fix=self.fix,
+            fix_ids=self.fix_ids,
+            calculation=minimize,
+            mode="minimize",
+        )
+        text = out.lammps_input_string
+        i_fix = text.index("fix constraintxy all setforce 0.0 0.0 NULL")
+        i_min = text.index("minimize 0.0 1e-09")
+        i_unfix = text.index("unfix constraintxy")
+        self.assertLess(i_fix, i_min)
+        self.assertLess(i_min, i_unfix)
+        self.assertEqual(out.lammps_pending_fix_ids, "")
+
+    def test_minimize_with_run_unfixes_after_run(self):
+        minimize = LammpsMinimize._original_func(
+            io_bundle=self.bundle, e_tol=0.0, f_tol=1e-9
+        )
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle,
+            fix=self.fix,
+            fix_ids=self.fix_ids,
+            calculation=minimize,
+            run=0,
+            mode="minimize",
+        )
+        text = out.lammps_input_string
+        i_min = text.index("minimize 0.0 1e-09")
+        i_run = text.index("run 0")
+        i_unfix = text.index("unfix constraintxy")
+        self.assertLess(i_min, i_run)
+        self.assertLess(i_run, i_unfix)
+        self.assertEqual(text.count("unfix constraintxy"), 1)
+        self.assertEqual(out.lammps_pending_fix_ids, "")
+
+    def test_box_relax_without_run_unfixed_right_after_minimize(self):
+        minimize = LammpsMinimize._original_func(
+            io_bundle=self.bundle, e_tol=0.0, f_tol=1e-9, pressure="0.0"
+        )
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle, calculation=minimize, mode="minimize"
+        )
+        text = out.lammps_input_string
+        self.assertLess(
+            text.index("fix ensemble all box/relax"), text.index("minimize 0.0")
+        )
+        self.assertLess(text.index("minimize 0.0"), text.index("unfix ensemble"))
+        self.assertEqual(text.count("unfix ensemble"), 1)
+        self.assertNotIn("run ", text)
+        self.assertEqual(out.lammps_pending_fix_ids, "")
+
+    def test_box_relax_with_run_unfixed_after_run(self):
+        minimize = LammpsMinimize._original_func(
+            io_bundle=self.bundle, e_tol=0.0, f_tol=1e-9, pressure="0.0"
+        )
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle, calculation=minimize, run=0, mode="minimize"
+        )
+        text = out.lammps_input_string
+        self.assertLess(text.index("minimize 0.0"), text.index("run 0"))
+        self.assertLess(text.index("run 0"), text.index("unfix ensemble"))
+        self.assertEqual(text.count("unfix ensemble"), 1)
+        self.assertEqual(out.lammps_pending_fix_ids, "")
+
+    def test_box_relax_and_fix_with_run_both_unfixed_after_run(self):
+        minimize = LammpsMinimize._original_func(
+            io_bundle=self.bundle, e_tol=0.0, f_tol=1e-9, pressure="0.0"
+        )
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle,
+            fix=self.fix,
+            fix_ids=self.fix_ids,
+            calculation=minimize,
+            run=0,
+            mode="minimize",
+        )
+        text = out.lammps_input_string
+        i_run = text.index("run 0")
+        self.assertLess(i_run, text.index("unfix ensemble"))
+        self.assertLess(i_run, text.index("unfix constraintxy"))
+        self.assertEqual(text.count("unfix ensemble"), 1)
+        self.assertEqual(text.count("unfix constraintxy"), 1)
+        self.assertEqual(out.lammps_pending_fix_ids, "")
+
+    def test_unwired_fix_ids_fall_back_to_fix_line(self):
+        minimize = LammpsMinimize._original_func(io_bundle=self.bundle)
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle, fix=self.fix, calculation=minimize, mode="minimize"
+        )
+        self.assertIn("unfix constraintxy", out.lammps_input_string)
+
+    def test_md_fix_unfixed_after_run(self):
+        ensemble, ensemble_ids = LammpsEnsemble._original_func(io_bundle=self.bundle)
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle,
+            fix=self.fix,
+            fix_ids=self.fix_ids,
+            calculation=ensemble,
+            calculation_fix_ids=ensemble_ids,
+            run=100,
+            mode="md",
+        )
+        text = out.lammps_input_string
+        self.assertLess(text.index("fix constraintxy"), text.index("fix ensemble"))
+        self.assertLess(text.index("run 100"), text.index("unfix constraintxy"))
+        self.assertIn("unfix ensemble", text)
+        self.assertEqual(out.lammps_pending_fix_ids, "")
+
+    def test_no_fix_leaves_output_unchanged(self):
+        minimize = LammpsMinimize._original_func(io_bundle=self.bundle)
+        out = AssembleLammpsInput._original_func(
+            io_bundle=self.bundle, calculation=minimize, mode="minimize"
+        )
+        self.assertNotIn("unfix", out.lammps_input_string)
 
 
 class TestSetLammpsInputString(unittest.TestCase):

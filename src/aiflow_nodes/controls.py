@@ -1228,3 +1228,32 @@ def Sleep(seconds: float = 1.0, a: float = 0) -> None:
     time.sleep(seconds)
     status = None
     return status
+
+
+@as_function_node("path")
+def FloatToPath(
+    base_dir: str,
+    value: float,
+    prefix: str = "value",
+    subdir: str = "",
+    fmt: str = "+.6f",
+) -> str:
+    """Path for one value of a sweep: `{base_dir}/{prefix}_{value:{fmt}}[/{subdir}]`.
+
+    One directory per swept value, so parallel sweep cells never write into
+    the same files. Only builds the string; nothing is created on disk.
+    `subdir` adds a stage level (e.g. "bulk", "surface"); leave it empty to
+    omit it. `fmt` is a Python format spec for `value`.
+
+    FloatToPath("runs/Ag", 0.01, "strain", "bulk")  -> "runs/Ag/strain_+0.010000/bulk"
+    FloatToPath("runs/Ag", 0.5, "fraction", "slip") -> "runs/Ag/fraction_+0.500000/slip"
+    FloatToPath("runs/Ag", 300, "T", fmt=".0f")     -> "runs/Ag/T_300"
+    """
+    import os
+
+    name = f"{str(prefix)}_{float(value):{fmt}}"
+    if subdir:
+        path = os.path.join(str(base_dir), name, str(subdir))
+    else:
+        path = os.path.join(str(base_dir), name)
+    return path

@@ -16,6 +16,7 @@ from aiflow_nodes.atomistic.calculator.data import (
     InputCalcMD,
     InputCalcMinimize,
 )
+from aiflow_nodes.PotentialNodes import InputPotential, resolve_potential  # staging
 
 
 @dataclass
@@ -254,7 +255,7 @@ def GetPotential(
 @as_function_node
 def CreateLammpsStructure(
     structure: Atoms,
-    potential: str | pd.DataFrame,
+    potential: str | pd.DataFrame | InputPotential,
     units: Literal[
         "metal", "real", "lj", "si", "cgs", "electron", "micro", "nano"
     ] = "metal",
@@ -295,6 +296,10 @@ def CreateLammpsStructure(
     calc_input: InputCalcMD | InputCalcMinimize | None = None,
 ) -> LammpsIOBundle:
     from lammpsparser.compatibility.file import _get_potential
+
+    # An InputPotential becomes its name string or a one-row DataFrame; the
+    # bundle then holds that, so LammpsPotential / ParseLammpsOutput read it as before.
+    potential = resolve_potential(potential)
 
     # Parse potential to extract units and atom_style
     if isinstance(potential, pd.DataFrame):
@@ -638,7 +643,7 @@ def CreateLammpsMDInput(
 @as_function_node
 def CreateLammpsStaticInput(
     io_bundle: LammpsIOBundle,
-    # calc_dataclass: Optional[InputCalcStatic] = None,
+    # calc_dataclass: InputCalcStatic | None = None,
 ):
     import copy
 
@@ -782,6 +787,7 @@ def RunLammpsBase(
     threads_per_core: int = 1,
     debug: bool = False,
 ):
+
     # Only reads io_bundle (to write the files and run), never modifies it, so
     # it is returned as-is without a copy.
     # Writing
@@ -796,6 +802,17 @@ def RunLammpsBase(
         "w",
     ) as f:
         f.write(io_bundle.lammps_structure_string)
+
+    # A DataFrame potential is referenced as `include potential.inp` (LammpsPotential
+    # / CreateLammps*Input), so its text must be on disk too, as in RunLammpsCalculation.
+    if isinstance(io_bundle.potential, pd.DataFrame):
+        with open(
+            os.path.join(
+                io_bundle.working_directory, io_bundle.lammps_potential_filename
+            ),
+            "w",
+        ) as f:
+            f.write(io_bundle.lammps_potential_string)
 
     # Running
     if not debug:
@@ -924,6 +941,58 @@ def _parse_lammps_raw(
     return output["generic"]
 
 
+def _dump_compute_columns(working_directory: str, dump_out_file_name: str) -> list[str]:
+    """Names of the per-atom compute columns of a text dump, in column order.
+
+    Reads only the first `ITEM: ATOMS` header line, so it works for any dump
+    (modular or regular route). `c_X` -> "X", `c_X[k]` -> "X" (once).
+    No dump file (e.g. only dump.h5), or no `c_` column, gives [].
+    """
+    path = os.path.join(working_directory or "", dump_out_file_name)
+    if not os.path.isfile(path):
+        return []
+    with open(path) as f:
+        for line in f:
+            if line.startswith("ITEM: ATOMS"):
+                names = []
+                for col in line.split()[2:]:
+                    if col.startswith("c_"):
+                        name = col[2:].split("[", 1)[0]
+                        if name not in names:
+                            names.append(name)
+                return names
+    return []
+
+
+def _collect_computes(generic: dict, names: list[str]) -> dict:
+    """{name: array per frame} from lammpsparser's generic dict, where a
+    `c_X[k]` column is `generic["X[k]"]` and a `c_X` column `generic["X"]`.
+    Vector computes -> (n_frames, N, k), k in index order; scalar per-atom
+    computes -> (n_frames, N). Raw LAMMPS units. Rows are in dump order
+    (sorted by id in pyiron-style dumps)."""
+    import re
+
+    import numpy as np
+
+    computes = {}
+    for name in names:
+        pattern = re.compile(re.escape(name) + r"\[(\d+)\]$")
+        indexed = sorted(
+            (int(m.group(1)), key) for key in generic if (m := pattern.match(key))
+        )
+        if indexed:
+            computes[name] = np.stack(
+                [np.asarray(generic[key], dtype=float) for _, key in indexed], axis=-1
+            )
+        elif name in generic:
+            computes[name] = np.asarray(generic[name], dtype=float)
+    return computes
+
+
+def _frame(computes: dict, index: int) -> dict:
+    return {name: values[index] for name, values in computes.items()}
+
+
 @as_function_node
 def ParseLammpsOutput(
     io_bundle: LammpsIOBundle,
@@ -942,6 +1011,13 @@ def ParseLammpsOutput(
 
     generic = _parse_lammps_raw(
         io_bundle, dump_h5_file_name, dump_out_file_name, log_lammps_file_name
+    )
+    # Per-atom compute columns of the dump (`c_X`, `c_X[k]`), found from the
+    # dump header, so the same for the modular and the regular input route.
+    # md: every frame; static: last frame; minimize: first/last frame on
+    # initial/final. {} when the dump has none.
+    computes = _collect_computes(
+        generic, _dump_compute_columns(io_bundle.working_directory, dump_out_file_name)
     )
 
     if io_bundle.mode == "md":
@@ -962,6 +1038,7 @@ def ParseLammpsOutput(
         out.velocities = generic.get("velocities")
         out.volumes = generic.get("volume")
         out.species = io_bundle.structure.get_chemical_symbols()
+        out.computes = computes
     elif io_bundle.mode == "static":
         from aiflow_nodes.atomistic.calculator.data import OutputCalcStatic
 
@@ -973,6 +1050,7 @@ def ParseLammpsOutput(
         stresses = generic.get("pressures")
         out.stress = stresses[-1] if stresses is not None else None
         out.structure = io_bundle.structure
+        out.computes = _frame(computes, -1)
     elif io_bundle.mode == "minimize":
         from aiflow_nodes.atomistic.calculator.data import OutputCalcMinimize
 
@@ -990,6 +1068,8 @@ def ParseLammpsOutput(
         out.final.energy = energies_pot[-1] if energies_pot is not None else None
         out.final.force = forces[-1] if forces is not None else None
         out.final.stress = stresses[-1] if stresses is not None else None
+        out.initial.computes = _frame(computes, 0)
+        out.final.computes = _frame(computes, -1)
         if positions is not None and cells is not None:
             relaxed = io_bundle.structure.copy()
             relaxed.set_positions(positions[-1])

@@ -1,8 +1,11 @@
-{% if pressure_relax is not none %}
-fix ensemble all box/relax iso {{ pressure_relax }}
+{% if box_relax %}
+fix ensemble all box/relax{% for keyword, p in box_relax %} {{ keyword }} {{ p }}{% endfor %}{{ " couple none" if couple_none else "" }}
 {% endif %}
 min_style {{ style }}
-minimize {{ e_tol }} {{ f_tol }} {{ max_iter }} {{ max_iter }}
-{% if pressure_relax is not none %}
-unfix ensemble
+{% if min_modify %}
+min_modify {{ min_modify }}
 {% endif %}
+{% if timestep is not none %}
+timestep {{ timestep }}
+{% endif %}
+minimize {{ e_tol }} {{ f_tol }} {{ max_iter }} {{ max_eval }}

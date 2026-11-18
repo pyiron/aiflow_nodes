@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from typing import Literal
 
 import numpy as np
 from aiflow.core import as_function_node
@@ -979,3 +980,38 @@ def DeleteElements(
             bond_dict = None
 
     return structure, bond_dict
+
+
+_AXIS_INDEX = {"x": 0, "y": 1, "z": 2}
+
+
+@as_function_node("structure")
+def AddVacuum(
+    structure: Atoms,
+    vacuum: float = 10.0,
+    direction: Literal["x", "y", "z"] = "z",
+) -> Atoms:
+    """Add `vacuum` Å of empty space along cell axis `direction` (x/y/z = cell
+    vector 0/1/2); the other two cell vectors and the atom positions are unchanged.
+
+    `vacuum` is measured perpendicular to the plane of the other two cell vectors,
+    so it is the true slab-to-slab gap added even for a non-orthogonal cell (for
+    `direction="z"` this is exactly `ase.build.add_vacuum`).
+    """
+    i = _AXIS_INDEX[direction]
+    j, k = [a for a in range(3) if a != i]
+
+    structure = structure.copy()
+    cell = np.array(structure.cell)
+    normal = np.cross(cell[j], cell[k])
+    normal /= np.linalg.norm(normal)
+    height = abs(np.dot(cell[i], normal))
+    new_height = height + float(vacuum)
+    if new_height <= 0:
+        raise ValueError(
+            f"vacuum={vacuum} would collapse the cell along {direction} "
+            f"(current height {height:.3f} Å)."
+        )
+    cell[i] *= new_height / height
+    structure.set_cell(cell, scale_atoms=False)
+    return structure

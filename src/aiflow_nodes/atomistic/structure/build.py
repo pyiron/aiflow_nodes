@@ -384,3 +384,55 @@ def Surface(
         surface.cell[2, 2] = z_max + vacuum
     surface.pbc = pbc
     return surface
+
+
+# Cell vectors per Miller family for FCCOrientedCell. The requested direction is
+# always the *third* cell vector (the surface normal), so cell axis 0 is always
+# in-plane. ASE's FaceCenteredCubic reduces each direction to its lattice period,
+# e.g. [1,1,-2] gives a*sqrt(6)/2 per repeat, [1,1,1] gives a*sqrt(3).
+_FCC_DIRECTIONS = {
+    "001": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    "110": [[-1, 1, 0], [0, 0, 1], [1, 1, 0]],
+    "111": [[1, -1, 0], [1, 1, -2], [1, 1, 1]],
+}
+
+
+def _miller_family(miller_indices: str) -> str:
+    digits = tuple(int(c) for c in str(miller_indices).replace(",", "").strip())
+    if digits in {(0, 0, 1), (1, 0, 0), (0, 1, 0)}:
+        return "001"
+    if digits in {(0, 1, 1), (1, 1, 0), (1, 0, 1)}:
+        return "110"
+    if digits == (1, 1, 1):
+        return "111"
+    raise ValueError(
+        f"Unsupported miller_indices {miller_indices!r}; "
+        "supported families: 001/100/010, 011/110/101, 111."
+    )
+
+
+@as_function_node("structure")
+def FCCOrientedCell(
+    element: str,
+    lattice_constant: float,
+    miller_indices: str = "111",
+    supercell: str = "6,6,6",
+) -> Atoms:
+    """Orthogonal FCC supercell with `miller_indices` along cell axis 2 (z).
+
+    `miller_indices` is a digit string ("100", "110", "111", ...); members of a
+    family give the same cell. `supercell` is "nx,ny,nz" repeats of the oriented
+    cell. Same construction as the FromRaven notebooks' `Struct_gen` (ASE
+    `FaceCenteredCubic`), returned as plain ASE Atoms.
+    """
+    from ase.lattice.cubic import FaceCenteredCubic
+
+    size = tuple(int(n) for n in str(supercell).split(","))
+    structure = FaceCenteredCubic(
+        directions=_FCC_DIRECTIONS[_miller_family(miller_indices)],
+        latticeconstant=float(lattice_constant),
+        size=size,
+        symbol=element,
+        pbc=(1, 1, 1),
+    )
+    return structure
