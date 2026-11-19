@@ -11,6 +11,8 @@ def GetEnergyLast(
         energy_last = calculator.final.energy
     elif hasattr(calculator, "energies_pot"):
         energy_last = calculator.energies_pot[-1]
+    elif hasattr(calculator, "energy"):
+        energy_last = calculator.energy
     else:
         raise TypeError(f"Unrecognised calculator output type: {type(calculator)}")
     return energy_last
