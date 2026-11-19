@@ -32,6 +32,7 @@ import shutil
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest import mock
 
 import numpy as np
 from ase import Atoms
@@ -75,6 +76,7 @@ from aiflow_nodes.atomistic.engine.vasp_new import (
     _static_from_output,
     _trajectory_from_output,
     _unwrap_positions,
+    _vasp_command,
     _volumetric_from_dict,
     read_doscar,
 )
@@ -520,8 +522,30 @@ class TestRunVaspCalculation(unittest.TestCase):
 
     def test_nonzero_exit_raises_and_writes_error_msg(self):
         with self.assertRaises(RuntimeError):
-            RunVaspCalculation._original_func(self.io, vasp_command="false")
+            RunVaspCalculation._original_func(self.io, mpi_launcher="false")
         self.assertTrue(os.path.exists(os.path.join(self.workdir, "error.msg")))
+
+
+class TestVaspCommand(unittest.TestCase):
+    def test_loads_module_through_init_script(self):
+        # `module` is a shell function that a non-interactive /bin/sh lacks
+        with mock.patch.dict(os.environ, {"MODULESHOME": "/opt/modules"}):
+            command = _vasp_command("6.4.0", "vasp_gam", 4, "srun")
+        self.assertEqual(
+            command,
+            ". /opt/modules/init/sh && module purge && module load vasp/6.4.0"
+            " && srun -n 4 vasp_gam",
+        )
+
+    def test_empty_version_loads_default_module(self):
+        with mock.patch.dict(os.environ, {"MODULESHOME": "/opt/modules"}):
+            command = _vasp_command("", "vasp_std", 1, "mpiexec")
+        self.assertIn("module load vasp &&", command)
+
+    def test_without_modules_runs_executable_from_path(self):
+        with mock.patch.dict(os.environ, clear=True):
+            command = _vasp_command("6.4.0", "vasp_std", 2, "mpiexec")
+        self.assertEqual(command, "mpiexec -n 2 vasp_std")
 
 
 # ── ParseVaspOutput (static fixture) ───────────────────────────────────────────

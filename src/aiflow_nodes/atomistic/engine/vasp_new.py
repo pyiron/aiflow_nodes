@@ -111,7 +111,6 @@ def read_potcar_config(config_file: Path) -> dict:
 _potcar_config = read_potcar_config(Path.home() / ".pyiron_vasp_config")
 _default_functional: str = _potcar_config.get("default_functional", "PBE")
 _default_potcar_lib_path: str = _potcar_config.get("default_POTCAR_path", "")
-_default_vasp_command: str = _potcar_config.get("vasp_command", "mpiexec -n 1 vasp_std")
 
 _RESOURCES_DIR = Path(__file__).parent / "vasp_resources"
 _POTCAR_CSV = {
@@ -1009,36 +1008,61 @@ def CreateVaspInputResources(
     return io_bundle
 
 
+def _vasp_command(
+    vasp_version: str, executable: str, threads_per_core: int, mpi_launcher: str
+) -> str:
+    """Build the shell line that launches VASP.
+
+    ``module`` is a shell function that only interactive login shells define,
+    so the line sources the Environment Modules init script itself. Without
+    ``$MODULESHOME`` (no module system) the executable must be on ``PATH``.
+    """
+    command = f"{mpi_launcher} -n {threads_per_core} {executable}"
+    modules_home = os.environ.get("MODULESHOME")
+    if not modules_home:
+        return command
+    module = f"vasp/{vasp_version}" if vasp_version else "vasp"
+    return (
+        f". {modules_home}/init/sh && module purge && module load {module} && {command}"
+    )
+
+
 @as_function_node
 def RunVaspCalculation(
     io_bundle: VaspInputResources,
-    vasp_command: str = _default_vasp_command,
-    run_script_path: str | None = None,
+    vasp_version: str = "6.4.0",
+    executable: str = "vasp_std",
     threads_per_core: int = 1,
+    mpi_launcher: str = "mpiexec",
     debug: bool = False,
 ):
     """Dump the rendered VASP input files and run VASP in the working directory.
 
     Writes POSCAR/INCAR/POTCAR/KPOINTS into ``io_bundle.working_directory`` from
     the content ``CreateVaspInputResources`` already rendered onto the bundle
-    (``poscar_content`` etc — see ``_write_vasp_input_files``), then executes
-    ``vasp_command`` (or ``bash <run_script_path> <threads_per_core>`` when
-    ``run_script_path`` points at an existing file) with the working directory
-    as CWD. A non-zero exit writes stdout+stderr to ``error.msg`` and raises
-    ``RuntimeError``.
+    (``poscar_content`` etc — see ``_write_vasp_input_files``), then loads the
+    ``vasp/<vasp_version>`` environment module and runs
+    ``<mpi_launcher> -n <threads_per_core> <executable>`` with the working
+    directory as CWD. A non-zero exit writes stdout+stderr to ``error.msg`` and
+    raises ``RuntimeError``.
 
     Parameters
     ----------
     io_bundle
         The resource bundle from ``CreateVaspInputResources``, with its file
         content already rendered.
-    vasp_command
-        Shell command that launches VASP; empty falls back to a
-        ``module load vasp && mpiexec`` line built from ``threads_per_core``.
-    run_script_path
-        Optional launcher script; when it exists it replaces ``vasp_command``.
+    vasp_version
+        Version of the ``vasp`` environment module to load, e.g. ``"6.4.0"``;
+        empty loads the site's default ``vasp`` module. Ignored on machines
+        without environment modules, where ``executable`` must be on ``PATH``.
+    executable
+        VASP binary: ``vasp_std``, ``vasp_gam`` (Gamma-point only) or
+        ``vasp_ncl`` (non-collinear).
     threads_per_core
-        MPI rank count passed to the fallback command / launcher script.
+        Number of MPI ranks (cores) to run VASP on. Executors that set
+        ``threads_per_core`` fill this port in automatically.
+    mpi_launcher
+        MPI launcher, e.g. ``mpiexec`` or ``srun`` (inside a Slurm job).
     debug
         If ``True``, write the input files but skip the launch, returning the
         working directory as stdout — useful for wiring up a workflow without
@@ -1052,22 +1076,25 @@ def RunVaspCalculation(
     """
     _write_vasp_input_files(io_bundle)
 
-    if not vasp_command:
-        vasp_command = f"module load vasp && mpiexec -n {threads_per_core} vasp_std"
-
-    if run_script_path is not None and os.path.exists(run_script_path):
-        vasp_command = f"bash {run_script_path} {threads_per_core}"
-
     if debug:
         stdout = io_bundle.working_directory
         return io_bundle, stdout
+
+    vasp_command = _vasp_command(
+        vasp_version, executable, threads_per_core, mpi_launcher
+    )
+
+    env = os.environ.copy()
+    # Intel MPI 2021's default Alltoallv segfaults VASP on AMD EPYC nodes
+    # (s.cmmg), even on one rank; algorithm 2 works. Other MPIs ignore it.
+    env.setdefault("I_MPI_ADJUST_ALLTOALLV", "2")
 
     # run_external kills the whole process group when the run is stopped; see
     # the note in atomistic/engine/lammps.py.
     result = run_external(
         vasp_command,
         cwd=io_bundle.working_directory,
-        env=os.environ.copy(),
+        env=env,
         label=f"VASP ({vasp_command})",
     )
 
