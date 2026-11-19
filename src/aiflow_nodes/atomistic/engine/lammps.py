@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
@@ -103,6 +104,28 @@ def _potential_rejection_reason(filenames) -> str | None:
     return None
 
 
+def potential_resource_path(resource_path: str | None = None) -> str:
+    """The iprpy potential catalogue: *resource_path*, else the running env's.
+
+    Upstream finds the catalogue only through ``CONDA_PREFIX``/``CONDA_DIR``,
+    which are set by *activating* an environment.  A Jupyter or VS Code kernel,
+    or the assistant's MCP server, starts the environment's ``python`` directly
+    and has neither, although ``iprpy-data`` sits in that very environment —
+    so fall back to the interpreter's own prefix.
+    """
+    if resource_path:
+        return resource_path
+    from lammpsparser.potential import get_resource_path_from_conda
+
+    try:
+        return get_resource_path_from_conda()
+    except ValueError:
+        path = os.path.join(sys.prefix, "share", "iprpy")
+        if os.path.isdir(path):
+            return path
+        raise
+
+
 def get_usable_potential_by_name(potential_name: str, resource_path: str | None = None):
     """Look up a potential by name, rejecting ones that cannot produce valid input.
 
@@ -113,6 +136,7 @@ def get_usable_potential_by_name(potential_name: str, resource_path: str | None 
     """
     from pyiron_lammps.potential import get_potential_by_name
 
+    resource_path = potential_resource_path(resource_path)
     try:
         potential = get_potential_by_name(
             potential_name=potential_name, resource_path=resource_path
@@ -120,13 +144,9 @@ def get_usable_potential_by_name(potential_name: str, resource_path: str | None 
     except (IndexError, KeyError):
         # get_potential_by_name does .iloc[0] on the filtered DataFrame without
         # checking whether it is empty first, so an unknown name raises IndexError.
-        from pyiron_lammps.potential import (
-            LammpsPotentialFile,
-            get_resource_path_from_conda,
-        )
+        from pyiron_lammps.potential import LammpsPotentialFile
 
-        rp = resource_path or get_resource_path_from_conda()
-        all_names = LammpsPotentialFile(resource_path=rp).list()["Name"]
+        all_names = LammpsPotentialFile(resource_path=resource_path).list()["Name"]
         keyword = (
             potential_name.split("--")[1] if "--" in potential_name else potential_name
         )
@@ -152,12 +172,11 @@ def get_usable_potential_by_name(potential_name: str, resource_path: str | None 
 def ListPotentials(structure: Atoms, resource_path: str | None = None):
     """List the potentials available for *structure* that can actually be run."""
 
-    from lammpsparser.potential import get_resource_path_from_conda, view_potentials
+    from lammpsparser.potential import view_potentials
 
-    if resource_path is None:
-        resource_path = get_resource_path_from_conda()
-
-    df = view_potentials(structure, resource_path=resource_path)
+    df = view_potentials(
+        structure, resource_path=potential_resource_path(resource_path)
+    )
     potentials = [
         name
         for name, filenames in zip(df["Name"], df["Filename"])
@@ -219,15 +238,11 @@ def GetPotential(
         ``index`` selects from potentially many candidates.
     """
 
-    from pyiron_lammps.potential import (
-        get_resource_path_from_conda,
-        view_potentials,
+    from pyiron_lammps.potential import view_potentials
+
+    df = view_potentials(
+        structure, resource_path=potential_resource_path(resource_path)
     )
-
-    if resource_path is None:
-        resource_path = get_resource_path_from_conda()
-
-    df = view_potentials(structure, resource_path=resource_path)
     filter_terms = name_filter.lower().split() if name_filter.strip() else []
     candidates = [
         name
@@ -306,6 +321,8 @@ def CreateLammpsStructure(
             elif line.startswith("atom_style"):
                 atom_type = line.split()[1]
 
+    if isinstance(potential, str):  # looked up by name in the catalogue
+        resource_path = potential_resource_path(resource_path)
     io_bundle = LammpsIOBundle(
         structure=structure,
         potential=potential,
