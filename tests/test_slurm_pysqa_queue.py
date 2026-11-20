@@ -31,3 +31,18 @@ def test_partition_or_queue_name_selects_the_queue(config_dir, partition):
 def test_unknown_partition_fails_instead_of_falling_back_to_the_primary(config_dir):
     with pytest.raises(ValueError, match="choose one of"):
         _pysqa_queue(config_dir, "normal")
+
+
+def test_the_executor_fails_a_run_whose_job_dies_instead_of_hanging(tmp_path):
+    """Registered with aiflow's queue watchdog as soon as it is built."""
+    remote_cache = pytest.importorskip("aiflow.core.remote_cache")
+    if not hasattr(remote_cache, "watch_queue"):
+        pytest.skip("this aiflow has no queue watchdog")
+    from aiflow_nodes.executors import SlurmExecutor
+
+    with pytest.warns(UserWarning):  # executorlib cannot validate 'partition'
+        executor = SlurmExecutor(partition="any", cache_directory=str(tmp_path)).run()
+    try:
+        assert executor in remote_cache._watchdogs
+    finally:
+        executor.shutdown(wait=False)

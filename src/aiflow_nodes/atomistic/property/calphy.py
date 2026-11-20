@@ -461,7 +461,24 @@ def _prepare_input(
         inpdict["temperature"] = [inpdict["temperature"], inpdict["temperature_stop"]]
         del inpdict["temperature_stop"]
 
-    calc = Calculation(**inpdict)
+    # calphy's element-order check collects *every* element-like token of
+    # pair_coeff[0].  A MEAM line names the elements twice
+    # (``* * library.meam Ni Ti NiTi.meam Ni Ti``), so the check sees
+    # ``[Ni, Ti, Ni, Ti]`` and rejects a correctly ordered input.  Only the
+    # trailing type map fixes the LAMMPS type order, so validate against that
+    # and restore the real line afterwards.
+    is_meam = bool(pair_style) and pair_style[0].split()[0].lower().startswith("meam")
+    if is_meam and len(elements) > 1:
+        inpdict["pair_coeff"] = ["* * " + " ".join(elements)]
+        calc = Calculation(**inpdict)
+        # The validator also made the potential paths absolute; redo that.
+        calc.pair_coeff = (
+            calc.fix_paths(list(pair_coeff))
+            if calc.fix_potential_path
+            else list(pair_coeff)
+        )
+    else:
+        calc = Calculation(**inpdict)
     return calc
 
 

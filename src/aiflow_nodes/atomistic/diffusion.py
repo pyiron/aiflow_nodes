@@ -612,7 +612,10 @@ def LammpsAseEngine(potential, resource_path=None, cores: int = 1):
     from lammpsparser.compatibility.file import _get_potential
 
     from aiflow_nodes.atomistic.engine.generic import OutputEngine
+    from aiflow_nodes.atomistic.engine.lammps import potential_resource_path
 
+    if isinstance(potential, str):  # looked up by name in the catalogue
+        resource_path = potential_resource_path(resource_path)
     pot_lines, pot_replace, species = _get_potential(
         potential=potential, resource_path=resource_path
     )

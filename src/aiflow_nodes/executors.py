@@ -19,6 +19,7 @@ def FluxClusterExecutor(cache_directory: str = "./cache", non_modal: bool = Fals
     cache_directory = _resolve_cache_directory(cache_directory)
     executor = Executor(cache_directory=cache_directory, wait=not non_modal)
     _make_stoppable(executor, cache_directory, None, "flux")
+    _watch_queue(executor)
     if non_modal:
         _make_non_modal(executor)
     return executor
@@ -55,6 +56,21 @@ def _resolve_cache_directory(cache_directory):
     from aiflow.core.remote_cache import resolve_cache_directory
 
     return resolve_cache_directory(cache_directory)
+
+
+def _watch_queue(executor):
+    """Fail a waiting run when its job dies in the queue, rather than hang.
+
+    A job killed by the scheduler (time limit, memory) never writes its result,
+    so without this the node or sweep cell waiting for it waits forever.  The
+    watchdog lives in ``aiflow.core``; an older aiflow without it keeps the old
+    behaviour.
+    """
+    try:
+        from aiflow.core import watch_queue
+    except ImportError:
+        return
+    watch_queue(executor)
 
 
 def _make_stoppable(executor, cache_directory, config_directory, backend):
@@ -336,6 +352,7 @@ def SlurmExecutor(
     # Pressing Stop cancels the jobs in `cache_directory` — see _make_stoppable
     # for why that is the whole directory rather than just this node's job.
     _make_stoppable(executor, cache_directory, _pysqa_dir, "slurm")
+    _watch_queue(executor)
     if non_modal:
         _make_non_modal(executor)
     return executor

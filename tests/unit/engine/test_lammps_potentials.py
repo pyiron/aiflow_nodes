@@ -37,10 +37,10 @@ from aiflow_nodes.atomistic.engine.lammps import (  # noqa: E402
 
 def _resource_path():
     """The iprpy catalogue directory, or None when the data is not installed."""
-    from pyiron_lammps.potential import get_resource_path_from_conda
+    from aiflow_nodes.atomistic.engine.lammps import potential_resource_path
 
     try:
-        return get_resource_path_from_conda()
+        return potential_resource_path()
     except Exception:
         return None
 
@@ -104,7 +104,7 @@ def test_every_offered_potential_yields_an_intact_pair_style(al_potentials):
     resource_path = _resource_path()
     corrupted = []
     for name in al_potentials:
-        row = get_potential_by_name(potential_name=name)
+        row = get_potential_by_name(potential_name=name, resource_path=resource_path)
         # Each parameter file contributes exactly one absolute path to the deck,
         # so the resource directory cannot appear more often than there are
         # files.  Splicing blows this bound wide open (~60 hits on one line),
