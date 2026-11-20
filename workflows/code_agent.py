@@ -25,15 +25,15 @@ OPENAI_API_BASE = "https://chat-ai.academiccloud.de/v1"
 def call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
     """Dispatch one prompt to the chosen backend and return the raw response text.
 
-    Supported backends: ``"ollama"`` (local server), ``"openai_academic"``
-    (OpenAI-compatible endpoint), and ``"claude"`` (Anthropic Foundry). All
+    Supported backends: ``"ollama"`` (local server) and ``"openai_academic"``
+    (OpenAI-compatible endpoint), both via :mod:`aiflow.ai.llm_settings`. All
     heavy imports live inside the branches so *loading* this workflow requires
     no LLM libraries — only *running* it does.
     """
     c = cfg if cfg is not None else _DEFAULT_CONFIG
 
     if c.backend == "ollama":
-        from pyiron_ai.node_store import _ollama_generate
+        from aiflow.ai.llm_settings import _ollama_generate
 
         return _ollama_generate(
             model=c.model_name, prompt=prompt, max_tokens=max_tokens
@@ -41,7 +41,7 @@ def call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
 
     if c.backend == "openai_academic":
         import keyring
-        from pyiron_ai.node_store import _openai_generate
+        from aiflow.ai.llm_settings import _openai_generate
 
         content, _ = _openai_generate(
             model=c.model_name,
@@ -52,22 +52,6 @@ def call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
         )
         return content
 
-    if c.backend == "claude":
-        import os
-
-        from anthropic import AnthropicFoundry
-
-        client = AnthropicFoundry(
-            api_key=os.environ["ANTHROPIC_FOUNDRY_API_KEY"],
-            resource=os.environ["ANTHROPIC_FOUNDRY_RESOURCE"],
-        )
-        response = client.messages.create(
-            model=c.model_name,
-            max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.content[0].text
-
     raise ValueError(f"Unknown backend: {c.backend!r}")
 
 
@@ -76,7 +60,7 @@ def call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
 
 @as_function_node("models")
 def ListModels(
-    backend: Literal["openai_academic", "claude", "ollama"] | None = "ollama",
+    backend: Literal["openai_academic", "ollama"] | None = "ollama",
     index: int | None = 0,
 ):
     """Query available models for *backend* and return one as an ``LLMConfig``.
@@ -111,26 +95,12 @@ def ListModels(
 
     elif backend == "openai_academic":
         import keyring
-        from pyiron_ai.node_store import _list_available_models
+        from aiflow.ai.llm_settings import _list_available_models
 
         models_list = _list_available_models(
             api_key=keyring.get_password("openai", "api_key"),
             api_base=OPENAI_API_BASE,
         )
-
-    elif backend == "claude":
-        import os
-
-        _KNOWN = ["claude-opus-4-8", "claude-sonnet-5", "claude-haiku-4-5"]
-        try:
-            import anthropic
-
-            client = anthropic.Anthropic(
-                api_key=os.environ["ANTHROPIC_FOUNDRY_API_KEY"]
-            )
-            models_list = [m.id for m in client.models.list()]
-        except Exception:
-            models_list = _KNOWN
 
     else:
         raise ValueError(f"Unknown backend: {backend!r}")
@@ -168,7 +138,7 @@ def GenerateCode(task: str = "", model: LLMConfig = None, max_tokens: int = 2000
     import textwrap
     import time
 
-    from pyiron_ai.node_store import extract_code
+    from aiflow.ai.llm_settings import extract_code
 
     cfg = model if model is not None else _DEFAULT_CONFIG
     prompt = textwrap.dedent(f"""
@@ -238,7 +208,7 @@ def FixCode(
     """
     import textwrap
 
-    from pyiron_ai.node_store import extract_code
+    from aiflow.ai.llm_settings import extract_code
 
     prompt = textwrap.dedent(f"""
         The following Python code was written to accomplish this task:

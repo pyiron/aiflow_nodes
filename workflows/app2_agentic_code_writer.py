@@ -32,7 +32,7 @@ from aiflow.core import Workflow, as_function_node
 @as_function_node("code")
 def GenerateCode(task: str, call_llm=None, max_tokens: int = 2000):
     """Ask the LLM to write Python code for *task*."""
-    from pyiron_ai.node_store import extract_code
+    from aiflow.ai.llm_settings import extract_code
 
     prompt = textwrap.dedent(f"""
         Write Python code to accomplish the following task.
@@ -60,7 +60,7 @@ def TryCode(code: str):
 @as_function_node("code")
 def FixCode(task: str, code: str, error: str, call_llm=None, max_tokens: int = 2000):
     """Ask the LLM to repair *code* given the *error* it produced."""
-    from pyiron_ai.node_store import extract_code
+    from aiflow.ai.llm_settings import extract_code
 
     prompt = textwrap.dedent(f"""
         The following Python code for the task below raised an error.
