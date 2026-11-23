@@ -62,7 +62,7 @@ def phonopy(
         GetThermalProperties,
         PhonopyObject,
     )
-    from aiflow_nodes.controls import GetAttribute, SetAttribute, iterate
+    from aiflow_nodes.controls import ExtractList, SetAttribute, iterate
 
     if phonopy_parameters is None:
         phonopy_parameters = PhonopyParameters()
@@ -77,7 +77,7 @@ def phonopy(
     wf.iterate = iterate(
         values=wf.GenerateSupercells, node=wf.Static, input_label="structure"
     )
-    wf.GetForces = GetAttribute(obj=wf.iterate, attr="forces")
+    wf.GetForces = ExtractList(out_list=wf.iterate, data_label="forces", flatten=False)
     wf.SetForces = SetAttribute(val=wf.GetForces, obj=wf.PhonopyObject, attr="forces")
     wf.GetDynamicalMatrix = GetDynamicalMatrix(phonopy=wf.SetForces)
     wf.GetThermalProperties = GetThermalProperties(

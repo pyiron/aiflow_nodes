@@ -2,8 +2,9 @@
 
 ``input_label`` may name several ports, comma-separated; every swept value is
 then a tuple with one entry per label.  Outputs of every kind are spread into
-columns, and a failing cell is recorded in an ``error`` column.  These tests
-characterize today's behaviour, including the parts marked as looking wrong.
+columns, and a failing cell is recorded in an ``error`` column, which comes
+last.  ``iterate`` returns a list, one result per value, and raises the error
+of a failing cell.
 """
 
 from concurrent.futures import ThreadPoolExecutor
@@ -227,19 +228,17 @@ OUTPUT_KINDS = {
         MakeStats,
         {"x": [1, 2, 3], "lo": [1, NAN, 3], "hi": [2, NAN, 6], "error": ERROR},
     ),
-    # Looks wrong, pinned anyway: with DataFrame outputs the error column
-    # comes before the output columns, not after them as for every other kind.
     "one-row frame": (
         Frame,
-        {"x": [1, 2, 3], "error": ERROR, "a": [1, NAN, 3], "b": [10, NAN, 30]},
+        {"x": [1, 2, 3], "a": [1, NAN, 3], "b": [10, NAN, 30], "error": ERROR},
     ),
     "multi-row frame": (
         lambda: Frame(rows=2),
         {
             "x": [1, 1, 2, 3, 3],
-            "error": ["", "", "ValueError: two", "", ""],
             "a": [1, 1, NAN, 3, 3],
             "b": [10, 11, NAN, 30, 31],
+            "error": ["", "", "ValueError: two", "", ""],
         },
     ),
 }
@@ -286,25 +285,16 @@ def test_iterate_returns_what_the_template_returns_for_each_cell(template, execu
     assert out == expected
 
 
-def test_iterate_drops_a_failing_cell_when_sequential():
-    # Looks wrong, pinned anyway: the failing cell vanishes from the result,
-    # so the results no longer line up with the values; with an executor the
-    # same cell raises (next test).
-    assert iterate(node=Square(), input_label="x", values=[1, 2, 3]).run() == [1, 9]
+def test_iterate_raises_the_error_of_a_failing_cell(executor):
+    with pytest.raises(ValueError, match="two"):
+        iterate(
+            node=Square(), input_label="x", values=[1, 2, 3], executor=executor
+        ).run()
 
 
-def test_iterate_raises_a_failing_cell_with_an_executor():
-    with (
-        ThreadPoolExecutor(max_workers=2) as pool,
-        pytest.raises(ValueError, match="two"),
-    ):
-        iterate(node=Square(), input_label="x", values=[1, 2, 3], executor=pool).run()
-
-
-def test_iterate_over_one_value_returns_the_bare_result(executor):
-    # Looks wrong, pinned anyway: one value gives its result, not a list of one.
+def test_iterate_over_one_value_returns_a_list_of_one(executor):
     out = iterate(node=Pair(), input_label="x", values=[3], executor=executor).run()
-    assert out == (4, 30)
+    assert out == [(4, 30)]
 
 
 @as_function_node
