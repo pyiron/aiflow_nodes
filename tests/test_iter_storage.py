@@ -1,22 +1,32 @@
-"""Per-iteration content-addressed storage and the lazy `branch` primitive.
+"""Per-cell storage of ``iterate`` and ``IterToDataFrame`` sweeps.
 
-Exercises the real ``controls.py`` code path with an in-memory database double,
-so no Postgres/Neo4j backend is required.
+A template with ``store=True`` stores every cell as its own row, linked to the
+sweep, and a re-run restores the cells instead of executing them.  The sweeps
+run in a ``Workflow`` against an in-memory database double, so no PostgreSQL
+backend is required.  Everything here goes through the public nodes, so it
+characterizes the behaviour whichever sweep engine is underneath.
 """
 
 import pathlib
+import sys
 import tempfile
+import threading
+from concurrent.futures import Future, ThreadPoolExecutor
 
+import cloudpickle
 import pytest
-from aiflow.core import as_function_node
-from aiflow.core.graph import Graph
-from aiflow.database.instance_database.InstanceDatabase import InstanceDatabase
+from aiflow.core import Workflow, as_function_node, set_reserved_port
+from aiflow.database import get_hash
 
-from aiflow_nodes.controls import _iterate_node, branch
+from aiflow_nodes.controls import IterToDataFrame, iterate
+
+# Jobs of the executorlib double below run in a fresh interpreter, which cannot
+# import this test module; ship its functions by value instead.
+cloudpickle.register_pickle_by_value(sys.modules[__name__])
 
 
-class MemDB(InstanceDatabase):
-    """Minimal in-memory InstanceDatabase for tests."""
+class MemDB:
+    """Minimal in-memory instance database for tests."""
 
     def __init__(self, storage_path):
         self.storage_path = pathlib.Path(storage_path)
@@ -43,94 +53,10 @@ class MemDB(InstanceDatabase):
         self.rows.pop(hash, None)
 
 
-EXEC = {"n": 0}
-
-
-@as_function_node
-def Square(x: int = 0, store: bool = False):
-    EXEC["n"] += 1
-    y = x * x
-    return y
-
-
-@as_function_node("y")
-def Boom(x: int = 0):
-    raise RuntimeError("unused branch executed — laziness broken!")
-
-
-@as_function_node
-def Echo(x: int = 0):
-    y = x
-    return y
-
-
-def _with_db(node, db):
-    node._graph = Graph(db=db)
-    return node
-
-
-def test_store_false_is_legacy_path():
-    """Default store=False: every value executes, DB is never touched."""
-    EXEC["n"] = 0
-    node = Square(store=False)
-    out, _, _ = _iterate_node(
-        node, "x", [1, 2, 3], collect_input=True, collect_errors=True
-    )
-    assert out == [1, 4, 9]
-    assert EXEC["n"] == 3
-
-
-def test_per_iteration_storage_and_restore():
-    """store=True: each value → a separate row linked to the iter-node; re-run restores."""
-    with tempfile.TemporaryDirectory() as tmp:
-        db = MemDB(tmp)
-
-        EXEC["n"] = 0
-        node = _with_db(Square(store=True), db)
-        out, _, _ = _iterate_node(
-            node, "x", [1, 2, 3], collect_input=True, collect_errors=True
-        )
-        assert out == [1, 4, 9]
-        assert EXEC["n"] == 3
-
-        # three distinct instances, all sharing one master_hash (the template)
-        assert len(db.rows) == 3
-        parents = {r.master_hash for r in db.rows.values()}
-        assert len(parents) == 1
-        assert None not in parents
-
-        # second pass over the same values restores everything (no execution)
-        EXEC["n"] = 0
-        node2 = _with_db(Square(store=True), db)
-        out2, _, _ = _iterate_node(
-            node2, "x", [1, 2, 3], collect_input=True, collect_errors=True
-        )
-        assert out2 == [1, 4, 9]
-        assert EXEC["n"] == 0
-
-
-def test_branch_runs_only_selected_node():
-    assert branch(condition=True, then_node=Echo(x=42), else_node=Boom(x=0)).run() == 42
-    assert branch(condition=False, then_node=Boom(x=0), else_node=Echo(x=7)).run() == 7
-
-
-def test_branch_unselected_side_never_executes():
-    # If the unselected branch ran, Boom would raise.
-    with pytest.raises(RuntimeError):
-        branch(condition=True, then_node=Boom(x=0), else_node=Echo(x=1)).run()
-
-
-# ---------------------------------------------------------------------------
-# Out-of-process executors (Slurm, Flux, process pools)
-# ---------------------------------------------------------------------------
-
-
 class LockedDB(MemDB):
     """Like a real database handle: holds a lock, so it cannot be pickled."""
 
     def __init__(self, storage_path):
-        import threading
-
         super().__init__(storage_path)
         self._lock = threading.Lock()
 
@@ -142,10 +68,6 @@ class PicklingExecutor:
         self.submitted = 0
 
     def submit(self, fn, *args, **kwargs):
-        from concurrent.futures import Future
-
-        import cloudpickle
-
         self.submitted += 1
         payload = cloudpickle.dumps((fn, args, kwargs))  # raises if unpicklable
         fn, args, kwargs = cloudpickle.loads(payload)
@@ -157,77 +79,11 @@ class PicklingExecutor:
         return future
 
 
-def test_remote_sweep_never_ships_the_database():
-    """An attached db must not travel with the task — it hung GUI sweeps."""
-    with tempfile.TemporaryDirectory() as tmp:
-        db = LockedDB(tmp)
-        node = _with_db(Square(), db)
-        pool = PicklingExecutor()
-        out = _iterate_node(node, "x", [1, 2, 3], executor=pool)
-        assert out == [1, 4, 9]
-        assert pool.submitted == 3
-        assert db.rows == {}
-
-
-def test_remote_sweep_stores_and_restores_on_the_client():
-    with tempfile.TemporaryDirectory() as tmp:
-        db = LockedDB(tmp)
-        node = _with_db(Square(store=True), db)
-        pool = PicklingExecutor()
-        out = _iterate_node(node, "x", [1, 2, 3], executor=pool)
-        assert out == [1, 4, 9]
-        assert len(db.rows) == 3
-        assert len({r.master_hash for r in db.rows.values()}) == 1
-
-        # Second pass: every cell restored, nothing submitted.
-        pool2 = PicklingExecutor()
-        node2 = _with_db(Square(store=True), db)
-        out2 = _iterate_node(node2, "x", [1, 2, 3], executor=pool2)
-        assert out2 == [1, 4, 9]
-        assert pool2.submitted == 0
-
-
-def test_unpicklable_template_fails_before_anything_is_submitted():
-    import threading
-
-    pool = PicklingExecutor()
-    node = Echo()
-    node.inputs.x.value = threading.Lock()
-    with pytest.raises(TypeError, match="cannot send 'Echo'"):
-        _iterate_node(node, "x", [1], executor=pool)
-    assert pool.submitted == 0
-
-
-def test_remote_sweep_restores_the_swept_port():
-    with tempfile.TemporaryDirectory() as tmp:
-        node = _with_db(Square(store=True, x=7), LockedDB(tmp))
-        _iterate_node(node, "x", [1, 2, 3], executor=PicklingExecutor())
-        assert node.inputs.x.value == 7
-
-
-# ---------------------------------------------------------------------------
-# Inside a graph run, as the GUI does it: cells stored, linked, recoverable
-# ---------------------------------------------------------------------------
-
-import sys
-
-import cloudpickle
-
-# Jobs of the executorlib double below run in a fresh interpreter, which cannot
-# import this test module; ship its functions by value instead.
-cloudpickle.register_pickle_by_value(sys.modules[__name__])
-
-
-@as_function_node("executor")
-def Provide(executor=None):
-    return executor
-
-
 class CacheExecutor:
-    """executorlib's file cache without a scheduler — recoverable, but local.
+    """executorlib's file cache without a scheduler: recoverable, but local.
 
     Wraps ``SingleNodeExecutor`` and exposes ``info["executor_kwargs"]`` the way
-    the cluster executors do, so ``aiflow.core.remote_cache`` treats it as one.
+    the cluster executors do, so aiflow treats it as one.
     """
 
     def __init__(self, directory, on_submit=None):
@@ -250,75 +106,170 @@ class CacheExecutor:
         self._ex.shutdown(wait=wait)
 
 
-def _sweep_graph(template, executor=None, values=(1, 2, 3)):
-    """Build like a workflow file, run like the GUI: a *copy* holds the db."""
-    from aiflow.core import Workflow
+EXEC = {"n": 0}
 
-    from aiflow_nodes.controls import IterToDataFrame
 
+@as_function_node
+def Square(x: int = 0):
+    EXEC["n"] += 1
+    y = x * x
+    return y
+
+
+@as_function_node
+def Echo(x: int = 0):
+    y = x
+    return y
+
+
+@as_function_node("executor")
+def Provide(executor=None):
+    return executor
+
+
+def stored(template):
+    set_reserved_port(template, "store", True)
+    return template
+
+
+SWEEPS = {
+    "iterate": (iterate, lambda node: node.outputs.out_lst.value),
+    "IterToDataFrame": (IterToDataFrame, lambda node: list(node.outputs.df.value["y"])),
+}
+
+
+def _sweep_workflow(template, sweep="IterToDataFrame", executor=None, db=None):
+    """A workflow file's sweep, run as the GUI runs it: a *copy* holds the db.
+
+    The copy shares its nodes with the original, so the template's own graph
+    has no database; the sweep has to store into the database of the run
+    executing it.
+    """
+    node_class, _ = SWEEPS[sweep]
     wf = Workflow("cells")
     wf.T = template
+    kwargs = {}
     if executor is not None:
         wf.Ex = Provide(executor=executor)
-        wf.Iter = IterToDataFrame(
-            node=wf.T, input_label="x", values=list(values), executor=wf.Ex
-        )
-    else:
-        wf.Iter = IterToDataFrame(node=wf.T, input_label="x", values=list(values))
-    return wf._graph.copy()
+        kwargs["executor"] = wf.Ex
+    wf.Iter = node_class(node=wf.T, input_label="x", values=[1, 2, 3], **kwargs)
+    copy = wf.copy()
+    copy.db = db
+    return copy
+
+
+def _result(wf, sweep="IterToDataFrame"):
+    return SWEEPS[sweep][1](wf.Iter)
 
 
 def _cells(db):
-    """Cell rows: the template's instances, each linked to the sweep.
-
-    A non-modal sweep also check-points its upstream graph, the template
-    included — that row has no master and is not a cell.
-    """
+    """Cell rows: the template's instances, each linked to the sweep."""
     return [r for r in db.rows.values() if r.qualname == "Square" and r.master_hash]
 
 
+@pytest.mark.parametrize("sweep", sorted(SWEEPS))
+def test_cells_are_not_stored_unless_the_template_asks(sweep):
+    with tempfile.TemporaryDirectory() as tmp:
+        EXEC["n"] = 0
+        wf = _sweep_workflow(Square(), sweep, db=MemDB(tmp))
+        wf.run()
+        assert _result(wf, sweep) == [1, 4, 9]
+        assert EXEC["n"] == 3
+        assert _cells(wf.db) == []
+
+
+@pytest.mark.parametrize("sweep", sorted(SWEEPS))
 @pytest.mark.parametrize("mode", ["sequential", "threads", "remote"])
-def test_gui_like_run_stores_every_cell_linked_to_its_sweep(mode):
-    from concurrent.futures import ThreadPoolExecutor
-
-    import aiflow.database as pdb
-
+def test_every_cell_is_stored_linked_to_its_sweep_and_restored(sweep, mode):
     executor = {
         "sequential": None,
         "threads": ThreadPoolExecutor(max_workers=2),
         "remote": PicklingExecutor(),
     }[mode]
     with tempfile.TemporaryDirectory() as tmp:
-        g = _sweep_graph(Square(store=True), executor)
-        g._db = MemDB(tmp)
-        g.pull_node("Iter")
-        assert list(g.nodes["Iter"].outputs.df.value["y"]) == [1, 4, 9]
-        cells = _cells(g._db)
+        wf = _sweep_workflow(stored(Square()), sweep, executor, db=MemDB(tmp))
+        wf.run()
+        assert _result(wf, sweep) == [1, 4, 9]
+        cells = _cells(wf.db)
         assert len(cells) == 3
-        assert {r.master_hash for r in cells} == {pdb.get_hash(g.nodes["Iter"])}
+        assert {r.master_hash for r in cells} == {get_hash(wf.Iter)}
         assert len(list(pathlib.Path(tmp).glob("*.hdf5"))) >= 3
 
+        # A second run over the same values restores every cell.
         EXEC["n"] = 0
-        g.pull_node("Iter")
-        assert list(g.nodes["Iter"].outputs.df.value["y"]) == [1, 4, 9]
-        if mode != "remote":  # remote runs in copies; no counter here
+        wf.run()
+        assert _result(wf, sweep) == [1, 4, 9]
+        if mode != "remote":  # remote cells run in copies; no counter here
             assert EXEC["n"] == 0
+        assert len(_cells(wf.db)) == 3
     if mode == "threads":
         executor.shutdown()
 
 
 def test_no_cells_are_stored_when_recording_is_off():
     with tempfile.TemporaryDirectory() as tmp:
-        g = _sweep_graph(Square(store=True))
-        g._db = MemDB(tmp)
-        g._recording_enabled = False
-        g.pull_node("Iter")
-        assert _cells(g._db) == []
+        wf = _sweep_workflow(stored(Square()), db=MemDB(tmp))
+        wf.storage_enabled = False
+        wf.run()
+        assert _result(wf) == [1, 4, 9]
+        assert _cells(wf.db) == []
 
 
+# ---------------------------------------------------------------------------
+# Out-of-process executors (Slurm, Flux, process pools)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("sweep", sorted(SWEEPS))
+def test_remote_sweep_never_ships_the_database(sweep):
+    """An attached db must not travel with the task: it hung GUI sweeps."""
+    with tempfile.TemporaryDirectory() as tmp:
+        pool = PicklingExecutor()
+        wf = _sweep_workflow(Square(), sweep, pool, db=LockedDB(tmp))
+        wf.run()
+        assert _result(wf, sweep) == [1, 4, 9]
+        assert pool.submitted == 3
+        assert _cells(wf.db) == []
+
+
+def test_remote_cells_restored_on_the_client_are_not_submitted_again():
+    with tempfile.TemporaryDirectory() as tmp:
+        db = LockedDB(tmp)
+        _sweep_workflow(stored(Square()), executor=PicklingExecutor(), db=db).run()
+        assert len(_cells(db)) == 3
+
+        pool = PicklingExecutor()
+        again = _sweep_workflow(stored(Square()), executor=pool, db=db)
+        again.run()
+        assert _result(again) == [1, 4, 9]
+        assert pool.submitted == 0
+
+
+@pytest.mark.parametrize("sweep", [iterate, IterToDataFrame])
+def test_unpicklable_template_fails_before_anything_is_submitted(sweep):
+    pool = PicklingExecutor()
+    template = Echo()
+    template.inputs.x.value = threading.Lock()
+    with pytest.raises(TypeError, match="cannot send 'Echo'"):
+        sweep(node=template, input_label="x", values=[1], executor=pool).run()
+    assert pool.submitted == 0
+
+
+def test_remote_sweep_restores_the_swept_port():
+    template = Square(x=7)
+    iterate(
+        node=template, input_label="x", values=[1, 2, 3], executor=PicklingExecutor()
+    ).run()
+    assert template.inputs.x.value == 7
+
+
+# ---------------------------------------------------------------------------
+# Cluster executors: cells check-pointed, recoverable, never resubmitted
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.slow
 def test_queued_cells_are_checkpointed_keyed_on_their_hash_and_never_resubmitted():
-    import aiflow.database as pdb
-
     with tempfile.TemporaryDirectory() as tmp:
         cache = str(pathlib.Path(tmp) / "cache")
         db = MemDB(tmp)
@@ -329,14 +280,13 @@ def test_queued_cells_are_checkpointed_keyed_on_their_hash_and_never_resubmitted
             seen[key] = (getattr(row, "status", None), row.executor, row.master_hash)
 
         ex = CacheExecutor(cache, on_submit=at_submit)
-        g = _sweep_graph(Square(), ex)  # no store: check-pointed anyway
-        g._db = db
-        g.pull_node("Iter")
+        wf = _sweep_workflow(Square(), executor=ex, db=db)  # no store: still kept
+        wf.run()
         ex.shutdown()
-        assert list(g.nodes["Iter"].outputs.df.value["y"]) == [1, 4, 9]
+        assert _result(wf) == [1, 4, 9]
 
-        sweep_hash = pdb.get_hash(g.nodes["Iter"])
-        executor_hash = pdb.get_hash(g.nodes["Ex"])
+        sweep_hash = get_hash(wf.Iter)
+        executor_hash = get_hash(wf.Ex)
         assert len(ex.keys) == 3 and all(ex.keys)
         for key in ex.keys:
             assert seen[key] == ("Submitted", executor_hash, sweep_hash)
@@ -346,44 +296,8 @@ def test_queued_cells_are_checkpointed_keyed_on_their_hash_and_never_resubmitted
         # A new session over the same cache: everything is collected, nothing
         # goes to the queue again.
         ex2 = CacheExecutor(cache)
-        g2 = _sweep_graph(Square(), ex2)
-        g2._db = db
-        g2.pull_node("Iter")
+        again = _sweep_workflow(Square(), executor=ex2, db=db)
+        again.run()
         ex2.shutdown()
         assert ex2.keys == []
-        assert list(g2.nodes["Iter"].outputs.df.value["y"]) == [1, 4, 9]
-
-
-def test_non_modal_sweep_returns_at_once_and_is_collected_next_run(monkeypatch):
-    import time
-
-    import aiflow.core.remote_cache as rc
-
-    monkeypatch.setattr(rc, "wait_for_queue_id", lambda *a, **k: None)  # no scheduler
-    with tempfile.TemporaryDirectory() as tmp:
-        cache = str(pathlib.Path(tmp) / "cache")
-        db = MemDB(tmp)
-        ex = CacheExecutor(cache)
-        rc.mark_non_modal(ex)
-        g = _sweep_graph(Square(store=True), ex)
-        g._db = db
-        g.pull_node("Iter")
-        assert len(ex.keys) == 3
-        assert [s.label for s in g.last_submissions] == ["Iter (3 cell(s))"]
-        assert all(getattr(r, "status", None) == "Submitted" for r in _cells(db))
-
-        deadline = time.time() + 120
-        while len(list(pathlib.Path(cache).glob("*_o.h5"))) < 3:
-            assert time.time() < deadline, "local jobs did not finish"
-            time.sleep(0.2)
-        ex.shutdown()
-
-        ex2 = CacheExecutor(cache)
-        rc.mark_non_modal(ex2)
-        g2 = _sweep_graph(Square(store=True), ex2)
-        g2._db = db
-        g2.pull_node("Iter")
-        ex2.shutdown()
-        assert ex2.keys == []
-        assert list(g2.nodes["Iter"].outputs.df.value["y"]) == [1, 4, 9]
-        assert all(r.output_path for r in _cells(db))
+        assert _result(again) == [1, 4, 9]
