@@ -120,21 +120,23 @@ def test_dict_keys_must_match_input_label(cell):
 @pytest.mark.parametrize("cells", ["tuple", "dict"])
 @pytest.mark.parametrize("parallel", [False, True])
 def test_swept_ports_are_restored_after_the_sweep(parallel, cells):
-    template = Affine(a=5.0)  # `a` is swept below; the user's value comes back
+    # `a` is swept below; the user's value comes back.  `x` is not swept, so
+    # the results tell which value went to which port.
+    template = Affine(x=10.0, a=5.0)
     values = [(1.0, 2.0), (3.0, 4.0)]
     if cells == "dict":
-        values = [{"a": a, "x": x} for x, a in values]
+        values = [{"a": a, "b": b} for b, a in values]
     pool = ThreadPoolExecutor(max_workers=2) if parallel else None
     try:
         out = iterate(
-            node=template, input_label="x,a", values=values, executor=pool
+            node=template, input_label="b,a", values=values, executor=pool
         ).run()
     finally:
         if pool is not None:
             pool.shutdown()
-    assert out == [2.0, 12.0]
+    assert out == [21.0, 43.0]
     assert template.inputs.a.value == 5.0
-    assert template.inputs.x.value == 0.0  # default, untouched by the last cell
+    assert template.inputs.b.value == 0.0  # default, untouched by the last cell
 
 
 def test_the_sweep_hash_does_not_depend_on_run_history():
