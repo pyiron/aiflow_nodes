@@ -720,7 +720,7 @@ def _iterate_node_unguarded(
                     out = np.nan
                     err = f"{type(e).__name__}: {e}"
                 else:
-                    continue
+                    raise
             out_lst.append(out)
             if collect_input:
                 inp_lst.append(value)
@@ -1083,18 +1083,20 @@ def IterToDataFrame(
     # ------------------------------------------------------------------
     expanded = _expand_df_columns(data_dict)
     if isinstance(expanded, pd.DataFrame):
-        return expanded  # multi-row expansion already produced a DataFrame
-    data_dict = expanded
+        df = expanded  # multi-row expansion already produced a DataFrame
+    else:
+        # ------------------------------------------------------------------
+        # 4️⃣ Build the DataFrame (fallback to raw dict on error)
+        # ------------------------------------------------------------------
+        try:
+            df = pd.DataFrame(expanded)
+        except Exception as e:
+            print(f"Error creating DataFrame: {e}")
+            df = pd.DataFrame.from_dict(expanded, orient="columns")
 
-    # ------------------------------------------------------------------
-    # 4️⃣ Build the DataFrame (fallback to raw dict on error)
-    # ------------------------------------------------------------------
-    try:
-        df = pd.DataFrame(data_dict)
-    except Exception as e:
-        print(f"Error creating DataFrame: {e}")
-        df = pd.DataFrame.from_dict(data_dict, orient="columns")
-
+    # The error column comes last, after every output column.
+    if "error" in df.columns:
+        df = df[[c for c in df.columns if c != "error"] + ["error"]]
     return df
 
 
@@ -1116,9 +1118,6 @@ def iterate(
         debug=debug,
         executor=executor,
     )
-    # For compatibility: flatten if only one result
-    if out_lst and isinstance(out_lst, list) and len(out_lst) == 1:
-        out_lst = out_lst[0]
     return out_lst
 
 

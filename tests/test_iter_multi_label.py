@@ -1,15 +1,19 @@
-"""Sweeping several input ports at once with ``IterToDataFrame``.
+"""What ``iterate`` and ``IterToDataFrame`` return, at their node interface.
 
 ``input_label`` may name several ports, comma-separated; every swept value is
-then a tuple with one entry per label.
+then a tuple with one entry per label.  Outputs of every kind are spread into
+columns, and a failing cell is recorded in an ``error`` column, which comes
+last.  ``iterate`` returns a list, one result per value, and raises the error
+of a failing cell.
 """
 
 from concurrent.futures import ThreadPoolExecutor
 
+import pandas as pd
 import pytest
-from aiflow.core import as_function_node
+from aiflow.core import as_function_node, as_out_dataclass_node
 
-from aiflow_nodes.controls import IterToDataFrame, _iterate_node
+from aiflow_nodes.controls import IterToDataFrame, iterate
 
 
 @as_function_node
@@ -90,7 +94,7 @@ def test_wrong_tuple_length_fails_before_the_first_iteration(bad):
             raise AssertionError("submitted despite a malformed sweep")
 
     with pytest.raises(ValueError, match="does not match input_label"):
-        _iterate_node(Affine(), "x,a,b", bad, executor=Spy())
+        iterate(node=Affine(), input_label="x,a,b", values=bad, executor=Spy()).run()
     assert calls == []
 
 
@@ -111,20 +115,29 @@ def test_dict_cells_fill_columns_in_label_order():
 )
 def test_dict_keys_must_match_input_label(cell):
     with pytest.raises(ValueError, match="missing|extra"):
-        _iterate_node(Affine(), "x,a,b", [cell])
+        iterate(node=Affine(), input_label="x,a,b", values=[cell]).run()
 
 
+@pytest.mark.parametrize("cells", ["tuple", "dict"])
 @pytest.mark.parametrize("parallel", [False, True])
-def test_swept_ports_are_restored_after_the_sweep(parallel):
-    template = Affine(a=5.0)  # `a` is swept below; the user's value comes back
+def test_swept_ports_are_restored_after_the_sweep(parallel, cells):
+    # `a` is swept below; the user's value comes back.  `x` is not swept, so
+    # the results tell which value went to which port.
+    template = Affine(x=10.0, a=5.0)
+    values = [(1.0, 2.0), (3.0, 4.0)]
+    if cells == "dict":
+        values = [{"a": a, "b": b} for b, a in values]
     pool = ThreadPoolExecutor(max_workers=2) if parallel else None
     try:
-        _iterate_node(template, "x,a", [(1.0, 2.0), (3.0, 4.0)], executor=pool)
+        out = iterate(
+            node=template, input_label="b,a", values=values, executor=pool
+        ).run()
     finally:
         if pool is not None:
             pool.shutdown()
+    assert out == [21.0, 43.0]
     assert template.inputs.a.value == 5.0
-    assert template.inputs.x.value == 0.0  # default, untouched by the last cell
+    assert template.inputs.b.value == 0.0  # default, untouched by the last cell
 
 
 def test_the_sweep_hash_does_not_depend_on_run_history():
@@ -142,7 +155,7 @@ def test_a_set_swept_port_is_reported_as_ignored(caplog):
     import logging
 
     with caplog.at_level(logging.WARNING):
-        _iterate_node(Affine(a=5.0), "x,a", [(1.0, 2.0)])
+        iterate(node=Affine(a=5.0), input_label="x,a", values=[(1.0, 2.0)]).run()
     ignored = [r for r in caplog.records if "is ignored" in r.getMessage()]
     assert len(ignored) == 1
     assert "'Affine.a' = 5.0" in ignored[0].getMessage()
@@ -152,5 +165,155 @@ def test_unset_swept_ports_are_not_reported(caplog):
     import logging
 
     with caplog.at_level(logging.WARNING):
-        _iterate_node(Affine(b=1.0), "x,a", [(1.0, 2.0)])
+        iterate(node=Affine(b=1.0), input_label="x,a", values=[(1.0, 2.0)]).run()
     assert not [r for r in caplog.records if "is ignored" in r.getMessage()]
+
+
+# ---------------------------------------------------------------------------
+# Outputs and failing cells
+# ---------------------------------------------------------------------------
+
+
+@as_function_node
+def Square(x: int = 0):
+    if x == 2:
+        raise ValueError("two")
+    y = x * x
+    return y
+
+
+@as_function_node
+def Pair(x: int = 0):
+    if x == 2:
+        raise ValueError("two")
+    s = x + 1
+    p = x * 10
+    return s, p
+
+
+@as_out_dataclass_node
+class Stats:
+    lo: int = 0
+    hi: int = 0
+
+
+@as_function_node
+def MakeStats(x: int = 0) -> Stats:
+    if x == 2:
+        raise ValueError("two")
+    stats = Stats.pure_dataclass(lo=x, hi=2 * x)
+    return stats
+
+
+@as_function_node
+def Frame(x: int = 0, rows: int = 1):
+    if x == 2:
+        raise ValueError("two")
+    frame = pd.DataFrame({"a": [x] * rows, "b": [10 * x + i for i in range(rows)]})
+    return frame
+
+
+NAN = float("nan")
+ERROR = ["", "ValueError: two", ""]
+
+# The DataFrame IterToDataFrame returns over values [1, 2, 3], where the cell
+# x=2 fails; over [1, 3] it is the same without that row and the error column.
+OUTPUT_KINDS = {
+    "scalar": (Square, {"x": [1, 2, 3], "y": [1, NAN, 9], "error": ERROR}),
+    "tuple": (
+        Pair,
+        {"x": [1, 2, 3], "s": [2, NAN, 4], "p": [10, NAN, 30], "error": ERROR},
+    ),
+    "dataclass": (
+        MakeStats,
+        {"x": [1, 2, 3], "lo": [1, NAN, 3], "hi": [2, NAN, 6], "error": ERROR},
+    ),
+    "one-row frame": (
+        Frame,
+        {"x": [1, 2, 3], "a": [1, NAN, 3], "b": [10, NAN, 30], "error": ERROR},
+    ),
+    "multi-row frame": (
+        lambda: Frame(rows=2),
+        {
+            "x": [1, 1, 2, 3, 3],
+            "a": [1, 1, NAN, 3, 3],
+            "b": [10, 11, NAN, 30, 31],
+            "error": ["", "", "ValueError: two", "", ""],
+        },
+    ),
+}
+
+
+@pytest.fixture(params=["sequential", "threads"])
+def executor(request):
+    if request.param == "sequential":
+        yield None
+        return
+    pool = ThreadPoolExecutor(max_workers=3)
+    yield pool
+    pool.shutdown()
+
+
+@pytest.mark.parametrize("kind", OUTPUT_KINDS)
+@pytest.mark.parametrize(
+    "values",
+    [[1, 3], [1, 2, 3], [2, 1, 3]],
+    ids=["ok", "failing-cell", "failing-first-cell"],
+)
+def test_outputs_are_expanded_into_columns_and_failures_recorded(
+    kind, values, executor
+):
+    template, expected = OUTPUT_KINDS[kind]
+    expected = pd.DataFrame(expected)
+    expected = pd.concat([expected[expected["x"] == x] for x in values])
+    expected = expected.reset_index(drop=True)
+    if 2 not in values:
+        expected = expected.drop(columns="error")
+    sweep = IterToDataFrame(
+        node=template(), input_label="x", values=values, executor=executor
+    )
+    sweep.run()
+    pd.testing.assert_frame_equal(sweep.outputs.df.value, expected, check_dtype=False)
+
+
+@pytest.mark.parametrize("template", [Square, Pair, MakeStats])
+def test_iterate_returns_what_the_template_returns_for_each_cell(template, executor):
+    expected = [template(x=x).run() for x in (1, 3, 4)]
+    out = iterate(
+        node=template(), input_label="x", values=[1, 3, 4], executor=executor
+    ).run()
+    assert out == expected
+
+
+def test_iterate_raises_the_error_of_a_failing_cell(executor):
+    with pytest.raises(ValueError, match="two"):
+        iterate(
+            node=Square(), input_label="x", values=[1, 2, 3], executor=executor
+        ).run()
+
+
+def test_iterate_over_one_value_returns_a_list_of_one(executor):
+    out = iterate(node=Pair(), input_label="x", values=[3], executor=executor).run()
+    assert out == [(4, 30)]
+
+
+@as_function_node
+def Delayed(x: int = 0):
+    import time
+
+    time.sleep(0.05 * (3 - x))  # later cells finish first
+    y = x * x
+    return y
+
+
+def test_results_are_in_input_order_whatever_order_cells_finish_in():
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        out = iterate(
+            node=Delayed(), input_label="x", values=[1, 2, 3], executor=pool
+        ).run()
+        df = IterToDataFrame(
+            node=Delayed(), input_label="x", values=[1, 2, 3], executor=pool
+        ).run()
+    assert out == [1, 4, 9]
+    assert df["x"].tolist() == [1, 2, 3]
+    assert df["y"].tolist() == [1, 4, 9]
