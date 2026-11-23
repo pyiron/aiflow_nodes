@@ -232,16 +232,18 @@ def test_remote_sweep_never_ships_the_database(sweep):
         assert _cells(wf.db) == []
 
 
-def test_remote_cells_restored_on_the_client_are_not_submitted_again():
+@pytest.mark.parametrize("sweep", sorted(SWEEPS))
+def test_remote_cells_restored_on_the_client_are_not_submitted_again(sweep):
     with tempfile.TemporaryDirectory() as tmp:
         db = LockedDB(tmp)
-        _sweep_workflow(stored(Square()), executor=PicklingExecutor(), db=db).run()
+        first = _sweep_workflow(stored(Square()), sweep, PicklingExecutor(), db=db)
+        first.run()
         assert len(_cells(db)) == 3
 
         pool = PicklingExecutor()
-        again = _sweep_workflow(stored(Square()), executor=pool, db=db)
+        again = _sweep_workflow(stored(Square()), sweep, pool, db=db)
         again.run()
-        assert _result(again) == [1, 4, 9]
+        assert _result(again, sweep) == [1, 4, 9]
         assert pool.submitted == 0
 
 
@@ -255,12 +257,17 @@ def test_unpicklable_template_fails_before_anything_is_submitted(sweep):
     assert pool.submitted == 0
 
 
-def test_remote_sweep_restores_the_swept_port():
-    template = Square(x=7)
-    iterate(
-        node=template, input_label="x", values=[1, 2, 3], executor=PicklingExecutor()
-    ).run()
-    assert template.inputs.x.value == 7
+@pytest.mark.parametrize("sweep", sorted(SWEEPS))
+@pytest.mark.parametrize("store", [False, True], ids=["plain", "stored"])
+def test_remote_sweep_restores_the_swept_port(sweep, store):
+    with tempfile.TemporaryDirectory() as tmp:
+        template = Square(x=7)
+        if store:
+            template = stored(template)
+        wf = _sweep_workflow(template, sweep, PicklingExecutor(), db=LockedDB(tmp))
+        wf.run()
+        assert _result(wf, sweep) == [1, 4, 9]
+        assert template.inputs.x.value == 7
 
 
 # ---------------------------------------------------------------------------

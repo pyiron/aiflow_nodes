@@ -117,20 +117,22 @@ def test_dict_keys_must_match_input_label(cell):
         iterate(node=Affine(), input_label="x,a,b", values=[cell]).run()
 
 
+@pytest.mark.parametrize("cells", ["tuple", "dict"])
 @pytest.mark.parametrize("parallel", [False, True])
-def test_swept_ports_are_restored_after_the_sweep(parallel):
+def test_swept_ports_are_restored_after_the_sweep(parallel, cells):
     template = Affine(a=5.0)  # `a` is swept below; the user's value comes back
+    values = [(1.0, 2.0), (3.0, 4.0)]
+    if cells == "dict":
+        values = [{"a": a, "x": x} for x, a in values]
     pool = ThreadPoolExecutor(max_workers=2) if parallel else None
     try:
-        iterate(
-            node=template,
-            input_label="x,a",
-            values=[(1.0, 2.0), (3.0, 4.0)],
-            executor=pool,
+        out = iterate(
+            node=template, input_label="x,a", values=values, executor=pool
         ).run()
     finally:
         if pool is not None:
             pool.shutdown()
+    assert out == [2.0, 12.0]
     assert template.inputs.a.value == 5.0
     assert template.inputs.x.value == 0.0  # default, untouched by the last cell
 
@@ -252,16 +254,20 @@ def executor(request):
 
 
 @pytest.mark.parametrize("kind", OUTPUT_KINDS)
-@pytest.mark.parametrize("failing", [False, True], ids=["ok", "failing-cell"])
+@pytest.mark.parametrize(
+    "values",
+    [[1, 3], [1, 2, 3], [2, 1, 3]],
+    ids=["ok", "failing-cell", "failing-first-cell"],
+)
 def test_outputs_are_expanded_into_columns_and_failures_recorded(
-    kind, failing, executor
+    kind, values, executor
 ):
     template, expected = OUTPUT_KINDS[kind]
     expected = pd.DataFrame(expected)
-    if not failing:
-        expected = expected[expected["x"] != 2].drop(columns="error")
-        expected = expected.reset_index(drop=True)
-    values = [1, 2, 3] if failing else [1, 3]
+    expected = pd.concat([expected[expected["x"] == x] for x in values])
+    expected = expected.reset_index(drop=True)
+    if 2 not in values:
+        expected = expected.drop(columns="error")
     sweep = IterToDataFrame(
         node=template(), input_label="x", values=values, executor=executor
     )
