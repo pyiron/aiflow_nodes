@@ -2,7 +2,7 @@
 
 from importlib.metadata import entry_points
 
-from aiflow.ai.node_library import ENTRY_POINT_GROUP, NodeLibrary, registered_libraries
+from aiflow.ai import ENTRY_POINT_GROUP, NodeLibrary, registered_libraries
 
 from aiflow_nodes import assistant_plugin as plugin
 

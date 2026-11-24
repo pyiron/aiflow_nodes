@@ -26,20 +26,40 @@ dependency that *is* installed but no longer exposes the name is a failure.
 import ast
 import builtins
 import importlib
+import importlib.resources
 import re
 from pathlib import Path
 
 import pytest
-from aiflow.ai.node_library import DEFAULT_EXCLUDE, NODE_DECORATORS, _decorator_name
-from aiflow.ai.workflow_assistant import WORKFLOW_GUIDE
 
 from aiflow_nodes.assistant_plugin import NODE_GUIDE, package_root
 
 LIBRARY_ROOT = package_root()
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-#: What the scan skips: what the assistant's node index skips.
-SCAN_EXCLUDE = DEFAULT_EXCLUDE
+#: aiflow's workflow guide, which aiflow.ai ships as package data.
+WORKFLOW_GUIDE = importlib.resources.files("aiflow.ai") / "guides/llm_workflow_guide.md"
+
+#: Directories that hold no library code, such as Jupyter's checkpoint copies.
+SCAN_EXCLUDE = ("__pycache__", ".ipynb_checkpoints")
+
+#: Decorators that make a callable a node.
+NODE_DECORATORS = (
+    "as_function_node",
+    "as_macro_node",
+    "as_inp_dataclass_node",
+    "as_out_dataclass_node",
+    "group_node",
+)
+
+
+def _decorator_name(deco: ast.expr) -> str:
+    """``@as_function_node``, ``@as_function_node("x")`` or ``@mod.deco`` → its name."""
+    if isinstance(deco, ast.Call):
+        deco = deco.func
+    if isinstance(deco, ast.Attribute):
+        return deco.attr
+    return getattr(deco, "id", "")
 
 
 #: Packages that belong to this project.  A ``ModuleNotFoundError`` naming one of

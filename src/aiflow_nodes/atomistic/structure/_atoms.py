@@ -57,7 +57,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from aiflow.core.data_fields import DataArray, EmptyArrayField
+from aiflow.core import DataArray, EmptyArrayField
 from ase.atoms import Atoms
 
 # ---------------------------------------------------------------------------
