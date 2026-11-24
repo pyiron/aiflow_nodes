@@ -1,4 +1,5 @@
 from aiflow.core import Workflow, group_node
+from aiflow.core.stdlib import SlurmExecutor
 
 from aiflow_nodes.atomistic.engine.lammps import (
     CreateLammpsStructure,
@@ -8,7 +9,6 @@ from aiflow_nodes.atomistic.engine.lammps import (
 from aiflow_nodes.atomistic.engine.lammps_input import LammpsInit, WriteFile
 from aiflow_nodes.atomistic.structure.build import Bulk
 from aiflow_nodes.controls import pick_element
-from aiflow_nodes.executors import SlurmExecutor
 
 # ── Group node factories ─────────────────────────────
 

@@ -13,6 +13,36 @@ Node-specific documentation sits next to the code, e.g.
 [VASP nodes](src/aiflow_nodes/atomistic/engine/vasp_new_overview.md) and
 [VASP electrochemistry (CCE)](src/aiflow_nodes/electrochemistry/add_potential/CCE-electrode_overview.md).
 
+## Changes
+
+### Changed (breaking)
+
+aiflow_nodes no longer carries copies of aiflow code; use aiflow's public API
+instead.  Node hashes change, so results cached by the removed nodes are not
+found again.
+
+- `aiflow_nodes.executors` is removed.  Use the nodes of the same name in
+  `aiflow.core.stdlib` (`ThreadPoolExecutor`, `ProcessPoolExecutor`,
+  `ForkExecutor`, `SingleNodeExecutor`, `FluxClusterExecutor`,
+  `SlurmExecutor`, `SlurmAdvancedSettings`).  `ThreadPoolExecutorNode` becomes
+  `ThreadPoolExecutor`, `ProcessPoolExecutorNode` becomes
+  `ProcessPoolExecutor`; `fcc_metals` is gone.
+- `aiflow_nodes.utilities` is removed.  `Prepend`, `Append`, `GetItem` and the
+  `ListOf…` nodes are in `aiflow.core.stdlib`; `Index` becomes `GetItem`, and
+  `List5` becomes `ListOf`.
+- From `aiflow_nodes.controls`, `branch`, `while_loop`, `loop_until`,
+  `recursive`, `GetAttribute`, `Print` and `Or` are removed.  Use `Branch`,
+  `WhileLoop`, `GetAttribute`, `Print` and `Or` from `aiflow.core.stdlib`.
+  aiflow's `GetAttribute` raises `AttributeError` for a missing attribute
+  instead of returning `None`.
+- `aiflow_nodes.databases.node_hash_db` is removed.  Its nodes are in
+  `aiflow.database.nodes`, where `GetNode` returns an `aiflow.core.Graph`
+  instead of a GUI graph.
+- `iterate` and `IterToDataFrame` keep their signatures and run on aiflow's
+  sweep (`aiflow.core.run_sweep`).  `IterToDataFrame` no longer prints
+  anything for `debug=True`, and rejects a template with an output called
+  `error`.
+
 ## Development
 
 Dependencies are managed with [pixi](https://pixi.sh) in `pyproject.toml`; the
