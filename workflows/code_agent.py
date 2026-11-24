@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 from aiflow.core import Workflow, as_function_node
+from aiflow.core.stdlib import ThreadPoolExecutor
 
 from aiflow_nodes.controls import IterToDataFrame
-from aiflow_nodes.executors import ThreadPoolExecutorNode
 
 # ── LLM config dataclass (plain data, not a node) ───────────────────────────
 
@@ -26,33 +26,54 @@ def call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
     """Dispatch one prompt to the chosen backend and return the raw response text.
 
     Supported backends: ``"ollama"`` (local server) and ``"openai_academic"``
-    (OpenAI-compatible endpoint), both via :mod:`aiflow.ai.llm_settings`. All
+    (OpenAI-compatible endpoint, through the ``openai`` package). All
     heavy imports live inside the branches so *loading* this workflow requires
     no LLM libraries — only *running* it does.
     """
     c = cfg if cfg is not None else _DEFAULT_CONFIG
 
     if c.backend == "ollama":
-        from aiflow.ai.llm_settings import _ollama_generate
+        import requests
 
-        return _ollama_generate(
-            model=c.model_name, prompt=prompt, max_tokens=max_tokens
+        resp = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": c.model_name,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0, "num_predict": max_tokens},
+            },
+            timeout=120,
         )
+        resp.raise_for_status()
+        return resp.json().get("response", "")
 
     if c.backend == "openai_academic":
         import keyring
-        from aiflow.ai.llm_settings import _openai_generate
+        import openai
 
-        content, _ = _openai_generate(
-            model=c.model_name,
-            prompt=prompt,
-            max_tokens=max_tokens,
-            api_key=keyring.get_password("openai", "api_key"),
-            api_base=OPENAI_API_BASE,
+        client = openai.OpenAI(
+            api_key=keyring.get_password("openai", "api_key"), base_url=OPENAI_API_BASE
         )
-        return content
+        response = client.chat.completions.create(
+            model=c.model_name,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=0,
+        )
+        return response.choices[0].message.content or ""
 
     raise ValueError(f"Unknown backend: {c.backend!r}")
+
+
+def extract_code(text: str) -> str:
+    """The code in a fenced block of *text*, preferring ```python, or all of *text*."""
+    import re
+
+    match = re.search(r"```python(.*?)```", text, re.DOTALL) or re.search(
+        r"```(.*?)```", text, re.DOTALL
+    )
+    return (match.group(1) if match else text).strip()
 
 
 # ── Local node definitions ──────────────────────────────────────────────────
@@ -95,12 +116,12 @@ def ListModels(
 
     elif backend == "openai_academic":
         import keyring
-        from aiflow.ai.llm_settings import _list_available_models
+        import openai
 
-        models_list = _list_available_models(
-            api_key=keyring.get_password("openai", "api_key"),
-            api_base=OPENAI_API_BASE,
+        client = openai.OpenAI(
+            api_key=keyring.get_password("openai", "api_key"), base_url=OPENAI_API_BASE
         )
+        models_list = [m.id for m in client.models.list().data]
 
     else:
         raise ValueError(f"Unknown backend: {backend!r}")
@@ -137,8 +158,6 @@ def GenerateCode(task: str = "", model: LLMConfig = None, max_tokens: int = 2000
     """
     import textwrap
     import time
-
-    from aiflow.ai.llm_settings import extract_code
 
     cfg = model if model is not None else _DEFAULT_CONFIG
     prompt = textwrap.dedent(f"""
@@ -207,8 +226,6 @@ def FixCode(
         The repaired Python source, to be re-tested by ``TryCode``.
     """
     import textwrap
-
-    from aiflow.ai.llm_settings import extract_code
 
     prompt = textwrap.dedent(f"""
         The following Python code was written to accomplish this task:
@@ -348,7 +365,7 @@ wf.tasks = TaskList(
     task_3="print all prime numbers below 30",
 )
 
-wf.pool = ThreadPoolExecutorNode(max_workers=3)
+wf.pool = ThreadPoolExecutor(max_workers=3)
 
 wf.agent = CodeAgent(
     task="",
