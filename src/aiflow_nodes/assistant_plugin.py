@@ -14,7 +14,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
-from aiflow.ai.node_library import NodeLibrary
+from aiflow.ai import NodeLibrary
 
 #: Import name of the library this plugin describes.
 PACKAGE = "aiflow_nodes"
@@ -48,7 +48,7 @@ def package_root() -> Path | None:
 
 
 def library(root: str | Path | None = None) -> NodeLibrary | None:
-    """The :class:`~aiflow.ai.node_library.NodeLibrary` for ``aiflow_nodes``.
+    """The :class:`~aiflow.ai.NodeLibrary` for ``aiflow_nodes``.
 
     *root* overrides where the sources are, e.g. a mirror the agent may read.
     ``None`` when the library is not installed.

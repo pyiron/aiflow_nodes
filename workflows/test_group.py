@@ -1,5 +1,4 @@
-from aiflow.core import Workflow, as_function_node
-from aiflow.core.groups import group_node
+from aiflow.core import Workflow, as_function_node, group_node
 
 # ── Local node definitions ──────────────────────
 

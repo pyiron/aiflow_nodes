@@ -12,36 +12,31 @@ control flow, atomistic structure building, DFT/MD engines, executors, and
 more.  Only write a new `@as_function_node` (or dataclass node) when a
 thorough search confirms that nothing equivalent exists.
 
-**Sweeps, control flow, executors and list helpers: use `aiflow.core.stdlib`.**
-`IterToDataFrame`, `iterate`, `branch`, `loop_until`, the executors, `ListOf…`,
-`Range`, `Linspace` and friends exist in `aiflow_nodes` too, but the copies in
-`aiflow.core.stdlib.controls` / `.executors` / `.utilities` are the ones to use.
+**Control flow, executors and list helpers come from `aiflow.core.stdlib`.**
+`Map`, `Branch`, `WhileLoop`, `GetAttribute`, `Print`, `Or`, the executors,
+`ListOf…`, `GetItem`, `Prepend`, `Append`, `Range` and `Linspace` are imported
+from there (`from aiflow.core.stdlib import ThreadPoolExecutor`).
+`aiflow_nodes.controls` adds `IterToDataFrame`, a sweep that collects its cells
+in a DataFrame, and `iterate`, which returns them as a list.
+The nodes that query the result database (`CreateDB`, `ShowTable`, `GetNode`,
+`GetUpstreamGraph`, `GetHash`, …) are in `aiflow.database.nodes`.
 
 ### Package layout
 
 ```
 aiflow_nodes/
-  controls.py          IterToDataFrame, loop_until, iterate, pick_element,
-                       ExtractList, Filter, GetAttribute, SetAttribute,
-                       InputVector, Slice, Code, Print, Sleep
+  controls.py          IterToDataFrame, iterate, pick_element,
+                       ExtractList, Filter, GetMask, SetAttribute,
+                       InputVector, Slice, Code, Sleep
   math_utils.py        Add, Subtract, Multiply, Divide, Linspace, Arange,
                        Range, Sin, Cos, Mean, Sum, Array, Reshape, SVD,
                        DotProduct, Transpose, BSpline, WeightedHistogram, …
-  utilities.py         Index, Prepend, Append, GetItem, ListOf,
-                       ListOfStrings, ListOfIntegers, ListOfFloats,
-                       ListOfBooleans
   dataframe.py         ReadDataFrame, ReadCSV, GetColumnFromDataFrame,
                        GetRowsFromDataFrame, MergeDataFrames,
                        ApplyFunctionToSeries, DisplayDataFrame
   plotting.py          Plot, MultiPlot, Scatter, Histogram, PlotDataFrame,
                        PlotDataFrameXY, ShowArray, LinearFittingCurve,
                        Subplot, Title, MergePlots
-  executors.py         ThreadPoolExecutor, ProcessPoolExecutor, ForkExecutor,
-                       SingleNodeExecutor, FluxClusterExecutor,
-                       SlurmExecutor
-  databases/
-    node_hash_db.py    CreateDB, ShowTable, GetNode, GetUpstreamGraph,
-                       GetHash, DeleteDB
   atomistic/
     structure/build.py       Bulk, Surface, CubicBulkCell, HighIndexSurface
     structure/transform.py   Repeat, RepeatXYZ, ApplyStrain, CreateVacancy,
@@ -259,9 +254,8 @@ grep -rn "Atoms\|pd.DataFrame\|np.ndarray" aiflow_nodes/ --include="*.py" -l
 
 ```python
 # Import by full module path — the node name is the class name (PascalCase)
-from aiflow.core.stdlib.controls       import IterToDataFrame, loop_until
-from aiflow.core.stdlib.executors      import ThreadPoolExecutor
-from aiflow.core.stdlib.utilities      import Linspace
+from aiflow.core.stdlib         import Linspace, ThreadPoolExecutor
+from aiflow_nodes.controls      import IterToDataFrame
 from aiflow_nodes.math_utils    import Add, Mean
 from aiflow_nodes.plotting      import Plot, PlotDataFrame
 from aiflow_nodes.dataframe     import ReadDataFrame, GetColumnFromDataFrame

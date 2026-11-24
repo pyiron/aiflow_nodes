@@ -284,7 +284,7 @@ def _stop_if_cancelled(label: str) -> None:
     raising here comes straight back out of ``dyn.run``; ``Graph.run`` reports
     :class:`GraphCancelled` as *Cancelled* rather than *Failed*.
     """
-    from aiflow.core.cancellation import GraphCancelled, is_cancelled
+    from aiflow.core import GraphCancelled, is_cancelled
 
     if is_cancelled():
         raise GraphCancelled(label)

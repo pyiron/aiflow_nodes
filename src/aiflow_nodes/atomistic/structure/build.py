@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from aiflow.core import as_function_node
-from aiflow.core.groups import group_node
+from aiflow.core import as_function_node, group_node
 from ase.atoms import Atoms
 
 

@@ -43,6 +43,7 @@ def GetT(
     working_directory=".",
 ):
     from aiflow.core import Workflow
+    from aiflow.core.stdlib import GetAttribute
 
     from aiflow_nodes.atomistic.calculator.data import InputCalcMD
     from aiflow_nodes.atomistic.engine.lammps import (
@@ -54,7 +55,7 @@ def GetT(
     )
     from aiflow_nodes.atomistic.structure.build import Bulk
     from aiflow_nodes.atomistic.structure.transform import FixSpecies, Repeat
-    from aiflow_nodes.controls import GetAttribute, pick_element
+    from aiflow_nodes.controls import pick_element
     from aiflow_nodes.math_utils import Mean
 
     inner_wf = Workflow("GetT")

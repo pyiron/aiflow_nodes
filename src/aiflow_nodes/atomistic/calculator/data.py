@@ -1,8 +1,12 @@
 from dataclasses import field
 from typing import Literal
 
-from aiflow.core import as_inp_dataclass_node, as_out_dataclass_node
-from aiflow.core.data_fields import DataArray, EmptyArrayField
+from aiflow.core import (  # pylint: disable=no-name-in-module  # lazy aiflow.core exports
+    DataArray,
+    EmptyArrayField,
+    as_inp_dataclass_node,
+    as_out_dataclass_node,
+)
 
 
 # only conceptual, not truly implemented

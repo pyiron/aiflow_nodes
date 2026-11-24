@@ -52,24 +52,35 @@ def _call_llm(prompt: str, max_tokens: int, cfg: LLMConfig = None) -> str:
     c = cfg if cfg is not None else _DEFAULT_CONFIG
 
     if c.backend == "ollama":
-        from aiflow.ai.llm_settings import _ollama_generate
+        import requests
 
-        return _ollama_generate(
-            model=c.model_name, prompt=prompt, max_tokens=max_tokens
+        resp = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": c.model_name,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0, "num_predict": max_tokens},
+            },
+            timeout=120,
         )
+        resp.raise_for_status()
+        return resp.json().get("response", "")
 
     if c.backend == "openai_academic":
         import keyring
-        from aiflow.ai.llm_settings import _openai_generate
+        import openai
 
-        content, _ = _openai_generate(
-            model=c.model_name,
-            prompt=prompt,
-            max_tokens=max_tokens,
-            api_key=keyring.get_password("openai", "api_key"),
-            api_base=_OPENAI_API_BASE,
+        client = openai.OpenAI(
+            api_key=keyring.get_password("openai", "api_key"), base_url=_OPENAI_API_BASE
         )
-        return content
+        response = client.chat.completions.create(
+            model=c.model_name,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=0,
+        )
+        return response.choices[0].message.content or ""
 
     raise ValueError(f"Unknown LLM backend: {c.backend!r}")
 
@@ -90,13 +101,14 @@ def ListModels(
             model_name = _DEFAULT_CONFIG.model_name
     elif backend == "openai_academic":
         import keyring
-        from aiflow.ai.llm_settings import _list_available_models
+        import openai
 
         try:
-            names = _list_available_models(
+            client = openai.OpenAI(
                 api_key=keyring.get_password("openai", "api_key"),
-                api_base=_OPENAI_API_BASE,
+                base_url=_OPENAI_API_BASE,
             )
+            names = [m.id for m in client.models.list().data]
             model_name = names[index] if names else "openai-gpt-oss-120b"
         except Exception:
             model_name = "openai-gpt-oss-120b"

@@ -8,11 +8,12 @@ looks at what this library imports itself.
 
 import ast
 
-from aiflow.ai.node_library import DEFAULT_EXCLUDE
-
 from aiflow_nodes.assistant_plugin import package_root
 
 LIBRARY_ROOT = package_root()
+
+#: Directories that hold no library code, such as Jupyter's checkpoint copies.
+SKIPPED = ("__pycache__", ".ipynb_checkpoints")
 
 #: Packages measured to add noticeable import time on top of the core stack.
 HEAVY = (
@@ -76,7 +77,7 @@ def _heavy_imports():
     """``(path, line, imported name, heavy package)`` for every module-level hit."""
     for path in sorted(LIBRARY_ROOT.rglob("*.py")):
         rel = path.relative_to(LIBRARY_ROOT)
-        if any(part in DEFAULT_EXCLUDE for part in rel.parts):
+        if any(part in SKIPPED for part in rel.parts):
             continue
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for stmt in _module_level_imports(tree.body):

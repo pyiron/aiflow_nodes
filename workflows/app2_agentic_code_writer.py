@@ -29,11 +29,19 @@ from aiflow.core import Workflow, as_function_node
 # --------------------------------------------------------------------------- #
 
 
+def extract_code(text: str) -> str:
+    """The code in a fenced block of *text*, preferring ```python, or all of *text*."""
+    import re
+
+    match = re.search(r"```python(.*?)```", text, re.DOTALL) or re.search(
+        r"```(.*?)```", text, re.DOTALL
+    )
+    return (match.group(1) if match else text).strip()
+
+
 @as_function_node("code")
 def GenerateCode(task: str, call_llm=None, max_tokens: int = 2000):
     """Ask the LLM to write Python code for *task*."""
-    from aiflow.ai.llm_settings import extract_code
-
     prompt = textwrap.dedent(f"""
         Write Python code to accomplish the following task.
         Return ONLY a fenced ```python code block — no explanation.
@@ -60,8 +68,6 @@ def TryCode(code: str):
 @as_function_node("code")
 def FixCode(task: str, code: str, error: str, call_llm=None, max_tokens: int = 2000):
     """Ask the LLM to repair *code* given the *error* it produced."""
-    from aiflow.ai.llm_settings import extract_code
-
     prompt = textwrap.dedent(f"""
         The following Python code for the task below raised an error.
         Return ONLY a corrected fenced ```python code block.
