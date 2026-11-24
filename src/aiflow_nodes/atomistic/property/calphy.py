@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass, replace
 
 import numpy as np
 import pandas as pd
-from aiflow.core import (
+from aiflow.core import (  # pylint: disable=no-name-in-module  # lazy aiflow.core exports
     EmptyArrayField,
     as_function_node,
     as_inp_dataclass_node,

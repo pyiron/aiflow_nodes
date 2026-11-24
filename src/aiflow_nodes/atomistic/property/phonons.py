@@ -1,5 +1,5 @@
 import numpy as np
-from aiflow.core import (
+from aiflow.core import (  # pylint: disable=no-name-in-module  # lazy aiflow.core exports
     DataArray,
     EmptyArrayField,
     as_function_node,

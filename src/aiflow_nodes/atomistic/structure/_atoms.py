@@ -57,7 +57,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from aiflow.core import DataArray, EmptyArrayField
+from aiflow.core import DataArray, EmptyArrayField  # pylint: disable=no-name-in-module  # lazy aiflow.core exports
 from ase.atoms import Atoms
 
 # ---------------------------------------------------------------------------
