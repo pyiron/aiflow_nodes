@@ -535,7 +535,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.2-pyh5ded981_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=1b8d2377f30b68e9967df6e225b813b2e544b310#1b8d2377f30b68e9967df6e225b813b2e544b310
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
       - pypi: https://files.pythonhosted.org/packages/1e/96/9f8fa839c169d19c38ce6582d9449f2d7d70dabd313ac28f15a930260c1f/black-26.10.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/bf/3c/2d5297d82286f6f3d92770289fd439956b201c0a4fc7e72efb9b2293758e/pytokens-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -988,7 +988,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=1b8d2377f30b68e9967df6e225b813b2e544b310#1b8d2377f30b68e9967df6e225b813b2e544b310
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/41/5d/e44573011401fb82e9d51e97f1290ceb377800fb4eed650b96f4753b499c/pytokens-0.4.1-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/a5/a2/4709110a7ca326ba7b4f81a669fbebc20653c79a972b0f8de4ba5b5c5e68/black-26.10.1-cp312-cp312-macosx_11_0_arm64.whl
@@ -1582,7 +1582,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.2-pyh5ded981_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=1b8d2377f30b68e9967df6e225b813b2e544b310#1b8d2377f30b68e9967df6e225b813b2e544b310
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
       - pypi: https://files.pythonhosted.org/packages/1e/96/9f8fa839c169d19c38ce6582d9449f2d7d70dabd313ac28f15a930260c1f/black-26.10.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/bf/3c/2d5297d82286f6f3d92770289fd439956b201c0a4fc7e72efb9b2293758e/pytokens-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -2023,7 +2023,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=1b8d2377f30b68e9967df6e225b813b2e544b310#1b8d2377f30b68e9967df6e225b813b2e544b310
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/41/5d/e44573011401fb82e9d51e97f1290ceb377800fb4eed650b96f4753b499c/pytokens-0.4.1-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/a5/a2/4709110a7ca326ba7b4f81a669fbebc20653c79a972b0f8de4ba5b5c5e68/black-26.10.1-cp312-cp312-macosx_11_0_arm64.whl
@@ -2076,7 +2076,7 @@ packages:
   - python_abi 3.12.* *_cp312
   license: MIT AND Apache-2.0
   purls:
-  - pkg:pypi/aiohttp?source=compressed-mapping
+  - pkg:pypi/aiohttp?source=hash-mapping
   run_exports: {}
   size: 1240813
   timestamp: 1791734313039
@@ -4881,7 +4881,7 @@ packages:
   license: Apache-2.0
   license_family: APACHE
   purls:
-  - pkg:pypi/multidict?source=compressed-mapping
+  - pkg:pypi/multidict?source=hash-mapping
   run_exports: {}
   size: 279956
   timestamp: 1793017932775
@@ -5244,7 +5244,7 @@ packages:
   license: Apache-2.0
   license_family: APACHE
   purls:
-  - pkg:pypi/propcache?source=compressed-mapping
+  - pkg:pypi/propcache?source=hash-mapping
   run_exports: {}
   size: 62187
   timestamp: 1792906386198
@@ -6228,7 +6228,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/ukkonen?source=compressed-mapping
+  - pkg:pypi/ukkonen?source=hash-mapping
   run_exports: {}
   size: 17718
   timestamp: 1793037115940
@@ -6752,7 +6752,7 @@ packages:
   license: Apache-2.0
   license_family: Apache
   purls:
-  - pkg:pypi/yarl?source=compressed-mapping
+  - pkg:pypi/yarl?source=hash-mapping
   run_exports: {}
   size: 185237
   timestamp: 1791286177020
@@ -7759,7 +7759,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/hatchling?source=compressed-mapping
+  - pkg:pypi/hatchling?source=hash-mapping
   run_exports: {}
   size: 62916
   timestamp: 1793191159729
@@ -8015,7 +8015,7 @@ packages:
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/ipython?source=compressed-mapping
+  - pkg:pypi/ipython?source=hash-mapping
   run_exports: {}
   size: 730678
   timestamp: 1788260388285
@@ -8874,7 +8874,7 @@ packages:
   license: BSD-3-Clause
   license_family: BSD
   purls:
-  - pkg:pypi/nbclient?source=hash-mapping
+  - pkg:pypi/nbclient?source=compressed-mapping
   run_exports: {}
   size: 29971
   timestamp: 1788212974885
@@ -10370,7 +10370,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/typing-inspection?source=compressed-mapping
+  - pkg:pypi/typing-inspection?source=hash-mapping
   run_exports: {}
   size: 21070
   timestamp: 1786818918217
@@ -14161,7 +14161,7 @@ packages:
   - seaborn ; extra == 'viz'
   - aiflow-nodes[lammps,vasp,structure,thermodynamics,ml,assyst,gpaw,pyiron,database,viz] ; extra == 'all'
   requires_python: '>=3.11'
-- pypi: git+https://github.com/pyiron/aiflow.git?rev=1b8d2377f30b68e9967df6e225b813b2e544b310#1b8d2377f30b68e9967df6e225b813b2e544b310
+- pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
   name: aiflow
   version: 0.1.0
   requires_dist:
@@ -14177,15 +14177,13 @@ packages:
   - requests ; extra == 'ai'
   - mcp>=2 ; extra == 'ai'
   - anyio ; extra == 'ai'
-  - sqlalchemy ; extra == 'database'
-  - psycopg2-binary ; extra == 'database'
-  - neo4j ; extra == 'database'
+  - sqlalchemy>=2.1 ; extra == 'database'
+  - psycopg[binary] ; extra == 'database'
   - aiflow[ai,database] ; extra == 'gui'
   - anywidget ; extra == 'gui'
   - traitlets ; extra == 'gui'
   - ipython ; extra == 'gui'
   - ipywidgets ; extra == 'gui'
-  - ipytree ; extra == 'gui'
   - pygments ; extra == 'gui'
   - sim-atlas==0.0.19 ; extra == 'gui'
   - sim-atlas-toolkit==0.0.19 ; extra == 'gui'
