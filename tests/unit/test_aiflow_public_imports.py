@@ -71,7 +71,11 @@ def test_aiflow_is_imported_only_through_its_public_names():
     imports = [
         (path, *imp) for path, source in _sources() for imp in _aiflow_imports(source)
     ]
-    assert imports, "the scan found no aiflow import at all"
+    # Every scanned root, and the notebooks, take part, so a scan that loses
+    # one of them fails here instead of passing quietly.
+    scanned = {path.relative_to(REPO).parts[0] for path, *_ in imports}
+    assert scanned == set(SCANNED)
+    assert any(path.suffix == ".ipynb" for path, *_ in imports)
     private = [
         f"{path.relative_to(REPO)}:{line}: "
         + (f"import {module}" if name is None else f"from {module} import {name}")

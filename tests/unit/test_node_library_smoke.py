@@ -43,7 +43,9 @@ WORKFLOW_GUIDE = importlib.resources.files("aiflow.ai") / "guides/llm_workflow_g
 #: Directories that hold no library code, such as Jupyter's checkpoint copies.
 SCAN_EXCLUDE = ("__pycache__", ".ipynb_checkpoints")
 
-#: Decorators that make a callable a node.
+#: Decorators that make a callable a node: a copy of the list aiflow's node
+#: index uses (``aiflow.ai.node_library.NODE_DECORATORS``, not public).  Keep it
+#: in step, or nodes made with a new decorator drop out of these checks.
 NODE_DECORATORS = (
     "as_function_node",
     "as_macro_node",
