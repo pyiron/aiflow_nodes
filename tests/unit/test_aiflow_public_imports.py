@@ -22,19 +22,31 @@ PUBLIC_PACKAGES = (
     "aiflow.database.nodes",
     "aiflow.ai",
 )
+#: Directories that hold no code of this repository, such as Jupyter's checkpoints.
+SKIPPED = ("__pycache__", ".ipynb_checkpoints")
+
+
+def _files(root, pattern):
+    for path in sorted((REPO / root).rglob(pattern)):
+        if not any(part in SKIPPED for part in path.parts):
+            yield path
 
 
 def _sources():
     """(path, source) of every Python file and notebook code cell."""
     for root in SCANNED:
-        for path in sorted((REPO / root).rglob("*.py")):
+        for path in _files(root, "*.py"):
             yield path, path.read_text(encoding="utf-8")
-        for path in sorted((REPO / root).rglob("*.ipynb")):
+        for path in _files(root, "*.ipynb"):
             notebook = json.loads(path.read_text(encoding="utf-8"))
             for cell in notebook["cells"]:
                 if cell["cell_type"] == "code":
                     lines = cell["source"]
-                    lines = lines.splitlines() if isinstance(lines, str) else lines
+                    lines = (
+                        lines.splitlines(keepends=True)
+                        if isinstance(lines, str)
+                        else lines
+                    )
                     # IPython magics and shell escapes are not Python.
                     code = "".join(
                         "\n" if line.lstrip().startswith(("%", "!")) else line

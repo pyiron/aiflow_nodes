@@ -276,6 +276,17 @@ def test_outputs_are_expanded_into_columns_and_failures_recorded(
     pd.testing.assert_frame_equal(sweep.outputs.df.value, expected, check_dtype=False)
 
 
+def test_swept_dataclass_values_stay_in_their_input_column():
+    # Only outputs are spread into columns; a swept value is recorded whole.
+    cells = [Stats.pure_dataclass(lo=1, hi=2), Stats.pure_dataclass(lo=3, hi=4)]
+    sweep = IterToDataFrame(node=Echo(), input_label="v", values=cells)
+    sweep.run()
+    df = sweep.outputs.df.value
+    assert list(df.columns) == ["v", "lo", "hi"]
+    assert df["v"].tolist() == cells
+    assert df["hi"].tolist() == [2, 4]
+
+
 @pytest.mark.parametrize("template", [Square, Pair, MakeStats])
 def test_iterate_returns_what_the_template_returns_for_each_cell(template, executor):
     expected = [template(x=x).run() for x in (1, 3, 4)]

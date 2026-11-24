@@ -14,14 +14,14 @@ import pandas as pd
 from aiflow.core import Node, as_function_node, run_sweep, sweep_records
 
 
-def _expand_dataclass_columns(columns: dict) -> dict:
-    """Replace every column of dataclass instances by one column per field."""
+def _expand_dataclass_columns(columns: dict, outputs: list[str]) -> dict:
+    """Replace every output column of dataclass instances by one column per field."""
     expanded = {}
     for key, column in columns.items():
         first = next(
             (v for v in column if is_dataclass(v) and not isinstance(v, type)), None
         )
-        if first is None:
+        if key not in outputs or first is None:
             expanded[key] = column
             continue
         for field in fields(first):
@@ -178,7 +178,7 @@ def IterToDataFrame(
         key: [record[key] for record in records]
         for key in (records[0] if records else {})
     }
-    columns = _expand_dataclass_columns(columns)
+    columns = _expand_dataclass_columns(columns, output_labels)
     if any(error is not None for error in errors):
         columns["error"] = ["" if error is None else error for error in errors]
 
