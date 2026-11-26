@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
 import pytest
-from aiflow.core import as_function_node, as_out_dataclass_node
+from aiflow.core import as_function_node, as_out_dataclass_node, get_hash
 
 from aiflow_nodes.controls import IterToDataFrame, iterate
 
@@ -141,14 +141,13 @@ def test_swept_ports_are_restored_after_the_sweep(parallel, cells):
 
 
 def test_the_sweep_hash_does_not_depend_on_run_history():
-    pdb = pytest.importorskip("aiflow.database")
     template = Affine(b=1.0)
     sweep = IterToDataFrame(
         node=template, input_label="x,a", values=[(1.0, 2.0), (3.0, 4.0)]
     )
-    before = pdb.get_hash(template)
+    before = get_hash(template)
     sweep.run()
-    assert pdb.get_hash(template) == before
+    assert get_hash(template) == before
 
 
 def test_a_set_swept_port_is_reported_as_ignored(caplog):

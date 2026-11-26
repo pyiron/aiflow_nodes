@@ -103,7 +103,8 @@ def model_comparison():
         wf = Workflow("ml_benchmark")
         wf.estimator = est
         wf.bench = benchmark(estimator=wf.estimator, folds=5)
-        name, rmse, std = wf.run()
+        bench = wf.run()["bench"]
+        name, rmse, std = bench["name"], bench["cv_rmse"], bench["cv_std"]
         rows.append({"model": name, "cv_rmse": rmse, "cv_std": std})
     return pd.DataFrame(rows).sort_values("cv_rmse").reset_index(drop=True)
 

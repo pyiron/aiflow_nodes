@@ -13,7 +13,7 @@ Usage::
 
     # from the repository root
     exec(open("workflows/argyrodite_intelligence.py").read())
-    result = wf.run()
+    results = wf.run()  # {node label: {output port: value}}
     print(wf.report.outputs.report_path.value)
 """
 

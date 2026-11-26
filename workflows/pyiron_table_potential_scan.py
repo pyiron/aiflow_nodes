@@ -57,4 +57,4 @@ if __name__ == "__main__":
         sys.exit(f"usage: python {sys.argv[0]} <path to pyiron project>")
     wf = make_workflow(project_path=sys.argv[1])
     out = wf.run()
-    print(out)
+    print(out["BuildTable"]["table"])

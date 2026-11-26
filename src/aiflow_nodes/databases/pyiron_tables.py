@@ -50,7 +50,7 @@ as plain Python objects they do not pull their upstream outputs.
         functions=wf.Potential,
         db_filter_function=wf.DbFilterFunction,
     )
-    table = wf.run()
+    table = wf.run()["BuildTable"]["table"]
 
 A complete example is ``workflows/pyiron_table_potential_scan.py``.
 
