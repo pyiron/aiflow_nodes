@@ -51,11 +51,9 @@ found again.
   - an empty `values` gives a DataFrame without columns.
 - aiflow_nodes requires aiflow with the `store=` API (pyiron/aiflow#170).
   `Workflow.run()` returns `{node label: {output port: value}}` for every
-  node instead of the last node's output, so `workflows/` read their results
-  by label, e.g. `wf.run()["BuildTable"]["table"]` in the docstring of
-  `aiflow_nodes.databases.pyiron_tables`.  A workflow's store is
+  node instead of the last node's output, and a workflow's store is
   `Workflow(name, store=…)` or `wf.run(store=…)` (an `aiflow.core.FileStore`
-  or an `aiflow.database.PostgreSQLInstanceDatabase`), no longer `db=` or
+  or an `aiflow.database.PostgreSQLInstanceDatabase`) instead of `db=` or
   `storage_path=`.
 
 ## Development

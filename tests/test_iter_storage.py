@@ -160,16 +160,16 @@ SWEEPS = {
 }
 
 
-def _sweep_workflow(template, sweep="IterToDataFrame", executor=None):
-    """A workflow file's sweep, run as the GUI runs it: on a *copy*, which the
-    tests run with ``run(store=db)``.
+def _sweep_workflow(template, sweep="IterToDataFrame", executor=None, store=None):
+    """A workflow file's sweep, run as the GUI runs it: on a *copy*, which
+    holds *store* if given, else the tests run it with ``run(store=db)``.
 
     The copy shares its nodes with the original, so the template's own graph
     has no database; the sweep has to store into the database of the run
     executing it.
     """
     node_class, _ = SWEEPS[sweep]
-    wf = Workflow("cells")
+    wf = Workflow("cells", store=store)
     wf.T = template
     kwargs = {}
     if executor is not None:
@@ -183,21 +183,42 @@ def _result(wf, sweep="IterToDataFrame"):
     return SWEEPS[sweep][1](wf.Iter)
 
 
+#: How a run is given its store: held by the workflow, or passed to the run.
+GIVEN = ["Workflow(store=)", "run(store=)"]
+
+
+def _given_sweep(given, db, *args):
+    """``_sweep_workflow(*args)`` and how to run it with *db*, given *given*."""
+    if given == "Workflow(store=)":
+        wf = _sweep_workflow(*args, store=db)
+        return wf, wf.run
+    wf = _sweep_workflow(*args)
+    return wf, lambda: wf.run(store=db)
+
+
+def _nothing_stored(db, tmp):
+    """No cell was stored: no file, and, in a database, no row."""
+    assert list(pathlib.Path(tmp).glob("*.hdf5")) == []
+    if isinstance(db, MemDB):
+        assert _cells(db) == []
+
+
 def _cells(db):
     """Cell rows: the template's instances, each linked to the sweep."""
     return [r for r in db.rows.values() if r.qualname == "Square" and r.master_hash]
 
 
+@pytest.mark.parametrize("store", ["FileStore", "CheckpointStore"])
 @pytest.mark.parametrize("sweep", sorted(SWEEPS))
-def test_cells_are_not_stored_unless_the_template_asks(sweep):
+def test_cells_are_not_stored_unless_the_template_asks(sweep, store):
     with tempfile.TemporaryDirectory() as tmp:
         EXEC["n"] = 0
-        db = MemDB(tmp)
+        db = STORES[store](tmp)
         wf = _sweep_workflow(Square(), sweep)
         wf.run(store=db)
         assert _result(wf, sweep) == [1, 4, 9]
         assert EXEC["n"] == 3
-        assert _cells(db) == []
+        _nothing_stored(db, tmp)
 
 
 #: The stores a sweep's cells go into: a directory of files, and a database,
@@ -237,14 +258,15 @@ def test_every_cell_is_stored_linked_to_its_sweep_and_restored(sweep, mode, stor
         executor.shutdown()
 
 
-def test_no_cells_are_stored_when_recording_is_off():
+@pytest.mark.parametrize("store", ["FileStore", "CheckpointStore"])
+def test_no_cells_are_stored_when_recording_is_off(store):
     with tempfile.TemporaryDirectory() as tmp:
-        db = MemDB(tmp)
+        db = STORES[store](tmp)
         wf = _sweep_workflow(stored(Square()))
         wf.storage_enabled = False
         wf.run(store=db)
         assert _result(wf) == [1, 4, 9]
-        assert _cells(db) == []
+        _nothing_stored(db, tmp)
 
 
 # ---------------------------------------------------------------------------
@@ -252,33 +274,37 @@ def test_no_cells_are_stored_when_recording_is_off():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("given", GIVEN)
 @pytest.mark.parametrize("sweep", sorted(SWEEPS))
-def test_remote_sweep_never_ships_the_database(sweep):
-    """An attached db must not travel with the task: it hung GUI sweeps."""
+def test_remote_sweep_never_ships_the_database(sweep, given):
+    """The run's database must not travel with the task: it hung GUI sweeps."""
     with tempfile.TemporaryDirectory() as tmp:
         pool = PicklingExecutor()
         db = LockedDB(tmp)
-        wf = _sweep_workflow(Square(), sweep, pool)
-        wf.run(store=db)
+        wf, run = _given_sweep(given, db, Square(), sweep, pool)
+        run()
         assert _result(wf, sweep) == [1, 4, 9]
         assert pool.submitted == 3
         assert _cells(db) == []
 
 
+@pytest.mark.parametrize("given", GIVEN)
 @pytest.mark.parametrize("store", ["FileStore", "LockedDB"])
 @pytest.mark.parametrize("sweep", sorted(SWEEPS))
-def test_remote_cells_restored_on_the_client_are_not_submitted_again(sweep, store):
+def test_remote_cells_restored_on_the_client_are_not_submitted_again(
+    sweep, store, given
+):
     with tempfile.TemporaryDirectory() as tmp:
         db = {"FileStore": FileStore, "LockedDB": LockedDB}[store](tmp)
-        first = _sweep_workflow(stored(Square()), sweep, PicklingExecutor())
-        first.run(store=db)
+        _, run = _given_sweep(given, db, stored(Square()), sweep, PicklingExecutor())
+        run()
         assert len(list(pathlib.Path(tmp).glob("*.hdf5"))) == 3
         if isinstance(db, MemDB):
             assert len(_cells(db)) == 3
 
         pool = PicklingExecutor()
-        again = _sweep_workflow(stored(Square()), sweep, pool)
-        again.run(store=db)
+        again, run = _given_sweep(given, db, stored(Square()), sweep, pool)
+        run()
         assert _result(again, sweep) == [1, 4, 9]
         assert pool.submitted == 0
 
