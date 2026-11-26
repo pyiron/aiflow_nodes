@@ -535,7 +535,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.2-pyh5ded981_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa#f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa
       - pypi: https://files.pythonhosted.org/packages/1e/96/9f8fa839c169d19c38ce6582d9449f2d7d70dabd313ac28f15a930260c1f/black-26.10.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/bf/3c/2d5297d82286f6f3d92770289fd439956b201c0a4fc7e72efb9b2293758e/pytokens-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -988,7 +988,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa#f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/41/5d/e44573011401fb82e9d51e97f1290ceb377800fb4eed650b96f4753b499c/pytokens-0.4.1-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/a5/a2/4709110a7ca326ba7b4f81a669fbebc20653c79a972b0f8de4ba5b5c5e68/black-26.10.1-cp312-cp312-macosx_11_0_arm64.whl
@@ -1582,7 +1582,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/xmltodict-1.0.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.2-pyh5ded981_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa#f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa
       - pypi: https://files.pythonhosted.org/packages/1e/96/9f8fa839c169d19c38ce6582d9449f2d7d70dabd313ac28f15a930260c1f/black-26.10.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/bf/3c/2d5297d82286f6f3d92770289fd439956b201c0a4fc7e72efb9b2293758e/pytokens-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -2023,7 +2023,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-h31dac16_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       - pypi: ./
-      - pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
+      - pypi: git+https://github.com/pyiron/aiflow.git?rev=f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa#f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa
       - pypi: https://files.pythonhosted.org/packages/2c/70/ae410e123c9dbc9123bcaa9065ad6aab0e7b3fc9ebb25a94dd74f302b9d3/pysqa-1.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/41/5d/e44573011401fb82e9d51e97f1290ceb377800fb4eed650b96f4753b499c/pytokens-0.4.1-cp312-cp312-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/a5/a2/4709110a7ca326ba7b4f81a669fbebc20653c79a972b0f8de4ba5b5c5e68/black-26.10.1-cp312-cp312-macosx_11_0_arm64.whl
@@ -11101,7 +11101,7 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/fonttools?source=compressed-mapping
+  - pkg:pypi/fonttools?source=hash-mapping
   run_exports: {}
   size: 3136736
   timestamp: 1793164575241
@@ -13024,7 +13024,7 @@ packages:
   - libwebp-base >=1.6.0,<2.0a0
   license: HPND
   purls:
-  - pkg:pypi/pillow?source=compressed-mapping
+  - pkg:pypi/pillow?source=hash-mapping
   run_exports: {}
   size: 1002173
   timestamp: 1792425751727
@@ -14161,7 +14161,7 @@ packages:
   - seaborn ; extra == 'viz'
   - aiflow-nodes[lammps,vasp,structure,thermodynamics,ml,assyst,gpaw,pyiron,database,viz] ; extra == 'all'
   requires_python: '>=3.11'
-- pypi: git+https://github.com/pyiron/aiflow.git?rev=8a9b94147c670b4fc169b1033ad78f8322609655#8a9b94147c670b4fc169b1033ad78f8322609655
+- pypi: git+https://github.com/pyiron/aiflow.git?rev=f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa#f7dba8031dcd4b5ca6a32867f78cacc2acd2fefa
   name: aiflow
   version: 0.1.0
   requires_dist:
