@@ -10,8 +10,8 @@ Raw ASE :class:`~ase.atoms.Atoms` objects are not picklable when they
 carry an attached calculator, and they cannot be stored in pandas
 DataFrames that need to round-trip through the hash-based storage layer.
 :class:`OutputAtoms` is a plain Python dataclass (symbols, positions,
-cell, pbc) that IS picklable and works transparently with
-``aiflow.database``.
+cell, pbc) that IS picklable and works transparently with aiflow's
+result stores (``aiflow.core.FileStore``, ``aiflow.database``).
 
 Public API
 ----------
