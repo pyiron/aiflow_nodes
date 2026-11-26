@@ -1,9 +1,10 @@
 """Per-cell storage of ``iterate`` and ``IterToDataFrame`` sweeps.
 
-A template with ``store=True`` stores every cell as its own row, linked to the
-sweep, and a re-run restores the cells instead of executing them.  The sweeps
-run in a ``Workflow`` against an in-memory database double, so no PostgreSQL
-server is required.  Everything here goes through the public nodes, so it
+A template with ``store=True`` stores every cell in the run's store (in a
+database, as its own row, linked to the sweep), and a re-run restores the cells
+instead of executing them.  The sweeps run in a ``Workflow`` against a
+``FileStore`` and an in-memory database double, so no PostgreSQL server is
+required.  Everything here goes through the public nodes, so it
 characterizes the behaviour whichever sweep engine is underneath.
 """
 
@@ -161,12 +162,12 @@ SWEEPS = {
 
 
 def _sweep_workflow(template, sweep="IterToDataFrame", executor=None, store=None):
-    """A workflow file's sweep, run as the GUI runs it: on a *copy*, which
-    holds *store* if given, else the tests run it with ``run(store=db)``.
+    """A workflow file's sweep, run as the GUI runs it: on a *copy*.
 
-    The copy shares its nodes with the original, so the template's own graph
-    has no database; the sweep has to store into the database of the run
-    executing it.
+    The store reaches the sweep either through the workflow (*store*, which
+    the copy inherits) or only through ``run(store=)``, as when the GUI runs a
+    workflow on its database: then the template's own graph has no store, and
+    the sweep has to store into the store of the run executing it.
     """
     node_class, _ = SWEEPS[sweep]
     wf = Workflow("cells", store=store)
@@ -182,6 +183,10 @@ def _sweep_workflow(template, sweep="IterToDataFrame", executor=None, store=None
 def _result(wf, sweep="IterToDataFrame"):
     return SWEEPS[sweep][1](wf.Iter)
 
+
+#: The stores a sweep's cells go into: a directory of files, and a database,
+#: which also keeps a row per cell.
+STORES = {"FileStore": FileStore, "CheckpointStore": MemDB}
 
 #: How a run is given its store: held by the workflow, or passed to the run.
 GIVEN = ["Workflow(store=)", "run(store=)"]
@@ -208,28 +213,27 @@ def _cells(db):
     return [r for r in db.rows.values() if r.qualname == "Square" and r.master_hash]
 
 
-@pytest.mark.parametrize("store", ["FileStore", "CheckpointStore"])
+@pytest.mark.parametrize("given", GIVEN)
+@pytest.mark.parametrize("store", sorted(STORES))
 @pytest.mark.parametrize("sweep", sorted(SWEEPS))
-def test_cells_are_not_stored_unless_the_template_asks(sweep, store):
+def test_cells_are_not_stored_unless_the_template_asks(sweep, store, given):
     with tempfile.TemporaryDirectory() as tmp:
         EXEC["n"] = 0
         db = STORES[store](tmp)
-        wf = _sweep_workflow(Square(), sweep)
-        wf.run(store=db)
+        wf, run = _given_sweep(given, db, Square(), sweep)
+        run()
         assert _result(wf, sweep) == [1, 4, 9]
         assert EXEC["n"] == 3
         _nothing_stored(db, tmp)
 
 
-#: The stores a sweep's cells go into: a directory of files, and a database,
-#: which also keeps a row per cell.
-STORES = {"FileStore": FileStore, "CheckpointStore": MemDB}
-
-
+@pytest.mark.parametrize("given", GIVEN)
 @pytest.mark.parametrize("store", sorted(STORES))
 @pytest.mark.parametrize("sweep", sorted(SWEEPS))
 @pytest.mark.parametrize("mode", ["sequential", "threads", "remote"])
-def test_every_cell_is_stored_linked_to_its_sweep_and_restored(sweep, mode, store):
+def test_every_cell_is_stored_linked_to_its_sweep_and_restored(
+    sweep, mode, store, given
+):
     executor = {
         "sequential": None,
         "threads": ThreadPoolExecutor(max_workers=2),
@@ -237,8 +241,8 @@ def test_every_cell_is_stored_linked_to_its_sweep_and_restored(sweep, mode, stor
     }[mode]
     with tempfile.TemporaryDirectory() as tmp:
         db = STORES[store](tmp)
-        wf = _sweep_workflow(stored(Square()), sweep, executor)
-        wf.run(store=db)
+        wf, run = _given_sweep(given, db, stored(Square()), sweep, executor)
+        run()
         assert _result(wf, sweep) == [1, 4, 9]
         if isinstance(db, MemDB):
             cells = _cells(db)
@@ -248,7 +252,7 @@ def test_every_cell_is_stored_linked_to_its_sweep_and_restored(sweep, mode, stor
 
         # A second run over the same values restores every cell.
         EXEC["n"] = 0
-        wf.run(store=db)
+        run()
         assert _result(wf, sweep) == [1, 4, 9]
         if mode != "remote":  # remote cells run in copies; no counter here
             assert EXEC["n"] == 0
@@ -258,13 +262,14 @@ def test_every_cell_is_stored_linked_to_its_sweep_and_restored(sweep, mode, stor
         executor.shutdown()
 
 
-@pytest.mark.parametrize("store", ["FileStore", "CheckpointStore"])
-def test_no_cells_are_stored_when_recording_is_off(store):
+@pytest.mark.parametrize("given", GIVEN)
+@pytest.mark.parametrize("store", sorted(STORES))
+def test_no_cells_are_stored_when_recording_is_off(store, given):
     with tempfile.TemporaryDirectory() as tmp:
         db = STORES[store](tmp)
-        wf = _sweep_workflow(stored(Square()))
+        wf, run = _given_sweep(given, db, stored(Square()))
         wf.storage_enabled = False
-        wf.run(store=db)
+        run()
         assert _result(wf) == [1, 4, 9]
         _nothing_stored(db, tmp)
 
@@ -272,6 +277,11 @@ def test_no_cells_are_stored_when_recording_is_off(store):
 # ---------------------------------------------------------------------------
 # Out-of-process executors (Slurm, Flux, process pools)
 # ---------------------------------------------------------------------------
+
+
+#: Stores for remote sweeps: the database holds a lock, as a real handle does,
+#: so shipping it with a task would fail.
+REMOTE_STORES = {"FileStore": FileStore, "LockedDB": LockedDB}
 
 
 @pytest.mark.parametrize("given", GIVEN)
@@ -289,13 +299,13 @@ def test_remote_sweep_never_ships_the_database(sweep, given):
 
 
 @pytest.mark.parametrize("given", GIVEN)
-@pytest.mark.parametrize("store", ["FileStore", "LockedDB"])
+@pytest.mark.parametrize("store", sorted(REMOTE_STORES))
 @pytest.mark.parametrize("sweep", sorted(SWEEPS))
 def test_remote_cells_restored_on_the_client_are_not_submitted_again(
     sweep, store, given
 ):
     with tempfile.TemporaryDirectory() as tmp:
-        db = {"FileStore": FileStore, "LockedDB": LockedDB}[store](tmp)
+        db = REMOTE_STORES[store](tmp)
         _, run = _given_sweep(given, db, stored(Square()), sweep, PicklingExecutor())
         run()
         assert len(list(pathlib.Path(tmp).glob("*.hdf5"))) == 3
