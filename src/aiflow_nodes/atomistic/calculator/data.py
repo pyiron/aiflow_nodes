@@ -42,6 +42,14 @@ class OutputCalcStatic:
             log_level=0, doc="per atom energy, only if supported by calculator"
         ),
     )
+    computes: dict | None = field(
+        default=None,
+        metadata=wfMetaData(
+            log_level=10,
+            doc="per-atom compute columns from the dump: {name: (N,) or (N, k)}, "
+            "raw LAMMPS units",
+        ),
+    )
 
 
 @as_out_dataclass_node
@@ -93,6 +101,14 @@ class OutputCalcMD:
     velocities: DataArray = EmptyArrayField()
     volumes: DataArray = EmptyArrayField()
     species: DataArray = EmptyArrayField()
+    computes: dict | None = field(
+        default=None,
+        metadata=wfMetaData(
+            log_level=10,
+            doc="per-atom compute columns per dump frame: {name: (n_frames, N) or "
+            "(n_frames, N, k)}, raw LAMMPS units",
+        ),
+    )
 
 
 @as_out_dataclass_node

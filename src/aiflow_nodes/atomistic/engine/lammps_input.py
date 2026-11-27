@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+import numpy as np
 import pandas as pd
 from aiflow.core import as_function_node
 from lammpsparser.units import LAMMPS_UNIT_CONVERSIONS
@@ -43,6 +44,15 @@ def _render(template_name: str, **context) -> str:
     return rendered.rstrip("\n") + "\n"
 
 
+def _fix_ids_in(text: str) -> list[str]:
+    """Fix ids named in the `fix <id> ...` lines of a rendered section."""
+    return [
+        line.split()[1]
+        for line in text.splitlines()
+        if line.startswith("fix ") and len(line.split()) > 1
+    ]
+
+
 def _inherit(value, io_bundle: LammpsIOBundle, field: str, *calc_classes):
     """Resolve one section parameter.
 
@@ -58,6 +68,42 @@ def _inherit(value, io_bundle: LammpsIOBundle, field: str, *calc_classes):
     if any(isinstance(calc, cls._original_dataclass) for cls in calc_classes):
         return getattr(calc, field)
     return getattr(calc_classes[0]._original_dataclass(), field)
+
+
+# fix box/relax keywords for the pressure components [xx, yy, zz, xy, xz, yz]
+_BOX_RELAX_KEYWORDS = ("x", "y", "z", "xy", "xz", "yz")
+
+
+def _pressure_array(pressure) -> np.ndarray | None:
+    """Pressure [GPa] as a float array of 1..6 components, NaN = component
+    fixed; None (unset) stays None.
+
+    Accepts a string ("0.0", "0.0, 0.0, None", "[0, 0, None]"), a number, or
+    a list/tuple/array with None entries.
+    """
+    if pressure is None:
+        return None
+    if isinstance(pressure, str):
+        items = [s.strip() for s in pressure.strip("[]() ").split(",") if s.strip()]
+        if not items or items == ["None"]:
+            return None
+        pressure = [None if s.lower() == "none" else float(s) for s in items]
+    values = np.array(
+        [
+            np.nan if p is None else float(p)
+            for p in np.atleast_1d(np.asarray(pressure, dtype=object))
+        ],
+        dtype=float,
+    )
+    if not 1 <= len(values) <= 6:
+        raise ValueError(
+            f"pressure needs 1..6 components [xx, yy, zz, xy, xz, yz], got {len(values)}"
+        )
+    if np.all(np.isnan(values)):
+        raise ValueError(
+            f"pressure {pressure!r} sets no component; leave it unset for a fixed cell."
+        )
+    return values
 
 
 @as_function_node
@@ -102,7 +148,7 @@ def LammpsInit(
     return _render(
         "init.j2",
         units=io_bundle.units,
-        dim=int(sum(pbc)),
+        dim=3,  # always 3D; pbc only sets the boundary (sum(pbc) gave 1 for a F,F,T cylinder)
         boundary=" ".join("p" if p else "f" for p in pbc),
         atom_style=io_bundle.atom_style,
         read_restart=read_restart,
@@ -153,6 +199,7 @@ def LammpsDump(
     io_bundle: LammpsIOBundle,
     n_print: int | None = None,
     filename: str = "dump.out",
+    extra_columns: str = "",
 ) -> str:
     """Dump block: trajectory output configuration.
 
@@ -161,9 +208,22 @@ def LammpsDump(
 
     `n_print` left as None is inherited from `io_bundle.calc_input`
     (InputCalcMD or InputCalcMinimize), else the dataclass default.
+
+    `extra_columns` (raw LAMMPS dump-custom column words, space separated,
+    e.g. "c_stressperatom[*]") are appended after vz; the compute/fix they
+    name must be defined (e.g. via LammpsComputes into AssembleLammpsInput's
+    `compute` port, which renders before the dump). Since a wildcard's column
+    count isn't known here, the format is then set with
+    `format float %20.15g` instead of a per-column `format line`: the same
+    output (%d for id/type, %20.15g for every float column). Empty (default)
+    leaves the block unchanged. lammpsparser returns a `c_<name>[k]` column
+    as `generic["<name>[k]"]`.
     """
     n_print = _inherit(n_print, io_bundle, "n_print", InputCalcMD, InputCalcMinimize)
-    return _render("dump.j2", n_print=n_print, filename=filename)
+    extra_columns = " ".join(str(extra_columns or "").split())
+    return _render(
+        "dump.j2", n_print=n_print, filename=filename, extra_columns=extra_columns
+    )
 
 
 @as_function_node("thermo")
@@ -211,9 +271,8 @@ def LammpsEnsemble(
     unless the attached dataclass has `temperature=None`. Likewise
     `ensemble="nvt"` ignores an inherited pressure.
 
-    Unlike `LammpsMinimize` (whose box/relax fix is unfixed immediately after
-    its self-executing `minimize` command), this fix stays active until a
-    later `run` executes the dynamics — potentially in a separate
+    This fix stays active until a `run` executes the dynamics — potentially
+    in a separate
     `AssembleLammpsInput` call. So `fix_ids` (the LAMMPS fix ID(s) this
     section creates) is returned alongside the rendered block: connect it to
     `AssembleLammpsInput`'s `calculation_fix_ids` so the matching `unfix` gets
@@ -317,39 +376,123 @@ def LammpsMinimize(
     f_tol: float | None = None,
     max_iter: int | None = None,
     style: str | None = None,
-    pressure: float | None = None,
+    pressure: str | None = None,
+    min_modify: str | None = None,
+    timestep: float | None = None,
+    max_eval: int | None = None,
 ) -> str:
     """Minimization block: optional box relaxation, min_style, minimize.
+
+    Optional extras, each omitted (None) unless set; none is inherited:
+    - `min_modify`: raw `min_modify` arguments, e.g. "norm two".
+    - `timestep` [fs]: written as `timestep` in `io_bundle.units` (FIRE and the
+      other damped-dynamics minimizers use it), e.g. 1.0 -> `timestep 0.001` (metal).
+    - `max_eval`: the 4th `minimize` argument (max force evaluations);
+      defaults to `max_iter` as before.
 
     Parameters: e_tol [eV], f_tol [eV/Å], pressure [GPa].
     Every parameter left as None is inherited from an InputCalcMinimize
     attached as `io_bundle.calc_input`, else from InputCalcMinimize's
     defaults. Unit conversion to `io_bundle.units` is applied automatically.
 
-    When pressure is set, adds `fix ensemble all box/relax iso P` before
-    the minimize command to allow cell volume to change, and `unfix ensemble`
-    immediately after — unlike `LammpsEnsemble`, `minimize` is self-executing
-    (it doesn't wait for a later `run`), so the fix is torn down within this
-    same section rather than needing `AssembleLammpsInput` to track it.
+    `pressure` is a string, converted to an array first (`_pressure_array`):
+    - one value, e.g. "0.0": `fix ensemble all box/relax iso 0.0`
+    - 2..6 comma-separated components [xx, yy, zz, xy, xz, yz], `None` keeping
+      that component fixed, e.g. "0.0, 0.0, None" (x, y relax to 0 GPa, z fixed):
+      `fix ensemble all box/relax x 0.0 y 0.0 couple none`. Shear components
+      need a triclinic (non-orthogonal) cell.
+    A float or list (e.g. an inherited InputCalcMinimize.pressure) is accepted
+    the same way.
+
+    When a box relaxation is set, `fix ensemble ... box/relax` goes before the
+    minimize command. The block holds no `unfix`: AssembleLammpsInput (with
+    `mode="minimize"`) reads the fix id from the block and writes
+    `unfix ensemble` after the stage's `run N` line, or right after the
+    minimize block when the stage has no `run`.
     """
+    pressure = _pressure_array(pressure)
     e_tol = _inherit(e_tol, io_bundle, "e_tol", InputCalcMinimize)
     f_tol = _inherit(f_tol, io_bundle, "f_tol", InputCalcMinimize)
     max_iter = _inherit(max_iter, io_bundle, "max_iter", InputCalcMinimize)
     style = _inherit(style, io_bundle, "style", InputCalcMinimize)
-    pressure = _inherit(pressure, io_bundle, "pressure", InputCalcMinimize)
+    if pressure is None:
+        pressure = _pressure_array(
+            _inherit(None, io_bundle, "pressure", InputCalcMinimize)
+        )
 
-    pressure_relax = None
+    box_relax = []
+    couple_none = False
     if pressure is not None:
-        pressure_relax = pressure * LAMMPS_UNIT_CONVERSIONS[io_bundle.units]["pressure"]
+        pressure = pressure * LAMMPS_UNIT_CONVERSIONS[io_bundle.units]["pressure"]
+        if len(pressure) == 1:
+            box_relax = [("iso", float(pressure[0]))]
+        else:
+            box_relax = [
+                (keyword, float(p))
+                for keyword, p in zip(_BOX_RELAX_KEYWORDS, pressure)
+                if not np.isnan(p)
+            ]
+            couple_none = True
+            shear = [k for k, _ in box_relax if k in ("xy", "xz", "yz")]
+            if shear and io_bundle.structure is not None:
+                cell = np.array(io_bundle.structure.cell)
+                if np.allclose(cell - np.diag(np.diag(cell)), 0.0):
+                    raise ValueError(
+                        f"box/relax {'/'.join(shear)} needs a triclinic box in "
+                        "LAMMPS; the structure's cell is orthogonal."
+                    )
+
+    min_modify = str(min_modify).strip() if min_modify is not None else ""
+    if timestep is not None:
+        timestep = float(timestep) * LAMMPS_UNIT_CONVERSIONS[io_bundle.units]["time"]
+    max_eval = max_iter if max_eval is None else int(max_eval)
 
     return _render(
         "minimize.j2",
-        pressure_relax=pressure_relax,
+        box_relax=box_relax,
+        couple_none=couple_none,
         style=style,
         e_tol=e_tol,
         f_tol=f_tol,
         max_iter=max_iter,
+        max_eval=max_eval,
+        min_modify=min_modify,
+        timestep=timestep,
     )
+
+
+@as_function_node(["fix", "fix_ids"])
+def LammpsFix(
+    io_bundle: LammpsIOBundle,
+    fix_id: str = "constraintxy",
+    group: str = "all",
+    style: str = "setforce",
+    args: str = "0.0 0.0 NULL",
+):
+    """A single LAMMPS fix: `fix <fix_id> <group> <style> <args>`.
+
+    Generic, for fixes no other section node sets up, e.g. the default
+    `fix constraintxy all setforce 0.0 0.0 NULL` (atoms move only along z, as
+    in a rigid-shift GSFE minimization). `args` is the raw LAMMPS argument
+    string, written as given: no unit conversion, so it must already be in
+    `io_bundle.units`. Leave `args` empty for a fix style that takes none.
+
+    Returns the rendered line and `fix_ids` (`[fix_id]`), like LammpsEnsemble,
+    so the fix can be unfixed after the run/minimize that uses it.
+    """
+    fix_id = str(fix_id).strip()
+    group = str(group).strip()
+    style = str(style).strip()
+    args = "" if args is None else str(args).strip()
+    for name, value in (("fix_id", fix_id), ("group", group), ("style", style)):
+        if not value or any(c.isspace() for c in value):
+            raise ValueError(
+                f"LammpsFix {name} must be a single non-empty word, got {value!r}"
+            )
+
+    fix = _render("fix.j2", fix_id=fix_id, group=group, style=style, args=args)
+    fix_ids = [fix_id]
+    return fix, fix_ids
 
 
 @as_function_node
@@ -358,20 +501,48 @@ def AssembleLammpsInput(
     init: str = "",
     potential: str = "",
     potential_file_content: str = "",
+    neighbor: str = "",
+    region: str = "",
+    group: str = "",
+    compute: str = "",
     dump: str = "",
     thermo: str = "",
     calculation: str = "",
     calculation_fix_ids: list[str] = [],
     velocity: str = "",
+    fix: str = "",
+    fix_ids: list[str] = [],
     run: int | None = None,
     write_restart: str | None = None,
     mode: str | None = None,
 ) -> LammpsIOBundle:
     """Assemble named sections into a LAMMPS input, in the fixed order LAMMPS
-    requires (init, potential, dump, thermo, velocity, calculation, run), and
-    inject/append it into `io_bundle` — mirroring how `CreateLammpsMDInput`
-    builds `lammps_input_string` and returns the updated bundle. No separate
-    bridge node is needed to reach `RunLammpsCalculation`.
+    requires (init, potential, region, group, compute, dump, thermo, velocity, fix,
+    calculation, run), and inject/append it into `io_bundle` — mirroring how
+    `CreateLammpsMDInput` builds `lammps_input_string` and returns the updated
+    bundle. No separate bridge node is needed to reach `RunLammpsCalculation`.
+
+    `neighbor` takes neighbor-list settings (`neighbor`/`neigh_modify` lines,
+    e.g. from LammpsNeighbor), rendered right after the potential.
+
+    `region`/`group` take region and group lines (e.g. a frozen ring:
+    `region ring cylinder ...` and `group ring region ring`). They come after
+    read_data/pair_style and before any dump/fix that uses the group. Unlike
+    `init`/`potential` they are allowed on later stages too, since regions
+    and groups persist in LAMMPS; a group's membership is set when its line
+    runs.
+
+    `compute` takes compute lines (e.g. from LammpsComputes, several computes
+    in one block), rendered after `group` and before `dump`/`thermo`, so a
+    dump or thermo can use `c_<id>`. Allowed on later stages too.
+
+    `fix`/`fix_ids` take LammpsFix's (or LammpsFixes') outputs (an extra fix, e.g. setforce).
+    The fix is rendered just before `calculation`. Its ids join the pending
+    fix ids and are unfixed after the `run` (this stage's or a later one's),
+    like LammpsEnsemble's. Only with `mode="minimize"` (io_bundle.mode) and no
+    `run` in this stage is it unfixed right after the calculation block, since
+    minimize runs by itself and no `run` follows. An empty `fix_ids`
+    falls back to the ids named in the `fix` lines.
 
     Chainable across multiple simulation stages: call this node again on the
     same `io_bundle` to append a further stage (e.g. an NVT equilibration
@@ -385,9 +556,10 @@ def AssembleLammpsInput(
     `LammpsMinimize`'s output — the two are mutually exclusive ways to set up
     what the run actually does (an MD ensemble fix, or a box/relax fix plus
     `minimize`), so they share one port rather than needing two.
-    `LammpsMinimize`'s box/relax fix (if any) is unfixed immediately after its
-    own self-executing `minimize` command, so it needs nothing further here.
-    `LammpsEnsemble`'s fix(es) stay active until a `run` actually executes the
+    `LammpsMinimize`'s box/relax fix (if any) needs no wiring: with
+    `mode="minimize"` its id is read from the block's `fix` line, and it is
+    unfixed after this stage's `run` (or right after the minimize block when
+    there is no `run`), together with any LammpsFix fix. `LammpsEnsemble`'s fix(es) stay active until a `run` actually executes the
     dynamics, so its second output, `fix_ids`, should be connected to
     `calculation_fix_ids` — this node remembers them on `io_bundle` and emits
     the matching `unfix` line(s) right after the `run` (and any
@@ -460,8 +632,36 @@ def AssembleLammpsInput(
         init = ""
         potential = ""
 
+    # Fix ids introduced by this stage: the calculation's (LammpsEnsemble's
+    # wired `calculation_fix_ids`, or in minimize mode LammpsMinimize's
+    # box/relax fix, read from its `fix` lines) and the extra fix's
+    # (LammpsFix; an unwired `fix_ids` port falls back to its `fix` lines).
+    # A minimize stage: mode="minimize", or a calculation block holding a
+    # `minimize` command (LammpsMinimize's output, also when `mode` is unset).
+    is_minimize = io_bundle.mode == "minimize" or any(
+        line.startswith("minimize ") for line in calculation.splitlines()
+    )
+    pending = [i for i in io_bundle.lammps_pending_fix_ids.split(",") if i]
+    new_ids = []
     if calculation:
-        io_bundle.lammps_pending_fix_ids = ",".join(calculation_fix_ids)
+        # any earlier pending ids raised above, so this stage starts clean
+        pending = []
+        calc_ids = list(calculation_fix_ids)
+        if not calc_ids and is_minimize:
+            calc_ids = _fix_ids_in(calculation)
+        new_ids += calc_ids
+    if fix:
+        new_ids += list(fix_ids) or _fix_ids_in(fix)
+    fix_unfix = ""
+    if is_minimize and run is None:
+        # minimize is self-executing and no `run` follows in this stage:
+        # unfix right after the calculation block.
+        if new_ids:
+            fix_unfix = _render("unfix.j2", fix_ids=new_ids)
+    else:
+        # unfixed after this stage's `run`, or a later stage's
+        pending += new_ids
+    io_bundle.lammps_pending_fix_ids = ",".join(pending)
 
     render_run_section = run is not None or write_restart
     # Pending fixes are only unfixed after a `run` that actually used them: a
@@ -483,10 +683,16 @@ def AssembleLammpsInput(
         "master.j2",
         init=init,
         potential=potential,
+        neighbor=neighbor,
+        region=region,
+        group=group,
+        compute=compute,
         dump=dump,
         thermo=thermo,
         calculation=calculation,
         velocity=velocity,
+        fix=fix,
+        fix_unfix=fix_unfix,
         run=run_section,
     )
     if is_first_stage:

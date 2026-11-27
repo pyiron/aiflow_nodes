@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from typing import Literal
 
 import numpy as np
 from aiflow.core import as_function_node
@@ -979,3 +980,165 @@ def DeleteElements(
             bond_dict = None
 
     return structure, bond_dict
+
+
+_AXIS_INDEX = {"x": 0, "y": 1, "z": 2}
+
+
+@as_function_node("structure")
+def AddVacuum(
+    structure: Atoms,
+    vacuum: float = 10.0,
+    direction: Literal["x", "y", "z"] = "z",
+) -> Atoms:
+    """Add `vacuum` Å of empty space along cell axis `direction` (x/y/z = cell
+    vector 0/1/2); the other two cell vectors and the atom positions are unchanged.
+
+    `vacuum` is measured perpendicular to the plane of the other two cell vectors,
+    so it is the true slab-to-slab gap added even for a non-orthogonal cell (for
+    `direction="z"` this is exactly `ase.build.add_vacuum`).
+    """
+    i = _AXIS_INDEX[direction]
+    j, k = [a for a in range(3) if a != i]
+
+    structure = structure.copy()
+    cell = np.array(structure.cell)
+    normal = np.cross(cell[j], cell[k])
+    normal /= np.linalg.norm(normal)
+    height = abs(np.dot(cell[i], normal))
+    new_height = height + float(vacuum)
+    if new_height <= 0:
+        raise ValueError(
+            f"vacuum={vacuum} would collapse the cell along {direction} "
+            f"(current height {height:.3f} Å)."
+        )
+    cell[i] *= new_height / height
+    structure.set_cell(cell, scale_atoms=False)
+    return structure
+
+
+def _bools(text, name="pbc") -> list:
+    """ "True, True, False" / "T T F" / "1, 1, 0" / a single value for all three axes."""
+    words = (
+        str(text).replace("[", "").replace("]", "").replace("(", "").replace(")", "")
+    )
+    words = [w for w in words.replace(",", " ").split() if w]
+    table = {
+        "true": True,
+        "t": True,
+        "1": True,
+        "yes": True,
+        "false": False,
+        "f": False,
+        "0": False,
+        "no": False,
+    }
+    try:
+        values = [table[w.lower()] for w in words]
+    except KeyError as exc:
+        raise ValueError(f"{name}: cannot read {text!r} as booleans") from exc
+    if len(values) == 1:
+        values = values * 3
+    if len(values) != 3:
+        raise ValueError(f"{name} needs 1 or 3 values, got {text!r}")
+    return values
+
+
+@as_function_node("structure")
+def SetPBC(structure, pbc: str = "True, True, True", wrap: bool = False):
+    """Set the periodic boundary conditions of a structure; the cell is unchanged.
+
+    `pbc` is one value for all axes or three ("True, True, False", "T T F",
+    "1, 1, 0"), for cell vectors 0, 1, 2.
+
+    `wrap=True` first wraps the atoms into the cell along every direction that
+    is periodic *before* the change (ASE `Atoms.wrap` with the old pbc), and
+    only then sets the new pbc. So a block that was built periodic and then
+    rotated (atoms only, e.g. RotateAxisAngle) has its periodic images folded
+    into the cell before those directions become non-periodic. With
+    `wrap=False` the positions are left exactly as they are.
+    """
+    structure = structure.copy()
+    if wrap:
+        structure.wrap(pbc=structure.get_pbc())
+    structure.set_pbc(_bools(pbc))
+    return structure
+
+
+def _xy_centre(structure):
+    """Centre of the cell's x-y face, (x, y, 0) (in the crack nodes: the crack tip / cylinder axis).
+
+    The crack nodes keep the atoms inside an ordinary cell starting at (0, 0, 0)
+    and put the tip at this point, so every node measures positions relative to
+    it. CrackSpecimenFiles subtracts it again, because wcrack's files have the
+    tip at (0, 0)."""
+    import numpy as np
+
+    cell = np.array(structure.cell)
+    centre = 0.5 * (cell[0] + cell[1])
+    return np.array([centre[0], centre[1], 0.0]) + np.asarray(
+        structure.get_celldisp()
+    ).ravel() * [1, 1, 0]
+
+
+@as_function_node(["structure", "n_fixed"])
+def FreezeOuterRing(structure, radius_nm: float, ring_width_A: float = 20.0):
+    """Fix the outer ring, r > R - ring_width_A from the crack tip (the cell's
+    x-y centre), with an ASE FixAtoms constraint: selective dynamics
+    [False, False, False] for those atoms.
+
+    Apply it to the undisplaced specimen (after CutNotch, before StrohKField /
+    ApplyKField), so the ring is decided on X0; ApplyKField's copy keeps the
+    constraint. Downstream, LammpsGroupFromStructure turns it into
+    `group ring id ...` and LammpsFix(setforce 0 0 0) freezes it;
+    CrackSpecimenFiles reads it as the FIXED mask.
+
+    `radius_nm` is CutCylinder's radius. Replaces any constraint the structure
+    already has (a copy is returned). Returns the structure and the number of
+    fixed atoms.
+    """
+    import numpy as np
+    from ase.constraints import FixAtoms
+
+    R = 10.0 * float(radius_nm)
+    r_free = R - float(ring_width_A)
+    if r_free <= 0.0:
+        raise ValueError(
+            f"ring_width_A {ring_width_A} >= radius {R} A: no mobile core left"
+        )
+    structure = structure.copy()
+    if structure.constraints:
+        print(
+            f"FreezeOuterRing: replacing the structure's existing constraints {structure.constraints}"
+        )
+    rel = structure.get_positions() - _xy_centre(structure)
+    mask = np.hypot(rel[:, 0], rel[:, 1]) > r_free
+    if not mask.any():
+        raise ValueError(
+            f"no atom beyond r = {r_free} A: check radius_nm against the cut cylinder"
+        )
+    structure.set_constraint(FixAtoms(mask=mask))
+    n_fixed = int(mask.sum())
+    return structure, n_fixed
+
+
+@as_function_node("structure")
+def ReorderAtoms(structure, order: list | None = None):
+    """The same atoms listed in another order: atom k of the result is atom
+    order[k] of the input (constraints such as the FixAtoms ring follow their
+    atoms). With `order` None (default) the structure is passed on unchanged.
+
+    For validation: the atom order (= LAMMPS ids) of this chain and of wcrack
+    can differ for a few atoms whose sort keys round differently at the 1e-6 A
+    step; giving wcrack's order makes both LAMMPS inputs use the same ids.
+    """
+    import numpy as np
+
+    if order is None:
+        return structure
+    order = np.asarray(order, int)
+    n = len(structure)
+    if order.shape != (n,) or not np.array_equal(np.sort(order), np.arange(n)):
+        raise ValueError(f"order must be a permutation of 0..{n - 1}")
+    structure = structure[order]
+    return structure
